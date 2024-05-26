@@ -10,6 +10,11 @@ import * as Pubkey from './pubkey';
 import * as Data from './data';
 import * as Standardization from './standardization';
 import * as Common from './common';
+import * as Base from './base';
+import * as CoreErrors from './coreErrors';
+import * as Config from './config';
+import * as ZodSchema from './zod';
+import * as Utils from './utils';
 
 export * from './field';
 export * from './file';
@@ -23,4 +28,10 @@ export * from './pubkey';
 export * from './data';
 export * from './standardization';
 export * from './common';
-export const Types = { File, Job, Log, User, Organisation, Pubkey, Study, Query, Field, Data, Standardization, Common };
+export * from './base';
+export * from './coreErrors';
+export * from './config';
+export * from './zod';
+export * from './utils';
+
+export const Types = { File, Job, Log, User, Organisation, Pubkey, Study, Query, Field, Data, Standardization, Common, Base, CoreErrors, Config, ZodSchema, Utils };

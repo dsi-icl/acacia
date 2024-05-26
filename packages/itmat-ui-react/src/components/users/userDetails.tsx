@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IGenericResponse, IOrganisation, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { IGenericResponse, IOrganisation, IUserWithoutToken, enumUserTypes } from '@itmat-broker/itmat-types';
 import { WHO_AM_I, DELETE_USER, EDIT_USER, GET_USERS, REQUEST_USERNAME_OR_RESET_PASSWORD, GET_ORGANISATIONS, GET_STUDY } from '@itmat-broker/itmat-models';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -98,7 +98,7 @@ export const UserDetailsSection: FunctionComponent = () => {
 
 type EditUser = IUserWithoutToken & {
     organisation: string,
-    type: userTypes,
+    type: enumUserTypes,
     metadata: {
         [key: string]: unknown,
         aePermission: boolean,
@@ -152,7 +152,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                 <Form initialValues={{
                     ...user,
                     ae: user.metadata?.aePermission ?? false,
-                    createdAt: dayjs(user.createdAt),
+                    createdAt: dayjs(user.life.createdTime),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.id
                 }} layout='vertical' onFinish={(variables) => { submit({ variables: formatSubmitObj(variables) }).catch(() => { return; }); }}>
@@ -218,7 +218,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                         <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
                             Save
                         </Button>
-                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
+                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === enumUserTypes.ADMIN
                             ? <>
                                 &nbsp;&nbsp;&nbsp;
                                 <Button disabled={loading} onClick={() => {
@@ -236,7 +236,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                             : null
                         }
                         &nbsp;&nbsp;&nbsp;
-                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN && user.access
+                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === enumUserTypes.ADMIN && user.access
                             ? <Mutation<{ deleteUser: IGenericResponse }, { userId: string }>
                                 mutation={DELETE_USER}
                                 refetchQueries={[

@@ -3,7 +3,7 @@ import { filterFields, generateCascader, findDmField } from '../../../../utils/t
 import { dataTypeMapping } from '../utils/defaultParameters';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
 import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-models';
-import { IFieldEntry, IProject, enumValueType, IOntologyTree, IOntologyRoute, ICohortSelection } from '@itmat-broker/itmat-types';
+import { IField, IProject, enumDataTypes, IOntologyTree, IOntologyRoute, ICohortSelection } from '@itmat-broker/itmat-types';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -123,7 +123,7 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfOntology
                             </div>
                         </Col>
                         <Col span={9}>
-                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toUTCString()}</Text></div>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.life.createdTime === undefined ? 'NA' : (new Date(project.dataVersion?.life.createdTime)).toUTCString()}</Text></div>
                         </Col>
                     </Row><br />
                 </div> :
@@ -178,7 +178,7 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfOntology
                             </div>
                         </Col>
                         <Col span={15}>
-                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toDateString()}</Text></div>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.life.createdTime === undefined ? 'NA' : (new Date(project.dataVersion?.life.createdTime)).toDateString()}</Text></div>
                         </Col>
                     </Row>
                 </div>
@@ -191,7 +191,7 @@ interface IDemographicsReport {
     value: number;
 }
 
-export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
+export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IField[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
     const [width, __unused__height__] = useWindowSize();
     // process the data
     const genderField = findDmField(ontologyTree, fields, 'SEX');
@@ -240,7 +240,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
         obj.AGE = [];
     } else {
         obj.SEX = (data[genderField.fieldId][genderField.visitRange[0]]?.data || []).reduce((acc, curr) => {
-            const thisGender = genderField?.possibleValues?.filter(el => el.code === curr)[0].description || '';
+            const thisGender = genderField?.categoricalOptions?.filter(el => el.code === curr)[0].description || '';
             if (acc.filter(es => es.type === thisGender).length === 0) {
                 acc.push({ type: thisGender, value: 0 });
             }
@@ -274,7 +274,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             obj.RACE = [];
         } else {
             obj.RACE = (data[raceField.fieldId][raceField.visitRange[0]]?.data || []).reduce((acc, curr) => {
-                const thisRace = raceField?.possibleValues?.filter(el => el.code === curr)[0].description || '';
+                const thisRace = raceField?.categoricalOptions?.filter(el => el.code === curr)[0].description || '';
                 if (acc.filter(es => es.type === thisRace).length === 0) {
                     acc.push({ type: thisRace, value: 0 });
                 }
@@ -429,13 +429,13 @@ interface GroupedData {
     }
 }
 
-export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[], project: IProject }> = ({ ontologyTree, fields, project }) => {
+export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyTree, fields: IField[], project: IProject }> = ({ ontologyTree, fields, project }) => {
     const [selectedPath, setSelectedPath] = useState<(string | number)[]>([]);
     const [selectedGraphType, setSelectedGraphType] = useState<string | undefined>(undefined);
     const routes: IOntologyRoute[] = ontologyTree.routes?.filter(es => {
         return JSON.stringify([...es.path, es.name]) === JSON.stringify(selectedPath);
     }) || [];
-    const field: IFieldEntry | undefined = fields.filter(el => {
+    const field: IField | undefined = fields.filter(el => {
         return el.fieldId.toString() === routes[0]?.field[0]?.replace('$', '');
     })[0];
     //construct the cascader
@@ -502,7 +502,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
             }}
         >
             {
-                [enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === field?.fieldId)[0]?.dataType) ?
+                [enumDataTypes.INTEGER, enumDataTypes.DECIMAL].includes(fields.filter(el => el.fieldId === field?.fieldId)[0]?.dataType) ?
                     <>
                         <Option value='violin'>Violin</Option>
                         <Option value='box'>Box</Option>
@@ -588,7 +588,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                 return <Empty />;
                             }
                             let processedData: Array<{ x: string, y: number } | { visit: string, value: string, count: number }> = [];
-                            if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
+                            if ([enumDataTypes.INTEGER, enumDataTypes.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
                                 processedData = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
                                     data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
                                         if (el === '99999') {
@@ -598,7 +598,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                     });
                                     return acc;
                                 }, [] as { x: string, y: number }[]);
-                            } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
+                            } else if ([enumDataTypes.CATEGORICAL, enumDataTypes.BOOLEAN].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
                                 processedData = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
                                     let count = 0;
                                     data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
@@ -640,7 +640,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                     high: sortedY[sortedY.length - 1]
                                 };
                             });
-                            if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType))
+                            if ([enumDataTypes.INTEGER, enumDataTypes.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType))
                                 return selectedGraphType === 'violin'
                                     ? <Violin
                                         data={data}
@@ -687,7 +687,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
     </SubsectionWithComment >);
 };
 
-export const DataCompletenessBlock: FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
+export const DataCompletenessBlock: FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IField[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
     const [selectedPath, setSelectedPath] = useState<(string | number)[]>([]);
     const requestedFields = ontologyTree.routes?.filter(el => {
         if (JSON.stringify(el.path) === JSON.stringify(selectedPath)) {
@@ -756,7 +756,7 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
         showTitle: false,
         fields: ['visit', 'field', 'percentage'],
         formatter: (datum) => {
-            const field: IFieldEntry | undefined = fields.filter(el => el.fieldId === datum.field)[0];
+            const field: IField | undefined = fields.filter(el => el.fieldId === datum.field)[0];
             let name;
             if (field) {
                 name = field.fieldId.concat('-').concat(field.fieldName);

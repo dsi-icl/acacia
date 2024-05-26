@@ -9,7 +9,9 @@ declare global {
 
         interface Request {
             user?: User;
-            headers: IncomingHttpHeaders
+            headers: IncomingHttpHeaders;
+            login(user: User, done: (err: unknown) => void): void;
+            logout(done: (err: unknown) => void): void;
         }
     }
 }

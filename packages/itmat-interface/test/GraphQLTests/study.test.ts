@@ -16,7 +16,6 @@ import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import {
     GET_STUDY_FIELDS,
-    GET_PROJECT_PATIENT_MAPPING,
     GET_STUDY,
     GET_PROJECT,
     GET_USERS,
@@ -33,7 +32,6 @@ import {
     DELETE_DATA_RECORDS,
     GET_DATA_RECORDS,
     CREATE_NEW_DATA_VERSION,
-    CHECK_DATA_COMPLETE,
     CREATE_NEW_FIELD,
     DELETE_FIELD,
     CREATE_ONTOLOGY_TREE,
@@ -41,19 +39,23 @@ import {
     GET_ONTOLOGY_TREE
 } from '@itmat-broker/itmat-models';
 import {
-    userTypes,
+    enumUserTypes,
     studyType,
-    enumValueType,
+    enumDataTypes,
     IDataEntry,
     IUser,
     IFile,
-    IFieldEntry,
+    IField,
     IStudyDataVersion,
     IStudy,
     IProject,
     IRole,
     IPermissionManagementOptions,
-    atomicOperation
+    atomicOperation,
+    enumReservedUsers,
+    IData,
+    enumFileTypes,
+    enumFileCategories
 } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 import path from 'path';
@@ -139,7 +141,7 @@ if (global.hasMinio) {
                 expect(resWhoAmI.body.data.errors).toBeUndefined();
                 expect(resWhoAmI.body.data.whoAmI).toEqual({
                     username: 'admin',
-                    type: userTypes.ADMIN,
+                    type: enumUserTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
                     organisation: 'organisation_system',
@@ -151,19 +153,18 @@ if (global.hasMinio) {
                         projects: [],
                         studies: [{
                             id: createdStudy.id,
-                            name: studyName,
-                            type: studyType.SENSOR
+                            name: studyName
                         }]
                     },
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
-                    metadata: null
+                    metadata: {}
                 });
 
                 /* cleanup: delete study */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ 'name': studyName, 'life.deletedTime': null }, { $set: { 'life.deletedUser': 'admin', 'life.deletedTime': new Date().valueOf() } });
             });
 
             test('Edit study (admin)', async () => {
@@ -190,24 +191,27 @@ if (global.hasMinio) {
                 expect(editStudy.body.data.editStudy).toEqual({
                     id: createdStudy.id,
                     name: studyName,
-                    description: 'edited description',
-                    type: studyType.SENSOR
+                    description: 'edited description'
                 });
 
                 /* cleanup: delete study */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ 'name': studyName, 'life.deletedTime': null }, { $set: { 'life.deletedUser': 'admin', 'life.deletedTime': new Date().valueOf() } });
             });
 
             test('Create study that violate unique name constraint (admin)', async () => {
                 const studyName = uuid();
-                const newStudy = {
+                const newStudy: IStudy = {
                     id: `id_${studyName}`,
                     name: studyName,
-                    createdBy: 'admin',
-                    lastModified: 200000002,
-                    deleted: null,
                     currentDataVersion: -1,
-                    dataVersions: []
+                    dataVersions: [],
+                    life: {
+                        createdTime: 200000002,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection).insertOne(newStudy);
 
@@ -225,19 +229,23 @@ if (global.hasMinio) {
                 expect(study).toEqual([newStudy]);
 
                 /* cleanup: delete study */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ 'name': studyName, 'life.deletedTime': null }, { $set: { 'life.deletedUser': 'admin', 'life.deletedTime': new Date().valueOf() } });
             });
 
             test('Create study that violate unique name constraint (case insensitive) (admin)', async () => {
                 const studyName = uuid();
-                const newStudy = {
+                const newStudy: IStudy = {
                     id: `id_${studyName}`,
                     name: studyName,
-                    createdBy: 'admin',
-                    lastModified: 200000002,
-                    deleted: null,
                     currentDataVersion: -1,
-                    dataVersions: []
+                    dataVersions: [],
+                    life: {
+                        createdTime: 200000002,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection).insertOne(newStudy);
 
@@ -255,7 +263,7 @@ if (global.hasMinio) {
                 expect(study).toEqual([newStudy]);
 
                 /* cleanup: delete study */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ 'name': studyName, 'life.deletedTime': null }, { $set: { 'life.deletedUser': 'admin', 'life.deletedTime': new Date().valueOf() } });
             });
 
             test('Create study (user) (should fail)', async () => {
@@ -300,21 +308,24 @@ if (global.hasMinio) {
                 expect(editStudy.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
 
                 /* cleanup: delete study */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ 'name': studyName, 'life.deletedTime': null }, { $set: { 'life.deletedUser': 'admin', 'life.deletedTime': new Date().valueOf() } });
             });
 
             test('Delete study (no projects) (admin)', async () => {
                 /* setup: create a study to be deleted */
                 const studyName = uuid();
-                const newStudy = {
+                const newStudy: IStudy = {
                     id: `id_${studyName}`,
                     name: studyName,
-                    createdBy: 'admin',
-                    lastModified: 200000002,
-                    deleted: null,
                     currentDataVersion: -1,
                     dataVersions: [],
-                    type: studyType.SENSOR
+                    life: {
+                        createdTime: 200000002,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection).insertOne(newStudy);
 
@@ -323,7 +334,7 @@ if (global.hasMinio) {
                 expect(resWhoAmI.body.data.errors).toBeUndefined();
                 expect(resWhoAmI.body.data.whoAmI).toEqual({
                     username: 'admin',
-                    type: userTypes.ADMIN,
+                    type: enumUserTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
                     organisation: 'organisation_system',
@@ -335,15 +346,14 @@ if (global.hasMinio) {
                         projects: [],
                         studies: [{
                             id: newStudy.id,
-                            name: studyName,
-                            type: studyType.SENSOR
+                            name: studyName
                         }]
                     },
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
-                    metadata: null
+                    metadata: {}
                 });
 
                 /* test */
@@ -359,14 +369,14 @@ if (global.hasMinio) {
                 });
 
                 const study = await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOne({ id: newStudy.id });
-                expect(typeof study.deleted).toBe('number');
+                expect(typeof study?.life.deletedTime).toBe('number');
 
                 const resWhoAmIAfter = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                 expect(resWhoAmIAfter.status).toBe(200);
                 expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
                 expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
                     username: 'admin',
-                    type: userTypes.ADMIN,
+                    type: enumUserTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
                     organisation: 'organisation_system',
@@ -382,21 +392,25 @@ if (global.hasMinio) {
                     emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
-                    metadata: null
+                    metadata: {}
                 });
             });
 
             test('Delete study that has been deleted (no projects) (admin)', async () => {
                 /* setup: create a study to be deleted */
                 const studyName = uuid();
-                const newStudy = {
+                const newStudy: IStudy = {
                     id: `id_${studyName}`,
                     name: studyName,
-                    createdBy: 'admin',
-                    lastModified: 200000002,
-                    deleted: new Date().valueOf(),
                     currentDataVersion: -1,
-                    dataVersions: []
+                    dataVersions: [],
+                    life: {
+                        createdTime: 200000002,
+                        createdUserId: 'admin',
+                        deletedTime: 10000,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection).insertOne(newStudy);
 
@@ -425,14 +439,18 @@ if (global.hasMinio) {
             test('Delete study (user) (should fail)', async () => {
                 /* setup: create a study to be deleted */
                 const studyName = uuid();
-                const newStudy = {
+                const newStudy: IStudy = {
                     id: `id_${studyName}`,
                     name: studyName,
-                    createdBy: 'admin',
-                    lastModified: 200000002,
-                    deleted: null,
                     currentDataVersion: -1,
-                    dataVersions: []
+                    dataVersions: [],
+                    life: {
+                        createdTime: 200000002,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection).insertOne(newStudy);
 
@@ -447,16 +465,16 @@ if (global.hasMinio) {
 
                 /* confirms that the created study is still alive */
                 const createdStudy = await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOne({ name: studyName });
-                expect(createdStudy.deleted).toBe(null);
+                expect(createdStudy?.life.deletedTime).toBe(null);
 
                 /* cleanup: delete study */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ 'name': studyName, 'life.deletedTime': null }, { $set: { 'life.deletedUser': 'admin', 'life.deletedTime': new Date().valueOf() } });
             });
         });
 
         describe('MANIPULATING PROJECTS EXISTENCE', () => {
             let testCounter = 0;
-            let setupStudy: { id: any; name?: string; createdBy?: string; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: { id: string; contentId: string; version: string; tag: string; updateDate: string; }[]; };
+            let setupStudy: IStudy;
             let setupProject: { id: any; studyId?: string; createdBy?: string; name?: string; patientMapping?: { patient001: string; }; lastModified?: number; deleted?: null; };
             beforeEach(async () => {
                 testCounter++;
@@ -465,9 +483,6 @@ if (global.hasMinio) {
                 setupStudy = {
                     id: `id_${studyName}`,
                     name: studyName,
-                    createdBy: 'admin',
-                    lastModified: 200000002,
-                    deleted: null,
                     currentDataVersion: 0,
                     dataVersions: [
                         {
@@ -477,7 +492,14 @@ if (global.hasMinio) {
                             tag: '1',
                             updateDate: '1628049066475'
                         }
-                    ]
+                    ],
+                    life: {
+                        createdTime: 20000001,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection).insertOne(setupStudy);
 
@@ -496,7 +518,7 @@ if (global.hasMinio) {
             });
 
             afterEach(async () => {
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).updateOne({ id: setupStudy.id }, { $set: { deleted: 10000 } });
+                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).updateOne({ id: setupStudy.id }, { $set: { 'life.deletedTime': 10000 } });
                 await mongoClient.collection<IProject>(config.database.collections.projects_collection).updateOne({ id: setupProject.id }, { $set: { deleted: 10000 } });
             });
 
@@ -553,7 +575,7 @@ if (global.hasMinio) {
                 const username = uuid();
                 const authorisedUserProfile: IUser = {
                     username,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${username}_firstname`,
                     lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -564,17 +586,21 @@ if (global.hasMinio) {
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
-                    deleted: null,
                     id: `new_user_id_${username}`,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 const roleId = uuid();
                 const newRole = {
                     id: roleId,
-                    projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId}_rolename`,
                     permissions: {
@@ -670,7 +696,7 @@ if (global.hasMinio) {
                 const username = uuid();
                 const authorisedUserProfile: IUser = {
                     username,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${username}_firstname`,
                     lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -681,17 +707,21 @@ if (global.hasMinio) {
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
-                    deleted: null,
                     id: `new_user_id_${username}`,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 const roleId = uuid();
                 const newRole = {
                     id: roleId,
-                    projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId}_rolename`,
                     permissions: {
@@ -754,17 +784,14 @@ if (global.hasMinio) {
             let createdStudy: { id: any; name: any; };
             let createdRole_study: { _id: any; id: any; name: any; };
             let createdRole_study_manageProject: { _id: any; id: any; name: any; };
-            let createdRole_study_self_access: { _id: any; id: any; name: any; };
             let createdRole_project: { _id: any; id: any; name: any; };
             let createdUserAuthorised: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; };  // profile
             let createdUserAuthorisedStudy: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; };  // profile
             let createdUserAuthorisedStudyManageProjects: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; };  // profile
-            let createdUserAuthorisedToOneOrg: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; }; // profile
             let authorisedUser: request.SuperTest<request.Test>; // client
             let authorisedUserStudy: request.SuperTest<request.Test>; // client
             let authorisedUserStudyManageProject: request.SuperTest<request.Test>; // client
-            let authorisedUserToOneOrg: request.SuperTest<request.Test>; // client
-            let mockFields: IFieldEntry[];
+            let mockFields: IField[];
             let mockFiles: IFile[];
             let mockDataVersion: IStudyDataVersion;
             const newMockDataVersion: IStudyDataVersion = { // this is not added right away; but multiple tests uses this
@@ -803,50 +830,82 @@ if (global.hasMinio) {
                         version: '0.0.1',
                         updateDate: '5000000'
                     };
-                    const mockData: IDataEntry[] = [
+                    const mockData: IData[] = [
                         {
                             id: 'mockData1_1',
-                            m_subjectId: 'mock_patient1',
-                            m_visitId: 'mockvisitId',
-                            m_studyId: createdStudy.id,
-                            m_versionId: mockDataVersion.id,
-                            m_fieldId: '31',
+                            studyId: createdStudy.id,
+                            fieldId: '31',
+                            dataVersion: mockDataVersion.id,
                             value: 'male',
-                            metadata: {},
-                            deleted: null
+                            properties: {
+                                m_subjectId: 'mock_patient1',
+                                m_visitId: 'mockvisitId'
+
+                            },
+                            life: {
+                                createdTime: 10000,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         },
                         {
                             id: 'mockData1_2',
-                            m_subjectId: 'mock_patient1',
-                            m_visitId: 'mockvisitId',
-                            m_studyId: createdStudy.id,
-                            m_versionId: mockDataVersion.id,
-                            m_fieldId: '49',
+                            studyId: createdStudy.id,
+                            fieldId: '49',
+                            dataVersion: mockDataVersion.id,
                             value: 'England',
-                            metadata: {},
-                            deleted: null
+                            properties: {
+                                m_subjectId: 'mock_patient1',
+                                m_visitId: 'mockvisitId'
+
+                            },
+                            life: {
+                                createdTime: 10001,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         },
                         {
                             id: 'mockData2_1',
-                            m_subjectId: 'mock_patient2',
-                            m_visitId: 'mockvisitId',
-                            m_studyId: createdStudy.id,
-                            m_versionId: mockDataVersion.id,
-                            m_fieldId: '31',
+                            studyId: createdStudy.id,
+                            fieldId: '31',
+                            dataVersion: mockDataVersion.id,
                             value: 'female',
-                            metadata: {},
-                            deleted: null
+                            properties: {
+                                m_subjectId: 'mock_patient2',
+                                m_visitId: 'mockvisitId'
+
+                            },
+                            life: {
+                                createdTime: 10002,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         },
                         {
                             id: 'mockData2_2',
-                            m_subjectId: 'mock_patient2',
-                            m_visitId: 'mockvisitId',
-                            m_studyId: createdStudy.id,
-                            m_versionId: mockDataVersion.id,
-                            m_fieldId: '49',
+                            studyId: createdStudy.id,
+                            fieldId: '49',
+                            dataVersion: mockDataVersion.id,
                             value: 'France',
-                            metadata: {},
-                            deleted: null
+                            properties: {
+                                m_subjectId: 'mock_patient2',
+                                m_visitId: 'mockvisitId'
+
+                            },
+                            life: {
+                                createdTime: 10003,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         }
                     ];
                     mockFields = [
@@ -855,53 +914,79 @@ if (global.hasMinio) {
                             studyId: createdStudy.id,
                             fieldId: '31',
                             fieldName: 'Sex',
-                            dataType: enumValueType.STRING,
-                            possibleValues: [],
+                            dataType: enumDataTypes.STRING,
+                            categoricalOptions: [],
                             unit: 'person',
                             comments: 'mockComments1',
-                            dateAdded: '10000',
-                            dateDeleted: null,
-                            dataVersion: 'mockDataVersionId'
+                            dataVersion: 'mockDataVersionId',
+                            life: {
+                                createdTime: 10000,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         },
                         {
                             id: 'mockfield2',
                             studyId: createdStudy.id,
                             fieldId: '32',
                             fieldName: 'Race',
-                            dataType: enumValueType.STRING,
-                            possibleValues: [],
+                            dataType: enumDataTypes.STRING,
+                            categoricalOptions: [],
                             unit: 'person',
                             comments: 'mockComments2',
-                            dateAdded: '20000',
-                            dateDeleted: null,
-                            dataVersion: 'mockDataVersionId'
+                            dataVersion: 'mockDataVersionId',
+                            life: {
+                                createdTime: 20000,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         }
                     ];
 
                     mockFiles = [
                         {
                             id: 'mockfile1_id',
-                            fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
                             studyId: createdStudy.id,
+                            userId: null,
+                            fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
                             fileSize: '1000',
                             description: 'Just a test file1',
-                            uploadTime: '1599345644000',
-                            uploadedBy: adminId,
+                            properties: {},
                             uri: 'fakeuri',
-                            deleted: null,
-                            hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                            hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
+                            fileType: enumFileTypes.TXT,
+                            fileCategory: enumFileCategories.STUDY_DATA_FILE,
+                            life: {
+                                createdTime: 1599345644000,
+                                createdUser: adminId,
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         },
                         {
                             id: 'mockfile2_id',
-                            fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
                             studyId: createdStudy.id,
+                            userId: null,
+                            fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
                             fileSize: '1000',
                             description: 'Just a test file2',
-                            uploadTime: '1599345644000',
-                            uploadedBy: adminId,
+                            properties: {},
                             uri: 'fakeuri2',
-                            deleted: null,
-                            hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
+                            hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3',
+                            fileType: enumFileTypes.JSON,
+                            fileCategory: enumFileCategories.STUDY_DATA_FILE,
+                            life: {
+                                createdTime: 1599345644000,
+                                createdUser: adminId,
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         }
                     ];
                     await db.collections.studies_collection.updateOne({ id: createdStudy.id }, {
@@ -944,7 +1029,6 @@ if (global.hasMinio) {
                     await db.collections.field_dictionary_collection.insertMany(mockFields);
                     await db.collections.files_collection.insertMany(mockFiles);
                 }
-
                 /* 2. create projects for the study */
                 {
                     const projectName = uuid();
@@ -973,8 +1057,7 @@ if (global.hasMinio) {
                         query: print(ADD_NEW_ROLE),
                         variables: {
                             roleName,
-                            studyId: createdStudy.id,
-                            projectId: null
+                            studyId: createdStudy.id
                         }
                     });
                     expect(res.status).toBe(200);
@@ -984,8 +1067,8 @@ if (global.hasMinio) {
                     expect(createdRole_study).toEqual({
                         _id: createdRole_study._id,
                         id: createdRole_study.id,
-                        projectId: null,
                         studyId: createdStudy.id,
+                        projectId: null,
                         name: roleName,
                         permissions: {
                             data: {
@@ -1042,8 +1125,7 @@ if (global.hasMinio) {
                         query: print(ADD_NEW_ROLE),
                         variables: {
                             roleName,
-                            studyId: createdStudy.id,
-                            projectId: null
+                            studyId: createdStudy.id
                         }
                     });
                     expect(res.status).toBe(200);
@@ -1053,8 +1135,8 @@ if (global.hasMinio) {
                     expect(createdRole_study_manageProject).toEqual({
                         _id: createdRole_study_manageProject._id,
                         id: createdRole_study_manageProject.id,
-                        projectId: null,
                         studyId: createdStudy.id,
+                        projectId: null,
                         name: roleName,
                         permissions: {
                             data: {
@@ -1081,76 +1163,6 @@ if (global.hasMinio) {
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_manageProject.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        users: []
-                    });
-                }
-
-                /* create another role for access data with self organisation only */
-                {
-                    const roleName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(ADD_NEW_ROLE),
-                        variables: {
-                            roleName,
-                            studyId: createdStudy.id,
-                            projectId: null
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-
-                    createdRole_study_self_access = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
-                    expect(createdRole_study_self_access).toEqual({
-                        _id: createdRole_study_self_access._id,
-                        id: createdRole_study_self_access.id,
-                        projectId: null,
-                        studyId: createdStudy.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        description: '',
-                        createdBy: adminId,
-                        users: [],
-                        deleted: null,
-                        metadata: {}
-                    });
-                    expect(res.body.data.addRole).toEqual({
-                        id: createdRole_study_self_access.id,
                         name: roleName,
                         permissions: {
                             data: {
@@ -1249,7 +1261,7 @@ if (global.hasMinio) {
                     const username = uuid();
                     const newUser: IUser = {
                         username: username,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${username}_firstname`,
                         lastname: `${username}_lastname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1260,10 +1272,15 @@ if (global.hasMinio) {
                         emailNotificationsActivated: true,
                         emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
-                        deleted: null,
                         id: `AuthorisedProjectUser_${username}`,
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
                     createdUserAuthorised = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
@@ -1343,7 +1360,7 @@ if (global.hasMinio) {
                     expect(resUser.body.data.getUsers).toHaveLength(1);
                     expect(resUser.body.data.getUsers[0]).toEqual({
                         id: createdUserAuthorised.id,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${createdUserAuthorised.username}_firstname`,
                         lastname: `${createdUserAuthorised.username}_lastname`,
                         organisation: 'organisation_system',
@@ -1357,6 +1374,17 @@ if (global.hasMinio) {
                             studies: []
                         }
                     });
+                    const tag = `metadata.${'role:'.concat(createdRole_project.id)}`;
+                    await db.collections.field_dictionary_collection.updateMany({}, {
+                        $set: {
+                            [tag]: true
+                        }
+                    });
+                    await db.collections.data_collection.updateMany({}, {
+                        $set: {
+                            [tag]: true
+                        }
+                    });
                 }
 
                 /* 5. create an authorised study user (no role yet) */
@@ -1364,7 +1392,7 @@ if (global.hasMinio) {
                     const username = uuid();
                     const newUser: IUser = {
                         username: username,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${username}_firstname`,
                         lastname: `${username}_lastname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1375,15 +1403,19 @@ if (global.hasMinio) {
                         emailNotificationsActivated: true,
                         emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
-                        deleted: null,
                         id: `AuthorisedStudyUser_${username}`,
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
                     createdUserAuthorisedStudy = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
                 }
-
                 /* 6. add authorised user to role */
                 {
                     const res = await admin.post('/graphql').send({
@@ -1458,7 +1490,7 @@ if (global.hasMinio) {
                     expect(resUser.body.data.getUsers).toHaveLength(1);
                     expect(resUser.body.data.getUsers[0]).toEqual({
                         id: createdUserAuthorisedStudy.id,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${createdUserAuthorisedStudy.username}_firstname`,
                         lastname: `${createdUserAuthorisedStudy.username}_lastname`,
                         organisation: 'organisation_system',
@@ -1475,14 +1507,24 @@ if (global.hasMinio) {
                             }]
                         }
                     });
+                    const tag = `metadata.${'role:'.concat(createdRole_study.id)}`;
+                    await db.collections.field_dictionary_collection.updateMany({}, {
+                        $set: {
+                            [tag]: true
+                        }
+                    });
+                    await db.collections.data_collection.updateMany({}, {
+                        $set: {
+                            [tag]: true
+                        }
+                    });
                 }
-
                 /* 5. create an authorised study user that can manage projects (no role yet) */
                 {
                     const username = uuid();
                     const newUser: IUser = {
                         username: username,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${username}_firstname`,
                         lastname: `${username}_lastname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1493,40 +1535,19 @@ if (global.hasMinio) {
                         emailNotificationsActivated: true,
                         emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
-                        deleted: null,
                         id: `AuthorisedStudyUserManageProject_${username}`,
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
 
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
                     createdUserAuthorisedStudyManageProjects = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
-                }
-
-                /* 5. create an authorised study user that can access data from self organisation only */
-                {
-                    const username = uuid();
-                    const newUser: IUser = {
-                        username: username,
-                        type: userTypes.STANDARD,
-                        firstname: `${username}_firstname`,
-                        lastname: `${username}_lastname`,
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                        email: `${username}'@user.io'`,
-                        resetPasswordRequests: [],
-                        description: 'I am an authorised study user to access self org data.',
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        organisation: 'organisation_user',
-                        deleted: null,
-                        id: `AuthorisedStudyUserAccessSelfData_${username}`,
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000
-                    };
-
-                    await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-                    createdUserAuthorisedToOneOrg = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
                 }
 
                 /* 6. add authorised user to role */
@@ -1603,7 +1624,7 @@ if (global.hasMinio) {
                     expect(resUser.body.data.getUsers).toHaveLength(1);
                     expect(resUser.body.data.getUsers[0]).toEqual({
                         id: createdUserAuthorisedStudyManageProjects.id,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${createdUserAuthorisedStudyManageProjects.username}_firstname`,
                         lastname: `${createdUserAuthorisedStudyManageProjects.username}_lastname`,
                         organisation: 'organisation_system',
@@ -1621,104 +1642,12 @@ if (global.hasMinio) {
                         }
                     });
                 }
-                /* 7. add authorised user to role */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(EDIT_ROLE),
-                        variables: {
-                            roleId: createdRole_study_self_access.id,
-                            userChanges: {
-                                add: [createdUserAuthorisedToOneOrg.id],
-                                remove: []
-                            },
-                            permissionChanges: {
-                                data: {
-                                    fieldIds: ['^.*$'],
-                                    hasVersioned: false,
-                                    uploaders: ['^.*$'],
-                                    operations: [atomicOperation.READ],
-                                    subjectIds: ['^K.*$'],
-                                    visitIds: ['^.*$']
-                                },
-                                manage: {
-                                    [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                                    [IPermissionManagementOptions.role]: [],
-                                    [IPermissionManagementOptions.job]: [],
-                                    [IPermissionManagementOptions.query]: [],
-                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                }
-                            }
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.editRole).toEqual({
-                        id: createdRole_study_self_access.id,
-                        name: createdRole_study_self_access.name,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        description: '',
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ],
-                                subjectIds: ['^K.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        users: [{
-                            id: createdUserAuthorisedToOneOrg.id,
-                            organisation: 'organisation_user',
-                            firstname: createdUserAuthorisedToOneOrg.firstname,
-                            lastname: createdUserAuthorisedToOneOrg.lastname
-                        }]
-                    });
-                    const resUser = await admin.post('/graphql').send({
-                        query: print(GET_USERS),
-                        variables: {
-                            fetchDetailsAdminOnly: false,
-                            userId: createdUserAuthorisedToOneOrg.id,
-                            fetchAccessPrivileges: true
-                        }
-                    });
-                    expect(resUser.status).toBe(200);
-                    expect(resUser.body.errors).toBeUndefined();
-                    expect(resUser.body.data.getUsers).toHaveLength(1);
-                    expect(resUser.body.data.getUsers[0]).toEqual({
-                        id: createdUserAuthorisedToOneOrg.id,
-                        type: userTypes.STANDARD,
-                        firstname: `${createdUserAuthorisedToOneOrg.username}_firstname`,
-                        lastname: `${createdUserAuthorisedToOneOrg.username}_lastname`,
-                        organisation: 'organisation_user',
-                        access: {
-                            id: `user_access_obj_user_id_${createdUserAuthorisedToOneOrg.id}`,
-                            projects: [{
-                                id: createdProject.id,
-                                name: createdProject.name,
-                                studyId: createdStudy.id
-                            }],
-                            studies: [{
-                                id: createdStudy.id,
-                                name: createdStudy.name
-                            }]
-                        }
-                    });
-                }
                 /* fsdafs: admin who am i */
                 {
                     const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                     expect(res.body.data.whoAmI).toStrictEqual({
                         username: 'admin',
-                        type: userTypes.ADMIN,
+                        type: enumUserTypes.ADMIN,
                         firstname: 'Fadmin',
                         lastname: 'Ladmin',
                         organisation: 'organisation_system',
@@ -1734,15 +1663,14 @@ if (global.hasMinio) {
                             }],
                             studies: [{
                                 id: createdStudy.id,
-                                name: createdStudy.name,
-                                type: studyType.SENSOR
+                                name: createdStudy.name
                             }]
                         },
                         emailNotificationsActivated: true,
                         emailNotificationsStatus: { expiringNotification: false },
                         createdAt: 1591134065000,
                         expiredAt: 1991134065000,
-                        metadata: null
+                        metadata: {}
                     });
                 }
                 /* connecting users */
@@ -1752,8 +1680,6 @@ if (global.hasMinio) {
                 await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret);
                 authorisedUserStudyManageProject = request.agent(app);
                 await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret);
-                authorisedUserToOneOrg = request.agent(app);
-                await connectAgent(authorisedUserToOneOrg, createdUserAuthorisedToOneOrg.username, 'admin', createdUserAuthorisedToOneOrg.otpSecret);
             });
 
             afterAll(async () => {
@@ -1771,7 +1697,7 @@ if (global.hasMinio) {
 
                 /* delete values in db */
                 await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
-                await db.collections.data_collection.deleteMany({ m_studyId: createdStudy.id });
+                await db.collections.data_collection.deleteMany({ studyId: createdStudy.id });
                 await db.collections.files_collection.deleteMany({ studyId: createdStudy.id });
 
                 /* study user cannot delete study */
@@ -1805,7 +1731,7 @@ if (global.hasMinio) {
                     const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                     expect(res.body.data.whoAmI).toEqual({
                         username: 'admin',
-                        type: userTypes.ADMIN,
+                        type: enumUserTypes.ADMIN,
                         firstname: 'Fadmin',
                         lastname: 'Ladmin',
                         organisation: 'organisation_system',
@@ -1821,13 +1747,13 @@ if (global.hasMinio) {
                         emailNotificationsStatus: { expiringNotification: false },
                         createdAt: 1591134065000,
                         expiredAt: 1991134065000,
-                        metadata: null
+                        metadata: {}
                     });
 
                     // study data is NOT deleted for audit purposes - unless explicitly requested separately
                     const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
                     const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                    const study = await db.collections.studies_collection.findOne({ 'id': createdStudy.id, 'life.deletedTime': null });
                     expect(roles).toEqual([]);
                     expect(projects).toEqual([]);
                     expect(study).toBe(null);
@@ -1882,7 +1808,7 @@ if (global.hasMinio) {
                         createdBy: adminId,
                         jobs: [],
                         description: 'test description',
-                        type: studyType.SENSOR,
+                        type: null,
                         projects: [
                             {
                                 id: createdProject.id,
@@ -1912,8 +1838,8 @@ if (global.hasMinio) {
                                         [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                                     }
                                 },
-                                projectId: null,
                                 studyId: createdStudy.id,
+                                projectId: null,
                                 users: [{
                                     id: createdUserAuthorisedStudy.id,
                                     organisation: 'organisation_system',
@@ -1943,45 +1869,14 @@ if (global.hasMinio) {
                                         [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                                     }
                                 },
-                                projectId: null,
                                 studyId: createdStudy.id,
+                                projectId: null,
                                 users: [{
                                     id: createdUserAuthorisedStudyManageProjects.id,
                                     organisation: 'organisation_system',
                                     firstname: createdUserAuthorisedStudyManageProjects.firstname,
                                     lastname: createdUserAuthorisedStudyManageProjects.lastname,
                                     username: createdUserAuthorisedStudyManageProjects.username
-                                }]
-                            },
-                            {
-                                id: createdRole_study_self_access.id,
-                                name: createdRole_study_self_access.name,
-                                description: '',
-                                permissions: {
-                                    data: {
-                                        fieldIds: ['^.*$'],
-                                        hasVersioned: false,
-                                        uploaders: ['^.*$'],
-                                        operations: [atomicOperation.READ],
-                                        subjectIds: ['^K.*$'],
-                                        visitIds: ['^.*$']
-                                    },
-                                    manage: {
-                                        [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                                        [IPermissionManagementOptions.role]: [],
-                                        [IPermissionManagementOptions.job]: [],
-                                        [IPermissionManagementOptions.query]: [],
-                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                    }
-                                },
-                                projectId: null,
-                                studyId: createdStudy.id,
-                                users: [{
-                                    id: createdUserAuthorisedToOneOrg.id,
-                                    organisation: 'organisation_user',
-                                    firstname: createdUserAuthorisedToOneOrg.firstname,
-                                    lastname: createdUserAuthorisedToOneOrg.lastname,
-                                    username: createdUserAuthorisedToOneOrg.username
                                 }]
                             }
                         ],
@@ -2069,92 +1964,6 @@ if (global.hasMinio) {
                 }
             });
 
-            test('Get study (user that can only access self org data)', async () => {
-                const res = await authorisedUserToOneOrg.post('/graphql').send({
-                    query: print(GET_STUDY),
-                    variables: { studyId: createdStudy.id }
-                });
-                expect(res.status).toBe(200);
-                // expect(res.body.errors).toBeUndefined();
-                // expect(res.body.data.getStudy.files[0]).toEqual({
-                //     id: 'mockfile1_id',
-                //     fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
-                //     studyId: createdStudy.id,
-                //     projectId: null,
-                //     fileSize: '1000',
-                //     description: 'Just a test file1',
-                //     uploadTime: '1599345644000',
-                //     uploadedBy: adminId,
-                //     hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                // }
-                // );
-            });
-
-            test('Get patient mapping (admin)', async () => {
-                const res = await admin.post('/graphql').send({
-                    query: print(GET_PROJECT_PATIENT_MAPPING),
-                    variables: { projectId: createdProject.id }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getProject).toEqual({
-                    id: createdProject.id,
-                    patientMapping: {
-                        mock_patient1: createdProject.patientMapping.mock_patient1,
-                        mock_patient2: createdProject.patientMapping.mock_patient2
-                    }
-                });
-                const { patientMapping } = res.body.data.getProject;
-                expect(typeof patientMapping.mock_patient1).toBe('string');
-                expect(patientMapping.mock_patient1).not.toBe('mock_patient1'); // should not be the same as before mapped
-                expect(typeof patientMapping.mock_patient2).toBe('string');
-                expect(patientMapping.mock_patient2).not.toBe('mock_patient2'); // should not be the same as before mapped
-            });
-
-            test('Get patient mapping (user without privilege) (should fail)', async () => {
-                const res = await user.post('/graphql').send({
-                    query: print(GET_PROJECT_PATIENT_MAPPING),
-                    variables: { projectId: createdProject.id }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.getProject).toBe(null);
-            });
-
-            test('Get patient mapping (user with project data privilege) (should fail)', async () => {
-                // patient mapping is obscured from users that can only access project data. They should only see the mapped id
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(GET_PROJECT_PATIENT_MAPPING),
-                    variables: { projectId: createdProject.id }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.getProject).toBe(null);
-            });
-
-            test('Get patient mapping (user with study data privilege)', async () => {
-                const res = await authorisedUserStudy.post('/graphql').send({
-                    query: print(GET_PROJECT_PATIENT_MAPPING),
-                    variables: { projectId: createdProject.id }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getProject).toEqual({
-                    id: createdProject.id,
-                    patientMapping: {
-                        mock_patient1: createdProject.patientMapping.mock_patient1,
-                        mock_patient2: createdProject.patientMapping.mock_patient2
-                    }
-                });
-                const { patientMapping } = res.body.data.getProject;
-                expect(typeof patientMapping.mock_patient1).toBe('string');
-                expect(patientMapping.mock_patient1).not.toBe('mock_patient1'); // should not be the same as before mapped
-                expect(typeof patientMapping.mock_patient2).toBe('string');
-                expect(patientMapping.mock_patient2).not.toBe('mock_patient2'); // should not be the same as before mapped
-            });
-
             test('Get study (user without privilege)', async () => {
                 const res = await user.post('/graphql').send({
                     query: print(GET_STUDY),
@@ -2229,19 +2038,13 @@ if (global.hasMinio) {
                         fieldId: '32',
                         fieldName: 'Race',
                         tableName: null,
-                        dataType: enumValueType.STRING,
+                        dataType: 'str',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments2',
                         dateAdded: '20000',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId',
-                        metadata: {
-                            [`role:${createdRole_study.id}`]: true,
-                            [`role:${createdRole_project.id}`]: true,
-                            [`role:${createdRole_study_manageProject.id}`]: false,
-                            [`role:${createdRole_study_self_access.id}`]: true
-                        }
+                        dataVersion: 'mockDataVersionId'
                     },
                     {
                         id: 'mockfield1',
@@ -2249,19 +2052,13 @@ if (global.hasMinio) {
                         fieldId: '31',
                         fieldName: 'Sex',
                         tableName: null,
-                        dataType: enumValueType.STRING,
+                        dataType: 'str',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
                         dateAdded: '10000',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId',
-                        metadata: {
-                            [`role:${createdRole_study.id}`]: true,
-                            [`role:${createdRole_project.id}`]: true,
-                            [`role:${createdRole_study_manageProject.id}`]: false,
-                            [`role:${createdRole_study_self_access.id}`]: true
-                        }
+                        dataVersion: 'mockDataVersionId'
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
             });
@@ -2283,14 +2080,13 @@ if (global.hasMinio) {
                         fieldId: '31',
                         fieldName: 'Sex',
                         tableName: null,
-                        dataType: enumValueType.STRING,
+                        dataType: 'str',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
                         dateAdded: '10000',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId',
-                        metadata: null
+                        dataVersion: 'mockDataVersionId'
                     },
                     {
                         id: 'mockfield2',
@@ -2298,14 +2094,13 @@ if (global.hasMinio) {
                         fieldId: '32',
                         fieldName: 'Race',
                         tableName: null,
-                        dataType: enumValueType.STRING,
+                        dataType: 'str',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments2',
                         dateAdded: '20000',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId',
-                        metadata: null
+                        dataVersion: 'mockDataVersionId'
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
             });
@@ -2331,14 +2126,18 @@ if (global.hasMinio) {
                     studyId: createdStudy.id,
                     fieldId: '32',
                     fieldName: 'Race',
-                    tableName: null,
-                    dataType: enumValueType.STRING,
-                    possibleValues: [],
+                    dataType: enumDataTypes.STRING,
+                    categoricalOptions: [],
                     unit: 'person',
                     comments: 'mockComments1',
-                    dateAdded: '30000',
-                    dateDeleted: '30000',
-                    dataVersion: null
+                    dataVersion: null,
+                    life: {
+                        createdTime: 30000,
+                        createdUserId: 'admin',
+                        deletedTime: 30000,
+                        deletedUserId: 'admin'
+                    },
+                    metadata: {}
                 });
 
                 await db.collections.field_dictionary_collection.insertOne({
@@ -2346,14 +2145,18 @@ if (global.hasMinio) {
                     studyId: createdStudy.id,
                     fieldId: '33',
                     fieldName: 'Weight',
-                    tableName: null,
-                    dataType: enumValueType.DECIMAL,
-                    possibleValues: [],
+                    dataType: enumDataTypes.DECIMAL,
+                    categoricalOptions: [],
                     unit: 'kg',
                     comments: 'mockComments3',
-                    dateAdded: '30000',
-                    dateDeleted: null,
-                    dataVersion: null
+                    dataVersion: null,
+                    life: {
+                        createdTime: 30000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 });
 
                 // user with study privilege can access all latest field, including unversioned
@@ -2385,14 +2188,13 @@ if (global.hasMinio) {
                         fieldId: '32',
                         fieldName: 'Race',
                         tableName: null,
-                        dataType: enumValueType.STRING,
+                        dataType: 'str',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments2',
                         dateAdded: '20000',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId',
-                        metadata: null
+                        dataVersion: 'mockDataVersionId'
                     },
                     {
                         id: 'mockfield1',
@@ -2400,14 +2202,13 @@ if (global.hasMinio) {
                         fieldId: '31',
                         fieldName: 'Sex',
                         tableName: null,
-                        dataType: enumValueType.STRING,
+                        dataType: 'str',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
                         dateAdded: '10000',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId',
-                        metadata: null
+                        dataVersion: 'mockDataVersionId'
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
                 // clear database
@@ -2532,14 +2333,19 @@ if (global.hasMinio) {
                     firstname: 'FDataCurator',
                     lastname: 'LDataCurator',
                     organisation: 'organisation_system',
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     description: 'just a data curator',
                     resetPasswordRequests: [],
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
-                    deleted: null,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUser: enumReservedUsers.SYSTEM,
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 await db.collections.users_collection.insertOne(userDataCurator);
 
@@ -2747,7 +2553,7 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.deleteField.fieldId).toBe('8');
-                const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dateDeleted: { $ne: null } }).toArray();
+                const fieldsInDb = await db.collections.field_dictionary_collection.find({ 'studyId': createdStudy.id, 'life.deletedTime': { $ne: null } }).toArray();
                 expect(fieldsInDb).toHaveLength(1);
                 expect(fieldsInDb[0].fieldId).toBe('8');
                 // clear database
@@ -2820,7 +2626,7 @@ if (global.hasMinio) {
             let authorisedUser: request.SuperTest<request.Test>;
             let authorisedProjectUser: request.SuperTest<request.Test>;
             let unauthorisedUser: request.SuperTest<request.Test>;
-            let mockFields: any[];
+            let mockFields: IField[];
             let mockDataVersion: IStudyDataVersion;
             const fieldTreeId = uuid();
             const oneRecord = [{
@@ -2895,8 +2701,7 @@ if (global.hasMinio) {
                         query: print(ADD_NEW_ROLE),
                         variables: {
                             roleName,
-                            studyId: createdStudy.id,
-                            projectId: null
+                            studyId: createdStudy.id
                         }
                     });
                     expect(res.status).toBe(200);
@@ -2906,8 +2711,8 @@ if (global.hasMinio) {
                     expect(createdRole_study_accessData).toEqual({
                         _id: createdRole_study_accessData._id,
                         id: createdRole_study_accessData.id,
-                        projectId: null,
                         studyId: createdStudy.id,
+                        projectId: null,
                         name: roleName,
                         permissions: {
                             data: {
@@ -2963,7 +2768,7 @@ if (global.hasMinio) {
                     const username = uuid();
                     const newUser: IUser = {
                         username: username,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${username}_firstname`,
                         lastname: `${username}_lastname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -2974,10 +2779,15 @@ if (global.hasMinio) {
                         emailNotificationsActivated: true,
                         emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
-                        deleted: null,
                         id: `AuthorisedStudyUserManageProject_${username}`,
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUser: enumReservedUsers.SYSTEM,
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
 
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
@@ -2989,7 +2799,7 @@ if (global.hasMinio) {
                     const username = uuid();
                     const newUser: IUser = {
                         username: username,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${username}_firstname`,
                         lastname: `${username}_lastname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -3003,10 +2813,14 @@ if (global.hasMinio) {
                         metadata: {
                             wp: 'wp5.1'
                         },
-                        deleted: null,
                         id: `AuthorisedStudyUserManageProject_${username}`,
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUser: enumReservedUsers.SYSTEM,
+                            deletedTime: null,
+                            deletedUser: null
+                        }
                     };
 
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
@@ -3087,7 +2901,7 @@ if (global.hasMinio) {
                     expect(resUser.body.data.getUsers).toHaveLength(1);
                     expect(resUser.body.data.getUsers[0]).toEqual({
                         id: createdUserAuthorisedProfile.id,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${createdUserAuthorisedProfile.username}_firstname`,
                         lastname: `${createdUserAuthorisedProfile.username}_lastname`,
                         organisation: 'organisation_system',
@@ -3115,13 +2929,17 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         fieldId: '31',
                         fieldName: 'Age',
-                        dataType: enumValueType.INTEGER,
-                        possibleValues: [],
+                        dataType: enumDataTypes.INTEGER,
+                        categoricalOptions: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
+                        life: {
+                            createdTime: 100000000,
+                            createdUser: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
                         metadata: {}
                     },
                     {
@@ -3129,13 +2947,17 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         fieldId: '32',
                         fieldName: 'Sex',
-                        dataType: enumValueType.STRING,
-                        possibleValues: [],
+                        dataType: enumDataTypes.STRING,
+                        categoricalOptions: [],
                         unit: 'person',
                         comments: 'mockComments2',
-                        dateAdded: 100000000,
-                        dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
+                        life: {
+                            createdTime: 100000001,
+                            createdUser: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
                         metadata: {}
                     },
                     {
@@ -3143,13 +2965,17 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         fieldId: '33',
                         fieldName: 'DeviceTest',
-                        dataType: enumValueType.FILE,
-                        possibleValues: [],
+                        dataType: enumDataTypes.FILE,
+                        categoricalOptions: [],
                         unit: 'person',
                         comments: 'mockComments3',
-                        dateAdded: 100000000,
-                        dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
+                        life: {
+                            createdTime: 100000002,
+                            createdUser: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
                         metadata: {}
                     }
                 ];
@@ -3217,7 +3043,7 @@ if (global.hasMinio) {
                     const username = uuid();
                     const newUser: IUser = {
                         username: username,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${username}_firstname`,
                         lastname: `${username}_lastname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -3231,10 +3057,14 @@ if (global.hasMinio) {
                         metadata: {
                             wp: 'wp5.2'
                         },
-                        deleted: null,
                         id: `AuthorisedProjectUser_${username}`,
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUser: enumReservedUsers.SYSTEM,
+                            deletedTime: null,
+                            deletedUser: null
+                        }
                     };
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
                     createdUserAuthorisedProject = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
@@ -3383,7 +3213,7 @@ if (global.hasMinio) {
                     expect(resUser.body.data.getUsers).toHaveLength(1);
                     expect(resUser.body.data.getUsers[0]).toEqual({
                         id: createdUserAuthorisedProject.id,
-                        type: userTypes.STANDARD,
+                        type: enumUserTypes.STANDARD,
                         firstname: `${createdUserAuthorisedProject.username}_firstname`,
                         lastname: `${createdUserAuthorisedProject.username}_lastname`,
                         organisation: 'organisation_system',
@@ -3453,7 +3283,7 @@ if (global.hasMinio) {
                     const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                     expect(res.body.data.whoAmI).toEqual({
                         username: 'admin',
-                        type: userTypes.ADMIN,
+                        type: enumUserTypes.ADMIN,
                         firstname: 'Fadmin',
                         lastname: 'Ladmin',
                         organisation: 'organisation_system',
@@ -3469,13 +3299,13 @@ if (global.hasMinio) {
                         emailNotificationsStatus: { expiringNotification: false },
                         createdAt: 1591134065000,
                         expiredAt: 1991134065000,
-                        metadata: null
+                        metadata: {}
                     });
 
                     // study data is NOT deleted for audit purposes - unless explicitly requested separately
                     const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
                     const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                    const study = await db.collections.studies_collection.findOne({ 'id': createdStudy.id, 'life.deletedTime': null });
                     expect(roles).toEqual([]);
                     expect(projects).toEqual([]);
                     expect(study).toBe(null);
@@ -3620,41 +3450,10 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 // check both data collection and file collection
-                const fileFirst = await db.collections.files_collection.findOne<IFile>({ studyId: createdStudy.id, deleted: null });
-                const dataFirst = await db.collections.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
-                expect(dataFirst?.metadata?.add[0]).toBe(fileFirst.id);
-
-                // upload again and check whether the old file has been deleted
-                const resSecond = await authorisedUser.post('/graphql')
-                    .field('operations', JSON.stringify({
-                        query: print(UPLOAD_DATA_IN_ARRAY),
-                        variables: {
-                            studyId: createdStudy.id,
-                            data: [
-                                {
-                                    fieldId: '33',
-                                    subjectId: 'I7N3G6G',
-                                    visitId: '1',
-                                    file: null,
-                                    metadata: {
-                                        deviceId: 'MMM7N3G6G',
-                                        startDate: '1590966000000',
-                                        endDate: '1593730800000',
-                                        participantId: 'I7N3G6G',
-                                        postFix: 'test'
-                                    }
-                                }
-                            ]
-                        }
-                    }))
-                    .field('map', JSON.stringify({ 1: ['variables.data.0.file'] }))
-                    .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-                expect(resSecond.status).toBe(200);
-                expect(resSecond.body.errors).toBeUndefined();
-                const fileSecond = await db.collections.files_collection.find<IFile>({ studyId: createdStudy.id, deleted: null }).toArray();
-                const dataSecond = await db.collections.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
-                expect(fileSecond).toHaveLength(2);
-                expect(dataSecond?.metadata?.add).toEqual([fileSecond[0].id, fileSecond[1].id]);
+                const fileFirst = await db.collections.files_collection.findOne<IFile>({ 'studyId': createdStudy.id, 'life.deletedTime': null });
+                const dataFirst = await db.collections.data_collection.findOne<IDataEntry>({ 'studyId': createdStudy.id, 'properties.m_visitId': '1', 'fieldId': '33' });
+                expect(dataFirst?.value).toBe(fileFirst.id);
+                expect(dataFirst?.life.deletedTime).toBe(null);
             });
 
             test('Create New data version with data only (user with study privilege)', async () => {
@@ -3676,7 +3475,7 @@ if (global.hasMinio) {
                 expect(studyInDb.dataVersions).toHaveLength(2);
                 expect(studyInDb.dataVersions[1].version).toBe('1');
                 expect(studyInDb.dataVersions[1].tag).toBe('testTag');
-                const dataInDb = await db.collections.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ studyId: createdStudy.id, dataVersion: createRes.body.data.createNewDataVersion.id }).toArray();
                 expect(dataInDb).toHaveLength(6);
             });
 
@@ -3687,7 +3486,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id, fieldInput: {
                             fieldId: '34',
                             fieldName: 'Height',
-                            dataType: enumValueType.DECIMAL,
+                            dataType: 'dec',
                             unit: 'cm'
                         }
                     }
@@ -3717,7 +3516,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id, fieldInput: {
                             fieldId: '34',
                             fieldName: 'Height',
-                            dataType: enumValueType.DECIMAL,
+                            dataType: 'dec',
                             unit: 'cm'
                         }
                     }
@@ -3746,7 +3545,7 @@ if (global.hasMinio) {
                 expect(studyInDb.dataVersions).toHaveLength(2);
                 expect(studyInDb.dataVersions[1].version).toBe('1');
                 expect(studyInDb.dataVersions[1].tag).toBe('testTag');
-                const dataInDb = await db.collections.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ studyId: createdStudy.id, dataVersion: createRes.body.data.createNewDataVersion.id }).toArray();
                 expect(dataInDb).toHaveLength(7);
                 const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
                 expect(fieldsInDb).toHaveLength(4);
@@ -3851,7 +3650,6 @@ if (global.hasMinio) {
                     { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
                     { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
                 ]);
-
                 const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
                     variables: { studyId: createdStudy.id }
@@ -3875,8 +3673,8 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
-                const dataInDb = await db.collections.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
-                expect(dataInDb).toHaveLength(16); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) = 16 records
+                const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
+                expect(dataInDb).toHaveLength(22); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) + 6 (original records) = 22 records
             });
 
             test('Delete data records: records not exist', async () => {
@@ -3894,7 +3692,6 @@ if (global.hasMinio) {
                     { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
                     { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
                 ]);
-
                 const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
                     variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'], visitIds: ['1', '2'] }
@@ -3910,8 +3707,8 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
-                const dataInDb = await db.collections.data_collection.find({ m_subjectId: 'I7N3G6G' }).sort({ uploadedAt: -1 }).toArray();
-                expect(dataInDb).toHaveLength(8); // two data records, two deleted records
+                const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
+                expect(dataInDb).toHaveLength(14); // 8 deleted records and 6 original records
             });
 
             test('Get data records (user with study privilege)', async () => {
@@ -4356,52 +4153,6 @@ if (global.hasMinio) {
                         ontologyTrees: []
                     }
                 });
-            });
-
-            test('Check data complete (admin)', async () => {
-                await admin.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                // edit a field so that the datatype mismatched with the exisiting value
-                // this happens when a field is deleted first and then modified and added, while some data has been uploaded before deleting, causing conflicts
-                await db.collections.field_dictionary_collection.findOneAndUpdate({
-                    studyId: createdStudy.id,
-                    fieldId: '32'
-                }, {
-                    $set: {
-                        dataType: enumValueType.DECIMAL
-                    }
-                });
-
-                const checkRes = await admin.post('/graphql').send({
-                    query: print(CHECK_DATA_COMPLETE),
-                    variables: { studyId: createdStudy.id }
-                });
-                expect(checkRes.status).toBe(200);
-                expect(checkRes.body.errors).toBeUndefined();
-                expect(checkRes.body.data.checkDataComplete.sort((a, b) => {
-                    return a.subjectId === b.subjectId ? a.visitId.localeCompare(b.visitId) : a.subjectId.localeCompare(b.subjectId);
-                })).toEqual([
-                    {
-                        subjectId: 'GR6R4AR',
-                        visitId: '2',
-                        fieldId: '32',
-                        error: 'Field 32: Cannot parse as decimal.'
-                    },
-                    {
-                        subjectId: 'I7N3G6G',
-                        visitId: '1',
-                        fieldId: '32',
-                        error: 'Field 32: Cannot parse as decimal.'
-                    },
-                    {
-                        subjectId: 'I7N3G6G',
-                        visitId: '2',
-                        fieldId: '32',
-                        error: 'Field 32: Cannot parse as decimal.'
-                    }
-                ]);
             });
         });
     });

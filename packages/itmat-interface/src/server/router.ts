@@ -1,8 +1,6 @@
 import { ApolloServer } from '@apollo/server';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import { GraphQLError } from 'graphql';
 import { graphqlUploadExpress, GraphQLUpload } from 'graphql-upload-minimal';
 import { execute, subscribe } from 'graphql';
 import { WebSocketServer } from 'ws';
@@ -21,15 +19,18 @@ import { resolvers } from '../graphql/resolvers';
 import { typeDefs } from '../graphql/typeDefs';
 import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
-import jwt from 'jsonwebtoken';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
 import { IUser } from '@itmat-broker/itmat-types';
 import { ApolloServerContext } from '../graphql/ApolloServerContext';
 import { DMPContext } from '../graphql/resolvers/context';
 import { logPluginInstance } from '../log/logPlugin';
-import { IConfiguration, spaceFixing, userRetrieval } from '@itmat-broker/itmat-cores';
+import { IConfiguration, spaceFixing } from '@itmat-broker/itmat-cores';
 import { userLoginUtils } from '../utils/userLoginUtils';
+import * as trpcExpress from '@trpc/server/adapters/express';
+import { tokenAuthentication } from './commonMiddleware';
+import { tRPCRouter } from '../trpc/tRPCRouter';
+import { createtRPCContext } from '../trpc/trpc';
 
 export class Router {
     private readonly app: Express;
@@ -189,7 +190,7 @@ export class Router {
                     const data = 'username:token';
                     preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
                 },
-                error: function (err, req, res, target) {
+                error: function (err, _req, _res, target) {
                     console.error(err, target);
                 }
             }
@@ -216,25 +217,8 @@ export class Router {
             expressMiddleware(gqlServer, {
                 context: async ({ req, res }): Promise<DMPContext> => {
                     const token: string = req.headers.authorization || '';
-                    if ((token !== '') && (req.user === undefined)) {
-                        // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
-                        const decodedPayload = jwt.decode(token);
-                        // obtain the public-key of the robot user in the JWT payload
-                        let pubkey;
-                        if (decodedPayload !== null && typeof decodedPayload === 'object') {
-                            pubkey = decodedPayload['publicKey'];
-                        } else {
-                            throw new GraphQLError('JWT verification failed. ', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
-                        }
-
-                        // verify the JWT
-                        jwt.verify(token, pubkey, function (error) {
-                            if (error) {
-                                throw new GraphQLError('JWT verification failed. ' + error, { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
-                            }
-                        });
-                        // store the associated user with the JWT to context
-                        const associatedUser = await userRetrieval(db, pubkey);
+                    const associatedUser = await tokenAuthentication(token);
+                    if (associatedUser) {
                         req.user = associatedUser;
                     }
                     return ({ req, res });
@@ -264,6 +248,26 @@ export class Router {
         //     }
         //     next();
         // });
+
+        // trpc
+        this.app.use('/trpc', (req, _res, next) => {
+            (async () => {
+                try {
+                    // in further merge the token authentication of graphql, trpc and file together
+                    const token: string = req.headers.authorization || '';
+                    const associatedUser = await tokenAuthentication(token);
+                    if (associatedUser) {
+                        req.user = associatedUser;
+                    }
+                    next();
+                } catch (error) {
+                    next(error);
+                }
+            })().catch(next);
+        }, trpcExpress.createExpressMiddleware({
+            router: tRPCRouter,
+            createContext: createtRPCContext
+        }));
 
         this.app.get('/file/:fileId', fileDownloadControllerInstance.fileDownloadController);
 

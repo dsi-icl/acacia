@@ -22,7 +22,6 @@ export const USER_FRAGMENT = gql`
             studies {
                 id
                 name
-                type
             }
         },
         metadata,

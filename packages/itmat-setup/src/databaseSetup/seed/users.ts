@@ -11,10 +11,15 @@ export const seedUsers = [{
     description: 'I am an admin user.',
     emailNotificationsActivated: true,
     emailNotificationsStatus: { expiringNotification: false },
-    deleted: null,
     id: 'replaced_at_runtime2',
-    createdAt: 1591134065000,
-    expiredAt: 1991134065000
+    expiredAt: 1991134065000,
+    life: {
+        createdTime: 1591134065000,
+        createdUser: 'admin',
+        deletedTime: null,
+        deletedUser: null
+    },
+    metadata: {}
 },
 {
     username: 'standardUser',
@@ -29,8 +34,14 @@ export const seedUsers = [{
     emailNotificationsActivated: true,
     emailNotificationsStatus: { expiringNotification: false },
     organisation: 'organisation_system',
-    deleted: null,
     id: 'replaced_at_runtime1',
     createdAt: 1591134065000,
-    expiredAt: 1991134065000
+    expiredAt: 1991134065000,
+    life: {
+        createdTime: 1591134065000,
+        createdUser: 'admin',
+        deletedTime: null,
+        deletedUser: null
+    },
+    metadata: {}
 }];

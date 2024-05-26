@@ -14,7 +14,6 @@ export const FIELD_FRAGMENT = gql`
             code
             description
         }
-        metadata
         unit
         comments
         dateAdded

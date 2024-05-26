@@ -28,7 +28,7 @@ const modules = [
 
 const bounceNotLoggedInDecorator = (funcName: string, reducerFunction: DMPResolver): DMPResolver => {
     return (parent, args, context, info) => {
-        const uncheckedFunctionWhitelist = ['login', 'rsaSigner', 'keyPairGenwSignature', 'issueAccessToken', 'whoAmI', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'writeLog', 'validateResetPassword'];
+        const uncheckedFunctionWhitelist = ['login', 'rsaSigner', 'keyPairGenwSignature', 'issueAccessToken', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'validateResetPassword'];
         const requester = context.req.user;
 
         if (!requester && !uncheckedFunctionWhitelist.includes(funcName)) {

@@ -14,7 +14,7 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '@itmat-broker/itmat-cores';
 import { Db, MongoClient } from 'mongodb';
-import { studyType, IStudy, IUser, IRole, IFile, IFieldEntry, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { studyType, IStudy, IUser, IRole, IFile, IField, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -79,7 +79,7 @@ if (global.hasMinio) {
                 let createdStudyClinical;
                 let createdStudyAny: { id: any; };
                 let authorisedUser: request.SuperTest<request.Test>;
-                let authorisedUserProfile: { id: any; otpSecret: any; username?: string; type?: string; firstname?: string; lastname?: string; password?: string; email?: string; description?: string; emailNotificationsActivated?: boolean; organisation?: string; deleted?: null; };
+                let authorisedUserProfile: IUser;
                 beforeEach(async () => {
                     /* setup: create a study to upload file to */
                     const studyname = uuid();
@@ -133,7 +133,7 @@ if (global.hasMinio) {
                     });
 
                     // create field for both studies
-                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
                         fieldId: 'Device_McRoberts',
                         fieldName: 'Device_McRoberts',
                         dataType: 'file',
@@ -162,7 +162,7 @@ if (global.hasMinio) {
                         metadata: {
                         }
                     }]);
-                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
                         fieldId: 'Device_McRoberts',
                         fieldName: 'Device_McRoberts',
                         dataType: 'file',
@@ -204,8 +204,14 @@ if (global.hasMinio) {
                         description: 'I am a new user.',
                         emailNotificationsActivated: true,
                         organisation: 'organisation_system',
-                        deleted: null,
-                        id: `new_user_id_${username}`
+                        id: `new_user_id_${username}`,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -243,7 +249,7 @@ if (global.hasMinio) {
 
                 afterEach(async () => {
                     await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
-                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).deleteMany({});
                     await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
@@ -471,7 +477,6 @@ if (global.hasMinio) {
                     expect(res.body.errors[0].message).toBe('File size mismatch');
                     expect(res.body.data.uploadFile).toEqual(null);
                 });
-
             });
 
             describe('DOWNLOAD FILES', () => {
@@ -479,7 +484,7 @@ if (global.hasMinio) {
                 let createdStudy;
                 let createdFile: { id: any; };
                 let authorisedUser: request.SuperTest<request.Test>;
-                let authorisedUserProfile;
+                let authorisedUserProfile: IUser;
 
                 beforeEach(async () => {
                     /* setup: create studies to upload file to */
@@ -499,7 +504,7 @@ if (global.hasMinio) {
                         description: 'test description',
                         type: studyType.SENSOR
                     });
-                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
                         fieldId: 'Device_McRoberts',
                         fieldName: 'Device_McRoberts',
                         dataType: 'file',
@@ -561,8 +566,14 @@ if (global.hasMinio) {
                         description: 'I am a new user.',
                         emailNotificationsActivated: true,
                         organisation: 'organisation_system',
-                        deleted: null,
-                        id: `new_user_id_${username}`
+                        id: `new_user_id_${username}`,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -600,7 +611,7 @@ if (global.hasMinio) {
 
                 afterEach(async () => {
                     await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
-                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).deleteMany({});
                     await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
@@ -663,7 +674,7 @@ if (global.hasMinio) {
                 let createdStudy;
                 let createdFile: { id: any; };
                 let authorisedUser: request.SuperTest<request.Test>;
-                let authorisedUserProfile;
+                let authorisedUserProfile: IUser;
                 beforeEach(async () => {
                     /* Clear old values */
                     await db.collections.roles_collection.deleteMany({});
@@ -684,7 +695,7 @@ if (global.hasMinio) {
                         description: 'test description',
                         type: studyType.SENSOR
                     });
-                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
                         fieldId: 'Device_McRoberts',
                         fieldName: 'Device_McRoberts',
                         dataType: 'file',
@@ -751,8 +762,14 @@ if (global.hasMinio) {
                         description: 'I am a new user.',
                         emailNotificationsActivated: true,
                         organisation: 'organisation_system',
-                        deleted: null,
-                        id: `new_user_id_${username}`
+                        id: `new_user_id_${username}`,
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -790,7 +807,7 @@ if (global.hasMinio) {
 
                 afterEach(async () => {
                     await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
-                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).deleteMany({});
                     await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 

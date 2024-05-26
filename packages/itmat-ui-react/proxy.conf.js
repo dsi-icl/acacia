@@ -6,6 +6,11 @@ module.exports = {
         secure: false,
         changeOrigin: true
     },
+    '/trpc': {
+        target: API_SERVER,
+        secure: false,
+        changeOrigin: true
+    },
     '/file': {
         target: API_SERVER,
         secure: false,
