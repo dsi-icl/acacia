@@ -120,7 +120,6 @@ export const EDIT_STUDY = gql`
             id
             name
             description
-            type
         }
     }
 `;

@@ -1,6 +1,6 @@
 import { FunctionComponent, useState } from 'react';
 import { GET_LOGS } from '@itmat-broker/itmat-models';
-import { userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT, ILogEntry } from '@itmat-broker/itmat-types';
+import { enumUserTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT, ILogEntry } from '@itmat-broker/itmat-types';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Checkbox, Descriptions, DatePicker, Modal, Row, Col } from 'antd';
@@ -39,7 +39,7 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const initInputs: {
         requesterName: string,
-        requesterType: userTypes[],
+        requesterType: enumUserTypes[],
         userAgent: string[],
         logType: LOG_TYPE[],
         actionType: LOG_ACTION[],
@@ -247,7 +247,7 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
             <Descriptions title='Requester Name'    ></Descriptions>
             <Input {...inputControl('requesterName')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Requester Type'></Descriptions>
-            <Checkbox.Group options={Object.keys(userTypes)} {...checkboxControl('requesterType')} style={{ marginBottom: '20px' }} />
+            <Checkbox.Group options={Object.keys(enumUserTypes)} {...checkboxControl('requesterType')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Request From'></Descriptions>
             <Checkbox.Group options={Object.keys(USER_AGENT)} {...checkboxControl('userAgent')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Log Type'></Descriptions>

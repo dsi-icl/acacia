@@ -2,15 +2,26 @@ export const seedOrganisations = [{
     id: 'organisation_system',
     name: 'System',
     shortname: 'Sys',
-    containOrg: '',
-    deleted: null
+    life: {
+        createdTime: 1591134065000,
+        createdUser: 'admin',
+        deletedTime: null,
+        deletedUser: null
+    },
+    metadata: {
+        siteIDMarker: 'I'
+    }
 }, {
     id: 'organisation_user',
     name: 'user',
     shortname: 'Use',
-    containOrg: '',
-    metadata: {
-        siteIDMarker: 'I'
+    life: {
+        createdTime: 1591134065000,
+        createdUser: 'admin',
+        deletedTime: null,
+        deletedUser: null
     },
-    deleted: null
+    metadata: {
+        siteIDMarker: 'Z'
+    }
 }];

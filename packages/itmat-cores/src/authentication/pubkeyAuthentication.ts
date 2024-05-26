@@ -14,7 +14,7 @@ export async function userRetrieval(db: DBType, pubkey: string): Promise<IUser> 
         throw new GraphQLError('The public-key embedded in the JWT is not associated with any user!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
     }
 
-    const associatedUser: IUser | null = await db.collections.users_collection.findOne({ deleted: null, id: pubkeyrec.associatedUserId }, { projection: { _id: 0 } });
+    const associatedUser: IUser | null = await db.collections.users_collection.findOne({ 'life.deletedTime': null, 'id': pubkeyrec.associatedUserId }, { projection: { _id: 0 } });
     if (!associatedUser) {
         throw new GraphQLError('The user assciated with the public-key embedded in the JWT is not existed or already deleted!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
     }

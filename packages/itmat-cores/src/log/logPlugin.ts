@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from '@itmat-broker/itmat-types';
+import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, enumUserTypes } from '@itmat-broker/itmat-types';
 import { GraphQLRequestContextWillSendResponse } from '@apollo/server';
 import { ApolloServerContext } from '../utils/ApolloServerContext';
 import { DBType } from '../database/database';
@@ -19,8 +19,8 @@ export class LogPlugin {
     public async serverWillStartLogPlugin(): Promise<null> {
         await this.db.collections.log_collection.insertOne({
             id: uuid(),
-            requesterName: userTypes.SYSTEM,
-            requesterType: userTypes.SYSTEM,
+            requesterName: enumUserTypes.SYSTEM,
+            requesterType: enumUserTypes.SYSTEM,
             logType: LOG_TYPE.SYSTEM_LOG,
             actionType: LOG_ACTION.startSERVER,
             actionData: JSON.stringify({}),
@@ -43,7 +43,7 @@ export class LogPlugin {
         await this.db.collections.log_collection.insertOne({
             id: uuid(),
             requesterName: requestContext.contextValue?.req?.user?.username ?? 'NA',
-            requesterType: requestContext.contextValue?.req?.user?.type ?? userTypes.SYSTEM,
+            requesterType: requestContext.contextValue?.req?.user?.type ?? enumUserTypes.SYSTEM,
             userAgent: (requestContext.contextValue.req?.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
             logType: LOG_TYPE.REQUEST_LOG,
             actionType: LOG_ACTION[requestContext.operationName],

@@ -1,13 +1,16 @@
-export * from './core/fileCore';
-export * from './core/jobCore';
-export * from './core/logCore';
-export * from './core/organisationCore';
-export * from './core/permissionCore';
-export * from './core/pubkeyCore';
-export * from './core/queryCore';
-export * from './core/standardizationCore';
-export * from './core/studyCore';
-export * from './core/userCore';
+// GraphQLCore
+export * from './GraphQLCore/fileCore';
+export * from './GraphQLCore/jobCore';
+export * from './GraphQLCore/logCore';
+export * from './GraphQLCore/organisationCore';
+export * from './GraphQLCore/permissionCore';
+export * from './GraphQLCore/pubkeyCore';
+export * from './GraphQLCore/queryCore';
+export * from './GraphQLCore/standardizationCore';
+export * from './GraphQLCore/studyCore';
+export * from './GraphQLCore/userCore';
+// TRPCCore
+export * from './trpcCore/userCore';
 export * from './rest/fileDownload';
 export * from './authentication/pubkeyAuthentication';
 export * from './log/logPlugin';

@@ -3,7 +3,7 @@ import { statisticsTypes, analysisTemplate, options, dataTypeMapping } from '../
 import { get_t_test, get_z_test, mannwhitneyu, findDmField, generateCascader } from '../../../../utils/tools';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
 import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-models';
-import { IFieldEntry, IProject, enumValueType, IOntologyTree, IOntologyRoute, IQueryString, ICohortSelection, enumCohortSelectionOp } from '@itmat-broker/itmat-types';
+import { IField, IProject, enumDataTypes, IOntologyTree, IOntologyRoute, IQueryString, ICohortSelection, enumCohortSelectionOp } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
@@ -97,7 +97,7 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
     </div>);
 };
 
-const FilterSelector: FunctionComponent<{ guideTool, filtersTool: [Filter, Dispatch<SetStateAction<Filter>>], fields: IFieldEntry[], project: IProject, query, ontologyTree: IOntologyTree, fieldPathOptions, dmFields }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
+const FilterSelector: FunctionComponent<{ guideTool, filtersTool: [Filter, Dispatch<SetStateAction<Filter>>], fields: IField[], project: IProject, query, ontologyTree: IOntologyTree, fieldPathOptions, dmFields }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
     const [isModalOn, setIsModalOn] = useState(false);
     const [isTemplateModalOn, setIsTemplateModalOn] = useState(false);
     const [templateType, setTemplateType] = useState<string | undefined>('NA');
@@ -315,8 +315,8 @@ const FilterSelector: FunctionComponent<{ guideTool, filtersTool: [Filter, Dispa
                                         <Button style={{ float: 'right' }} onClick={() => {
                                             form.setFieldsValue({
                                                 visit: 2,
-                                                race: [raceField.possibleValues[1].code],
-                                                genderID: [genderField.possibleValues[0].code],
+                                                race: [raceField.categoricalOptions[1].code],
+                                                genderID: [genderField.categoricalOptions[0].code],
                                                 siteID: [],
                                                 age: [
                                                     0,
@@ -358,7 +358,7 @@ const FilterSelector: FunctionComponent<{ guideTool, filtersTool: [Filter, Dispa
                                 getPopupContainer={trigger => trigger.parentElement}
                             >
                                 {
-                                    (raceField?.possibleValues || []).map(el => {
+                                    (raceField?.categoricalOptions || []).map(el => {
                                         return <Option value={el.code}>{el.description.toString()}</Option>;
                                     })
                                 }
@@ -374,7 +374,7 @@ const FilterSelector: FunctionComponent<{ guideTool, filtersTool: [Filter, Dispa
                                 getPopupContainer={trigger => trigger.parentElement}
                             >
                                 {
-                                    (genderField?.possibleValues || []).map(el => {
+                                    (genderField?.categoricalOptions || []).map(el => {
                                         return <Option value={el.code}>{el.description.toString()}</Option>;
                                     })
                                 }
@@ -462,7 +462,7 @@ const FilterSelector: FunctionComponent<{ guideTool, filtersTool: [Filter, Dispa
     </div >);
 };
 
-const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFieldEntry[], data }> = ({ project, fields, data }) => {
+const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IField[], data }> = ({ project, fields, data }) => {
     const [statisticsType, setStatisticsType] = useState('ttest');
     const [signifianceLevel, setSignigicanceLevel] = useState<number | undefined>(undefined);
     if (data.length === 0) {
@@ -505,7 +505,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
                     </Tooltip >
                 }, {
                     key: 'Table Name',
-                    value: thisField.tableName || 'NA'
+                    value: thisField.metadata['tableName'] || 'NA'
                 }, {
                     key: 'Data Type',
                     value: dataTypeMapping[thisField.dataType] || 'NA'
@@ -544,7 +544,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
             key: 'graph',
             render: (__unused__value, record) => {
                 const fieldDef = fields.filter(el => el.fieldId === record.field)[0];
-                if ([enumValueType.DECIMAL, enumValueType.INTEGER].includes(fieldDef.dataType)) {
+                if ([enumDataTypes.DECIMAL, enumDataTypes.INTEGER].includes(fieldDef.dataType)) {
                     return (<div>
                         <Violin
                             data={record.dataForGraph}
@@ -552,7 +552,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
                             yField={'y'}
                         />
                     </div>);
-                } else if ([enumValueType.BOOLEAN, enumValueType.CATEGORICAL].includes(fieldDef.dataType)) {
+                } else if ([enumDataTypes.BOOLEAN, enumDataTypes.CATEGORICAL].includes(fieldDef.dataType)) {
                     return (<div>
                         <Column
                             data={record.dataForGraph}
@@ -723,7 +723,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
     </div>);
 };
 
-function variableFilterColumns(guideTool, fields: IFieldEntry[], remove, fieldPathOptions) {
+function variableFilterColumns(guideTool, fields: IField[], remove, fieldPathOptions) {
     return [
         {
             title: 'Field',
@@ -807,7 +807,7 @@ function variableFilterColumns(guideTool, fields: IFieldEntry[], remove, fieldPa
     ];
 }
 
-function filterTableColumns(guideTool, fields: IFieldEntry[], dmFields, filtersTool, setIsModalOn, setCurrentGroupIndex) {
+function filterTableColumns(guideTool, fields: IField[], dmFields, filtersTool, setIsModalOn, setCurrentGroupIndex) {
     if (filtersTool[0].groups.length === 0) {
         return [];
     }
@@ -839,7 +839,7 @@ function filterTableColumns(guideTool, fields: IFieldEntry[], dmFields, filtersT
                 render: (__unused__value, record) => {
                     return <div>
                         {
-                            record.race.map(el => <Tag color={options.tagColors.race} >{raceField?.possibleValues?.filter(ed => ed.code === el.toString())[0].description}</Tag>)
+                            record.race.map(el => <Tag color={options.tagColors.race} >{raceField?.categoricalOptions?.filter(ed => ed.code === el.toString())[0].description}</Tag>)
                         }
                     </div>;
                 }
@@ -855,7 +855,7 @@ function filterTableColumns(guideTool, fields: IFieldEntry[], dmFields, filtersT
                 render: (__unused__value, record) => {
                     return <div>
                         {
-                            record.genderID.map(el => <Tag color={options.tagColors.genderID} >{genderField?.possibleValues?.filter(ed => ed.code === el.toString())[0].description}</Tag>)
+                            record.genderID.map(el => <Tag color={options.tagColors.genderID} >{genderField?.categoricalOptions?.filter(ed => ed.code === el.toString())[0].description}</Tag>)
                         }
                     </div>;
                 }
@@ -1009,7 +1009,7 @@ function formInitialValues(form, filters, index: number) {
 }
 
 // // we sent the union of the filters as the filters in the request body
-function combineFilters(fields: IFieldEntry[], filters: Filter, dmFields) {
+function combineFilters(fields: IField[], filters: Filter, dmFields) {
     const queryString: Partial<IQueryString> & { format?: string, subjects_requested?: string[] | null, cohort?: ICohortSelection[][] } = {};
     queryString.data_requested = Array.from(new Set((filters.groups.map(el => el.filters).flat().map(es => es.field).concat(filters.comparedFields)
         .concat(dmFields.filter(el => (el !== undefined && el !== null)).map(el => el.fieldId)))));
@@ -1063,11 +1063,11 @@ function divideResults(filters, results, fields, dmFields) {
         siteID: dmFields[3]
     };
     filters.comparedFields.forEach(el => {
-        const fieldDef: IFieldEntry = fields.filter(ek => ek.fieldId === el)[0];
-        if (![enumValueType.DECIMAL, enumValueType.INTEGER, enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fieldDef.dataType)) {
+        const fieldDef: IField = fields.filter(ek => ek.fieldId === el)[0];
+        if (![enumDataTypes.DECIMAL, enumDataTypes.INTEGER, enumDataTypes.CATEGORICAL, enumDataTypes.BOOLEAN].includes(fieldDef.dataType)) {
             return;
         }
-        if (fieldDef.tableName === 'Participants') {
+        if (fieldDef['tableName'] === 'Participants') {
             return;
         }
         const dataClip: {
@@ -1171,7 +1171,7 @@ function divideResults(filters, results, fields, dmFields) {
             }
         });
         // construct data for visualization
-        if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fieldDef.dataType)) {
+        if ([enumDataTypes.INTEGER, enumDataTypes.DECIMAL].includes(fieldDef.dataType)) {
             const dataForGraph = Object.keys(dataClip.data).reduce((acc, curr) => {
                 dataClip.data[curr].forEach(el => {
                     typeof el === 'number' && acc.push({
@@ -1182,10 +1182,10 @@ function divideResults(filters, results, fields, dmFields) {
                 return acc;
             }, [] as { x: string, y: number }[]);
             dataClip.dataForGraph = dataForGraph;
-        } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fieldDef.dataType)) {
+        } else if ([enumDataTypes.CATEGORICAL, enumDataTypes.BOOLEAN].includes(fieldDef.dataType)) {
             const dataForGraph = Object.keys(dataClip.data).reduce((acc, curr) => {
-                if (fieldDef.possibleValues) {
-                    fieldDef.possibleValues.forEach(ek => {
+                if (fieldDef.categoricalOptions) {
+                    fieldDef.categoricalOptions.forEach(ek => {
                         acc.push({
                             x: curr,
                             y: dataClip.data[curr].filter(es => String(es) === ek.code.toString()).length,
