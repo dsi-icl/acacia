@@ -1,10 +1,9 @@
-import { CoreError, FileUpload, IFile, IPubkey, IResetPasswordRequest, IUser, IUserWithoutToken, defaultSettings, enumCoreErrors, enumFileCategories, enumFileTypes, enumUserTypes } from '@itmat-broker/itmat-types';
+import { CoreError, FileUpload, IFile, IPubkey, IResetPasswordRequest, IUser, IUserWithoutToken, defaultSettings, enumCoreErrors, enumDriveNodeTypes, enumFileCategories, enumFileTypes, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
 import { Logger, Mailer, ObjectStore } from '@itmat-broker/itmat-commons';
 import { IConfiguration, makeGenericReponse, rsakeygen, rsaverifier, tokengen } from '../utils';
 import { TRPCFileCore } from './fileCore';
 import { TRPCConfigCore } from './configCore';
-import { TRPCStudyCore } from './studyCore';
 import { v4 as uuid } from 'uuid';
 import bcrypt from 'bcrypt';
 import * as mfa from '../utils/mfa';
@@ -20,14 +19,12 @@ export class TRPCUserCore {
     objStore: ObjectStore;
     fileCore: TRPCFileCore;
     configCore: TRPCConfigCore;
-    studyCore: TRPCStudyCore;
     constructor(db: DBType, mailer: Mailer, config: IConfiguration, objStore: ObjectStore) {
         this.db = db;
         this.mailer = mailer;
         this.config = config;
         this.objStore = objStore;
-        this.studyCore = new TRPCStudyCore(db, objStore);
-        this.fileCore = new TRPCFileCore(db, objStore, this.studyCore);
+        this.fileCore = new TRPCFileCore(db, objStore);
         this.configCore = new TRPCConfigCore(db);
     }
     /**
@@ -246,37 +243,28 @@ export class TRPCUserCore {
             entry.profile = fileEntry?.id;
         }
         await this.db.collections.users_collection.insertOne(entry);
-        // TODO: add drive for newly registered user
-        // const driveId = uuid();
-        // await db.collections!.drives_collection.insertOne({
-        //     id: driveId,
-        //     path: [driveId],
-        //     restricted: true,
-        //     name: 'My Drive',
-        //     description: 'This is your own drive.',
-        //     fileId: null,
-        //     type: enumDriveNodeTypes.FOLDER,
-        //     parent: null,
-        //     children: [
 
-        //     ],
-        //     sharedUsers: [
-
-        //     ],
-        //     sharedGroups: [
-
-        //     ],
-        //     life: {
-        //         createdTime: Date.now(),
-        //         createdUser: userId,
-        //         deletedTime: null,
-        //         deletedUser: null
-        //     },
-        //     metadata: {
-
-        //     },
-        //     managerId: userId
-        // });
+        const driveId = uuid();
+        await this.db.collections.drives_collection.insertOne({
+            id: driveId,
+            path: [driveId],
+            restricted: true,
+            name: 'My Drive',
+            description: 'This is your own drive.',
+            fileId: null,
+            type: enumDriveNodeTypes.FOLDER,
+            parent: null,
+            children: [],
+            sharedUsers: [],
+            life: {
+                createdTime: Date.now(),
+                createdUser: userId,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {},
+            managerId: userId
+        });
 
         /* send email to the registered user */
         // get QR Code for the otpSecret.

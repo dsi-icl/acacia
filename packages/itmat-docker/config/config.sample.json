@@ -17,7 +17,9 @@
             "files_collection": "FILES_COLLECTION",
             "sessions_collection": "SESSIONS_COLLECTION",
             "pubkeys_collection": "PUBKEY_COLLECTION",
-            "standardizations_collection": "STANDARDIZATION_COLLECTION"
+            "standardizations_collection": "STANDARDIZATION_COLLECTION",
+            "configs_collection": "CONFIG_COLLECTION",
+            "drives_collection": "DRIVE_COLLECTION"
         }
     },
     "server": {

@@ -101,6 +101,12 @@ const collections = {
             { key: { id: 1 }, unique: true },
             { key: { type: 1, key: 1 }, unique: true }
         ]
+    },
+    drives_collection: {
+        name: 'DRIVE_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true }
+        ]
     }
 };
 
