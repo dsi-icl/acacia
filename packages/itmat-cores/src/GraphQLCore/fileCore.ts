@@ -54,7 +54,7 @@ export class FileCore {
                 acc[String(curr.metadata['siteIDMarker'])] = curr.shortname ?? curr.name;
             }
             return acc;
-        }, {} as Record<string, string>);
+        }, {});
 
         // if the description object is empty, then the file is study-level data
         // otherwise, a subjectId must be provided in the description object
