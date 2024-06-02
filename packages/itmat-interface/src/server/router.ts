@@ -31,6 +31,8 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { tokenAuthentication } from './commonMiddleware';
 import { tRPCRouter } from '../trpc/tRPCRouter';
 import { createtRPCContext } from '../trpc/trpc';
+import multer from 'multer';
+import { PassThrough } from 'stream';
 
 export class Router {
     private readonly app: Express;
@@ -250,24 +252,38 @@ export class Router {
         // });
 
         // trpc
-        this.app.use('/trpc', (req, _res, next) => {
-            (async () => {
-                try {
-                    // in further merge the token authentication of graphql, trpc and file together
-                    const token: string = req.headers.authorization || '';
-                    const associatedUser = await tokenAuthentication(token);
-                    if (associatedUser) {
-                        req.user = associatedUser;
+        const upload = multer();
+        this.app.use('/trpc',
+            upload.single('file'),
+            (req, _res, next) => {
+                (async () => {
+                    try {
+                        // in further merge the token authentication of graphql, trpc and file together
+                        const token: string = req.headers.authorization || '';
+                        const associatedUser = await tokenAuthentication(token);
+                        if (associatedUser) {
+                            req.user = associatedUser;
+                        }
+                        if (req.file) {
+                            const fileStream = new PassThrough();
+                            fileStream.end(req.file.buffer);
+
+                            req.body.file = {
+                                createReadStream: () => fileStream,
+                                filename: req.file.originalname,
+                                mimetype: req.file.mimetype,
+                                encoding: req.file.encoding
+                            };
+                        }
+                        next();
+                    } catch (error) {
+                        next(error);
                     }
-                    next();
-                } catch (error) {
-                    next(error);
-                }
-            })().catch(next);
-        }, trpcExpress.createExpressMiddleware({
-            router: tRPCRouter,
-            createContext: createtRPCContext
-        }));
+                })().catch(next);
+            }, trpcExpress.createExpressMiddleware({
+                router: tRPCRouter,
+                createContext: createtRPCContext
+            }));
 
         this.app.get('/file/:fileId', fileDownloadControllerInstance.fileDownloadController);
 

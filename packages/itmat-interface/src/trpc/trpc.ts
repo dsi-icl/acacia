@@ -1,11 +1,25 @@
 import { inferAsyncReturnType, initTRPC } from '@trpc/server';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
+import { PassThrough } from 'stream';
 
 export const createtRPCContext = async (opts: CreateNextContextOptions) => {
+    const file = opts.req.file;
+    let fileStream;
+
+    if (file) {
+        fileStream = new PassThrough();
+        fileStream.end(file.buffer);
+    }
     return {
         user: opts.req.user,
         req: opts.req,
-        res: opts.res
+        res: opts.res,
+        file: file ? {
+            createReadStream: () => fileStream,
+            filename: file.originalname,
+            mimetype: file.mimetype,
+            encoding: file.encoding
+        } : null
     };
 };
 
