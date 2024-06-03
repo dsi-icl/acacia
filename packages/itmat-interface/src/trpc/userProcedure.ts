@@ -141,7 +141,9 @@ export const userRouter = router({
         password: z.string(),
         description: z.optional(z.string()),
         organisation: z.string(),
-        profile: z.optional(FileUploadSchema)
+        files: z.optional(z.object({
+            profile: z.optional(z.array(FileUploadSchema))
+        }))
     })).mutation(async (opts) => {
         return await userCore.createUser(
             opts.ctx.user,
@@ -153,7 +155,7 @@ export const userRouter = router({
             enumUserTypes.STANDARD,
             false,
             opts.input.password,
-            opts.input.profile
+            opts.input.files?.profile?.[0]
         );
     }),
     /**
@@ -215,7 +217,9 @@ export const userRouter = router({
         emailNotificationsActivated: z.optional(z.boolean()),
         otpSecret: z.optional(z.string()),
         expiredAt: z.optional(z.number()),
-        profile: z.optional(FileUploadSchema)
+        files: z.optional(z.object({
+            profile: z.optional(z.array(FileUploadSchema))
+        }))
     })).mutation(async (opts) => {
         return await userCore.editUser(
             opts.ctx.user,
@@ -229,7 +233,7 @@ export const userRouter = router({
             opts.input.emailNotificationsActivated,
             opts.input.password,
             opts.input.otpSecret,
-            opts.input.profile,
+            opts.input.files?.profile?.[0],
             opts.input.description,
             opts.input.expiredAt
 
