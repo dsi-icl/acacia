@@ -43,17 +43,21 @@ export const driveRouter = router({
     createDriveFile: baseProcedure.input(z.object({
         parentId: z.optional(z.union([z.string(), z.null()])),
         description: z.optional(z.string()),
-        file: FileUploadSchema
+        files: z.object({
+            file: z.array(FileUploadSchema)
+        })
     })).mutation(async (opts) => {
         return await driveCore.createDriveFile(opts.ctx.user, opts.input.parentId ?? null, opts.input.description,
-            enumFileTypes[(opts.input.file.filename.split('.').pop() || '').toUpperCase() as keyof typeof enumFileTypes], opts.input.file);
+            enumFileTypes[(opts.input.files.file[0].filename.split('.').pop() || '').toUpperCase() as keyof typeof enumFileTypes], opts.input.files.file[0]);
     }),
     createRecursiveDrives: baseProcedure.input(z.object({
         parentId: z.string(),
-        files: z.array(FileUploadSchema),
+        files: z.object({
+            files: z.array(FileUploadSchema)
+        }),
         paths: z.array(z.array(z.string()))
     })).mutation(async (opts) => {
-        return await driveCore.createRecursiveDrives(opts.ctx.user, opts.input.parentId, opts.input.files, opts.input.paths);
+        return await driveCore.createRecursiveDrives(opts.ctx.user, opts.input.parentId, opts.input.files.files, opts.input.paths);
     }),
     /**
      * Get the drive nodes of a user, including own drives and shared drives.

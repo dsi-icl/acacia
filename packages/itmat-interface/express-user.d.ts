@@ -18,7 +18,7 @@ declare global {
 
         interface Request {
             user?: User;
-            file?: MulterFile;
+            files?: MulterFile[];
             headers: IncomingHttpHeaders;
             login(user: User, done: (err: unknown) => void): void;
             logout(done: (err: unknown) => void): void;
