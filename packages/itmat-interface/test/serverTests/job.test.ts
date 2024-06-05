@@ -7,7 +7,7 @@ import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { v4 as uuid } from 'uuid';
-import { errorCodes } from '../../src/graphql/errors';
+import { errorCodes } from '@itmat-broker/itmat-cores';
 import { Db, MongoClient } from 'mongodb';
 import { IJobEntry, IUser, IRole, IStudy, IProject, IQueryEntry, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { CREATE_QUERY_CURATION_JOB } from '@itmat-broker/itmat-models';

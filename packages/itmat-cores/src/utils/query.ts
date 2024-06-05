@@ -1,6 +1,6 @@
 import { IStudy, IFieldEntry, IStandardization, ICohortSelection, IQueryString, IGroupedData, StandardizationFilterOptionParameters, StandardizationFilterOptions } from '@itmat-broker/itmat-types';
 import { Filter } from 'mongodb';
-import { QueryMatcher } from '../graphql/core/permissionCore';
+import { QueryMatcher } from '../core/permissionCore';
 /*
     queryString:
         format: string                  # returned foramt: raw, standardized, grouped, summary

@@ -8,7 +8,7 @@ import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
-import { errorCodes } from '../../src/graphql/errors';
+import { errorCodes } from '@itmat-broker/itmat-cores';
 import { Db, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -407,7 +407,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.errors[0].message).toBe('Study does not exist.');
                 expect(res.body.data.deleteStudy).toEqual(null);
             });
 
@@ -418,7 +418,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.errors[0].message).toBe('Study does not exist.');
                 expect(res.body.data.deleteStudy).toEqual(null);
             });
 

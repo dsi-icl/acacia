@@ -1,7 +1,7 @@
 import { print } from 'graphql';
 import { LOGIN, LOGOUT } from '@itmat-broker/itmat-models';
-import * as mfa from '../../src/utils/mfa';
 import { SuperTest, Test } from 'supertest';
+import { generateTOTP } from '@itmat-broker/itmat-cores';
 
 export async function connectAdmin(agent: SuperTest<Test>): Promise<void> {
     const adminSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
@@ -14,7 +14,7 @@ export async function connectUser(agent: SuperTest<Test>): Promise<void> {
 }
 
 export async function connectAgent(agent: SuperTest<Test>, user: string, pw: string, secret: string): Promise<void> {
-    const otp = mfa.generateTOTP(secret).toString();
+    const otp = generateTOTP(secret).toString();
     return agent.post('/graphql')
         .set('Content-type', 'application/json')
         .send({
