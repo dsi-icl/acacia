@@ -238,7 +238,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: IGrouped
         }
         for (const subjectId of Object.keys(data)) {
             for (const visitId of Object.keys(data[subjectId])) {
-                if (data[subjectId][visitId][field.fieldId] === null) {
+                if (data[subjectId][visitId][field.fieldId] === null || data[subjectId][visitId][field.fieldId] === undefined) {
                     continue;
                 }
                 const dataClip: Record<string, unknown> = {};
