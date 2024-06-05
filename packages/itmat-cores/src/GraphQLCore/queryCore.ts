@@ -1,4 +1,4 @@
-import { IPermissionManagementOptions, IProject, IQueryEntry, IUserWithoutToken, atomicOperation } from '@itmat-broker/itmat-types';
+import { IProject, IQueryEntry, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { GraphQLError } from 'graphql';
 import { errorCodes } from '../utils/errors';
@@ -23,21 +23,8 @@ export class QueryCore {
             throw new GraphQLError('Query does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         /* check permission */
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.query,
-            atomicOperation.READ,
-            requester,
-            queryEntry.studyId,
-            queryEntry.projectId
-        );
-
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.query,
-            atomicOperation.READ,
-            requester,
-            queryEntry.studyId
-        );
-        if (!hasProjectLevelPermission && !hasStudyLevelPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, queryEntry.studyId);
+        if (!roles.length) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
         return queryEntry;
@@ -48,21 +35,8 @@ export class QueryCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check permission */
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.query,
-            atomicOperation.READ,
-            requester,
-            studyId,
-            projectId
-        );
-
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.query,
-            atomicOperation.READ,
-            requester,
-            studyId
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
         const entries = await this.db.collections.queries_collection.find({ studyId: studyId, projectId: projectId }).toArray();
         return entries;
     }

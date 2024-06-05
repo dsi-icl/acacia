@@ -145,11 +145,7 @@ export class UserCore {
         const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
         const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
             (a, e) => {
-                if (e.projectId) {
-                    a.projects.push(e.projectId);
-                } else {
-                    a.studies.push(e.studyId);
-                }
+                a.studies.push(e.studyId);
                 return a;
             }, init
         );

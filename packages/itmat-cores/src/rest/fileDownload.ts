@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { atomicOperation, IUser } from '@itmat-broker/itmat-types';
+import { IUser } from '@itmat-broker/itmat-types';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
@@ -55,12 +55,8 @@ export class FileDownloadController {
                 }
 
                 // check target field exists
-                const hasStudyLevelPermission = await this._permissionCore.userHasTheNeccessaryDataPermission(
-                    atomicOperation.READ,
-                    associatedUser,
-                    file.studyId
-                );
-                if (!hasStudyLevelPermission) {
+                const roles = await this._permissionCore.getRolesOfUser(associatedUser, file.studyId);
+                if (!roles.length) {
                     res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
                     return;
                 }

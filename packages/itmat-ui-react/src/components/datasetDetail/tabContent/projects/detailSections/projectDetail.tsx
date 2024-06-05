@@ -9,7 +9,7 @@ import { PatientIdMappingSection } from './patientIdMapping';
 import css from './projectDetail.module.css';
 import { NavLink, useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client/react/hooks';
-import { IProject, IRoleQL, enumUserTypes } from '@itmat-broker/itmat-types';
+import { IProject, IRole, enumUserTypes } from '@itmat-broker/itmat-types';
 
 export const ProjectDetail: FunctionComponent = () => {
     const { projectId, studyId } = useParams();
@@ -19,7 +19,7 @@ export const ProjectDetail: FunctionComponent = () => {
 
     if (!projectId || !studyId)
         return null;
-    return <Query<{ getProject: IProject & { roles: IRoleQL[] } }, { projectId: string, admin: boolean }>
+    return <Query<{ getProject: IProject & { roles: IRole[] } }, { projectId: string, admin: boolean }>
         query={GET_PROJECT}
         variables={{ projectId, admin: whoamidata.whoAmI.type === enumUserTypes.ADMIN }}
     >
