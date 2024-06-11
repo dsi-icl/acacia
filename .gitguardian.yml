@@ -1,3 +1,3 @@
 paths-ignore:
-  - "**/*.test.*"
-  - "**/*.sample.json"
+    - "**/*.test.*"
+    - "**/*.sample.json"

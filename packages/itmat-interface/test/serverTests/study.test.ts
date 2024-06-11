@@ -8,7 +8,7 @@ import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
-import { errorCodes } from '../../src/graphql/errors';
+import { errorCodes } from '@itmat-broker/itmat-cores';
 import { Db, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -407,7 +407,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.errors[0].message).toBe('Study does not exist.');
                 expect(res.body.data.deleteStudy).toEqual(null);
             });
 
@@ -418,7 +418,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.errors[0].message).toBe('Study does not exist.');
                 expect(res.body.data.deleteStudy).toEqual(null);
             });
 
@@ -904,7 +904,7 @@ if (global.hasMinio) {
                             hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                         }
                     ];
-                    await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, {
+                    await db.collections.studies_collection.updateOne({ id: createdStudy.id }, {
                         $push: { dataVersions: mockDataVersion },
                         $inc: { currentDataVersion: 1 },
                         $set: {
@@ -940,9 +940,9 @@ if (global.hasMinio) {
                             }]
                         }
                     });
-                    await db.collections!.data_collection.insertMany(mockData);
-                    await db.collections!.field_dictionary_collection.insertMany(mockFields);
-                    await db.collections!.files_collection.insertMany(mockFiles);
+                    await db.collections.data_collection.insertMany(mockData);
+                    await db.collections.field_dictionary_collection.insertMany(mockFields);
+                    await db.collections.files_collection.insertMany(mockFiles);
                 }
 
                 /* 2. create projects for the study */
@@ -1770,9 +1770,9 @@ if (global.hasMinio) {
                 }
 
                 /* delete values in db */
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
-                await db.collections!.data_collection.deleteMany({ m_studyId: createdStudy.id });
-                await db.collections!.files_collection.deleteMany({ studyId: createdStudy.id });
+                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
+                await db.collections.data_collection.deleteMany({ m_studyId: createdStudy.id });
+                await db.collections.files_collection.deleteMany({ studyId: createdStudy.id });
 
                 /* study user cannot delete study */
                 {
@@ -1825,9 +1825,9 @@ if (global.hasMinio) {
                     });
 
                     // study data is NOT deleted for audit purposes - unless explicitly requested separately
-                    const roles = await db.collections!.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const projects = await db.collections!.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                    const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                    const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                    const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                     expect(roles).toEqual([]);
                     expect(projects).toEqual([]);
                     expect(study).toBe(null);
@@ -2326,7 +2326,7 @@ if (global.hasMinio) {
 
             test('Get study fields, with unversioned fields', async () => {
                 // delete an exisiting field and add a new field
-                await db.collections!.field_dictionary_collection.insertOne({
+                await db.collections.field_dictionary_collection.insertOne({
                     id: 'mockfield2_deleted',
                     studyId: createdStudy.id,
                     fieldId: '32',
@@ -2341,7 +2341,7 @@ if (global.hasMinio) {
                     dataVersion: null
                 });
 
-                await db.collections!.field_dictionary_collection.insertOne({
+                await db.collections.field_dictionary_collection.insertOne({
                     id: 'mockfield3',
                     studyId: createdStudy.id,
                     fieldId: '33',
@@ -2411,12 +2411,12 @@ if (global.hasMinio) {
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
                 // clear database
-                await db.collections!.field_dictionary_collection.deleteMany({ dataVersion: null });
+                await db.collections.field_dictionary_collection.deleteMany({ dataVersion: null });
             });
 
             test('Set a previous study dataversion as current (admin)', async () => {
                 /* setup: add an extra dataversion */
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
                 const res = await admin.post('/graphql').send({
                     query: print(SET_DATAVERSION_AS_CURRENT),
                     variables: {
@@ -2426,7 +2426,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                const study = await db.collections!.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+                const study = await db.collections.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
                 expect(study).toBeDefined();
                 expect(res.body.data.setDataversionAsCurrent).toEqual({
                     id: createdStudy.id,
@@ -2444,7 +2444,7 @@ if (global.hasMinio) {
 
             test('Set a previous study dataversion as current (user without privilege) (should fail)', async () => {
                 /* setup: add an extra dataversion */
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
                 const res = await user.post('/graphql').send({
                     query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2464,7 +2464,7 @@ if (global.hasMinio) {
 
             test('Set a previous study dataversion as current (user with project privilege) (should fail)', async () => {
                 /* setup: add an extra dataversion */
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2484,7 +2484,7 @@ if (global.hasMinio) {
 
             test('Set a previous study dataversion as current (user with study read-only privilege) (should fail)', async () => {
                 /* setup: add an extra dataversion */
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
                 const res = await authorisedUserStudy.post('/graphql').send({
                     query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2504,7 +2504,7 @@ if (global.hasMinio) {
 
             test('Set a previous study dataversion as current (user with study "manage project" privilege)', async () => {
                 /* setup: add an extra dataversion */
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
                 const res = await authorisedUserStudyManageProject.post('/graphql').send({
                     query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2541,7 +2541,7 @@ if (global.hasMinio) {
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 };
-                await db.collections!.users_collection.insertOne(userDataCurator);
+                await db.collections.users_collection.insertOne(userDataCurator);
 
                 /* setup: create a new role with data management */
                 const roleDataCurator: any = {
@@ -2569,14 +2569,14 @@ if (global.hasMinio) {
                     createdBy: adminId,
                     deleted: null
                 };
-                await db.collections!.roles_collection.insertOne(roleDataCurator);
+                await db.collections.roles_collection.insertOne(roleDataCurator);
 
                 /* setup: connect user */
                 const dataCurator = request.agent(app);
                 await connectAgent(dataCurator, userDataCurator.username, 'admin', userDataCurator.otpSecret);
 
                 /* setup: add an extra dataversion */
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
                 /* test */
                 const res = await dataCurator.post('/graphql').send({
@@ -2595,12 +2595,12 @@ if (global.hasMinio) {
                     .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
 
                 /* cleanup: delete user and role */
-                await db.collections!.users_collection.deleteOne({ id: userDataCurator.id });
-                await db.collections!.roles_collection.deleteOne({ id: roleDataCurator.id });
+                await db.collections.users_collection.deleteOne({ id: userDataCurator.id });
+                await db.collections.roles_collection.deleteOne({ id: roleDataCurator.id });
             });
 
             test('Create New fields (admin)', async () => {
-                await db.collections!.field_dictionary_collection.deleteMany({ dataVersion: null });
+                await db.collections.field_dictionary_collection.deleteMany({ dataVersion: null });
                 const res = await admin.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
@@ -2637,7 +2637,7 @@ if (global.hasMinio) {
                     { successful: true, code: null, id: null, description: 'Field 8-newField8 is created successfully.' },
                     { successful: true, code: null, id: null, description: 'Field 9-newField9 is created successfully.' }
                 ]);
-                const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: null }).toArray();
+                const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: null }).toArray();
                 expect(fieldsInDb).toHaveLength(2);
             });
 
@@ -2747,11 +2747,11 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.deleteField.fieldId).toBe('8');
-                const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dateDeleted: { $ne: null } }).toArray();
+                const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dateDeleted: { $ne: null } }).toArray();
                 expect(fieldsInDb).toHaveLength(1);
                 expect(fieldsInDb[0].fieldId).toBe('8');
                 // clear database
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
+                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
             });
 
             test('Delete a versioned field (admin)', async () => {
@@ -2799,13 +2799,13 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.deleteField.fieldId).toBe('8');
-                const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, fieldId: '8' }).toArray();
+                const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, fieldId: '8' }).toArray();
                 expect(fieldsInDb).toHaveLength(2);
                 expect(fieldsInDb[0].fieldId).toBe('8');
                 expect(fieldsInDb[1].fieldId).toBe('8');
                 expect(fieldsInDb[1].dateDeleted).not.toBe(null);
                 // clear database
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
+                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
             });
         });
 
@@ -3153,8 +3153,8 @@ if (global.hasMinio) {
                         metadata: {}
                     }
                 ];
-                await db.collections!.field_dictionary_collection.insertMany(mockFields);
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, {
+                await db.collections.field_dictionary_collection.insertMany(mockFields);
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, {
                     $push: { dataVersions: mockDataVersion },
                     $inc: { currentDataVersion: 1 },
                     $set: {
@@ -3401,7 +3401,7 @@ if (global.hasMinio) {
 
                 /* 7. Create an ontologytree */
                 {
-                    await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
+                    await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
                         $set: {
                             ontologyTrees: [{
                                 id: uuid(),
@@ -3418,7 +3418,7 @@ if (global.hasMinio) {
                 }
                 const study_role_id = `metadata.${'role:'.concat(createdRole_study_accessData?.id)}`;
                 const project_role_id = `metadata.${'role:'.concat(createdRole_project?.id)}`;
-                await db.collections!.field_dictionary_collection.updateMany({ studyId: createdStudy.id }, {
+                await db.collections.field_dictionary_collection.updateMany({ studyId: createdStudy.id }, {
                     $set: {
                         [study_role_id]: true,
                         [project_role_id]: true
@@ -3473,9 +3473,9 @@ if (global.hasMinio) {
                     });
 
                     // study data is NOT deleted for audit purposes - unless explicitly requested separately
-                    const roles = await db.collections!.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const projects = await db.collections!.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                    const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                    const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                    const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                     expect(roles).toEqual([]);
                     expect(projects).toEqual([]);
                     expect(study).toBe(null);
@@ -3493,12 +3493,12 @@ if (global.hasMinio) {
                     expect(res.body.data.getStudy).toBe(null);
                 }
 
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
+                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
             });
 
             afterEach(async () => {
-                await db.collections!.data_collection.deleteMany({});
-                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
+                await db.collections.data_collection.deleteMany({});
+                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
                     $set: {
                         dataVersions: [{
                             id: 'mockDataVersionId',
@@ -3508,7 +3508,7 @@ if (global.hasMinio) {
                         }], currentDataVersion: 0
                     }
                 });
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $nin: ['31', '32'] }, dataVersion: null });
+                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $nin: ['31', '32'] }, dataVersion: null });
             });
 
             test('Upload a data record to study (authorised user)', async () => {
@@ -3568,7 +3568,7 @@ if (global.hasMinio) {
                     { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.', id: null, successful: false }
                 ]);
 
-                const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ deleted: null }).toArray();
                 expect(dataInDb).toHaveLength(3);
             });
 
@@ -3608,6 +3608,7 @@ if (global.hasMinio) {
                                         deviceId: 'MMM7N3G6G',
                                         startDate: '1590966000000',
                                         endDate: '1593730800000',
+                                        participantId: 'I7N3G6G',
                                         postFix: 'txt'
                                     }
                                 }
@@ -3619,8 +3620,8 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 // check both data collection and file collection
-                const fileFirst = await db.collections!.files_collection.findOne<IFile>({ studyId: createdStudy.id, deleted: null });
-                const dataFirst = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
+                const fileFirst = await db.collections.files_collection.findOne<IFile>({ studyId: createdStudy.id, deleted: null });
+                const dataFirst = await db.collections.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
                 expect(dataFirst?.metadata?.add[0]).toBe(fileFirst.id);
 
                 // upload again and check whether the old file has been deleted
@@ -3639,6 +3640,7 @@ if (global.hasMinio) {
                                         deviceId: 'MMM7N3G6G',
                                         startDate: '1590966000000',
                                         endDate: '1593730800000',
+                                        participantId: 'I7N3G6G',
                                         postFix: 'test'
                                     }
                                 }
@@ -3649,8 +3651,8 @@ if (global.hasMinio) {
                     .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
                 expect(resSecond.status).toBe(200);
                 expect(resSecond.body.errors).toBeUndefined();
-                const fileSecond = await db.collections!.files_collection.find<IFile>({ studyId: createdStudy.id, deleted: null }).toArray();
-                const dataSecond = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
+                const fileSecond = await db.collections.files_collection.find<IFile>({ studyId: createdStudy.id, deleted: null }).toArray();
+                const dataSecond = await db.collections.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
                 expect(fileSecond).toHaveLength(2);
                 expect(dataSecond?.metadata?.add).toEqual([fileSecond[0].id, fileSecond[1].id]);
             });
@@ -3670,11 +3672,11 @@ if (global.hasMinio) {
                 expect(createRes.body.errors).toBeUndefined();
                 expect(createRes.body.data.createNewDataVersion.version).toBe('1');
                 expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-                const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
+                const studyInDb = await db.collections.studies_collection.findOne({ id: createdStudy.id });
                 expect(studyInDb.dataVersions).toHaveLength(2);
                 expect(studyInDb.dataVersions[1].version).toBe('1');
                 expect(studyInDb.dataVersions[1].tag).toBe('testTag');
-                const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
                 expect(dataInDb).toHaveLength(6);
             });
 
@@ -3700,11 +3702,11 @@ if (global.hasMinio) {
                 expect(createRes.body.errors).toBeUndefined();
                 expect(createRes.body.data.createNewDataVersion.version).toBe('1');
                 expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-                const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
+                const studyInDb = await db.collections.studies_collection.findOne({ id: createdStudy.id });
                 expect(studyInDb.dataVersions).toHaveLength(2);
                 expect(studyInDb.dataVersions[1].version).toBe('1');
                 expect(studyInDb.dataVersions[1].tag).toBe('testTag');
-                const fieldIndb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
+                const fieldIndb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
                 expect(fieldIndb).toHaveLength(4);
             });
 
@@ -3740,13 +3742,13 @@ if (global.hasMinio) {
                 expect(createRes.body.errors).toBeUndefined();
                 expect(createRes.body.data.createNewDataVersion.version).toBe('1');
                 expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-                const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
+                const studyInDb = await db.collections.studies_collection.findOne({ id: createdStudy.id });
                 expect(studyInDb.dataVersions).toHaveLength(2);
                 expect(studyInDb.dataVersions[1].version).toBe('1');
                 expect(studyInDb.dataVersions[1].tag).toBe('testTag');
-                const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
                 expect(dataInDb).toHaveLength(7);
-                const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
+                const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
                 expect(fieldsInDb).toHaveLength(4);
             });
 
@@ -3873,7 +3875,7 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
-                const dataInDb = await db.collections!.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
                 expect(dataInDb).toHaveLength(16); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) = 16 records
             });
 
@@ -3908,7 +3910,7 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
-                const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G' }).sort({ uploadedAt: -1 }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ m_subjectId: 'I7N3G6G' }).sort({ uploadedAt: -1 }).toArray();
                 expect(dataInDb).toHaveLength(8); // two data records, two deleted records
             });
 
@@ -3951,114 +3953,6 @@ if (global.hasMinio) {
                 expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
             });
 
-            // test('Get data records (user with project privilege)', async () => {
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: { studyId: createdStudy.id, data: multipleRecords }
-            //     });
-            //     await admin.post('/graphql').send({
-            //         query: print(CREATE_NEW_DATA_VERSION),
-            //         variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-            //     });
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             data: [
-            //                 {
-            //                     fieldId: '31',
-            //                     value: '10',
-            //                     subjectId: 'I7N3G6G',
-            //                     visitId: '3'
-            //                 }
-            //             ]
-            //         }
-            //     });
-            //     const getRes = await authorisedProjectUser.post('/graphql').send({
-            //         query: print(GET_DATA_RECORDS),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             projectId: createdProject.id,
-            //             queryString: {
-            //                 data_requested: ['31', '32'],
-            //                 format: 'raw',
-            //                 cohort: [[]],
-            //                 new_fields: []
-            //             }
-            //         }
-            //     });
-            //     expect(getRes.status).toBe(200);
-            //     expect(getRes.body.errors).toBeUndefined();
-            //     expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
-            // });
-
-            // test('Get data records with meta data filters', async () => {
-            //     const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            //     await db.collections!.field_dictionary_collection.updateMany({ fieldId: { $in: ['31', '32'] } }, {
-            //         $set: {
-            //             [`metadata.role:${createdRole_study_accessData.id}`]: true
-            //         }
-            //     });
-            //     await db.collections!.data_collection.insertMany([{
-            //         m_studyId: createdStudy.id,
-            //         m_fieldId: '31',
-            //         m_subjectId: 'I7N3G6G',
-            //         m_versionId: study.dataVersions[study?.currentDataVersion].id,
-            //         m_visitId: '1',
-            //         id: '0001',
-            //         metadata: {
-            //             'uploader:org': createdUserAuthorisedProfile.organisation,
-            //             'uploader:user': createdUserAuthorisedProfile.id,
-            //             'uploader:wp': 'wp5.1',
-            //             [`role:${createdRole_study_accessData.id}`]: true
-            //         },
-            //         uploadedAt: 10000000,
-            //         value: '1'
-            //     }, {
-            //         m_studyId: createdStudy.id,
-            //         m_fieldId: '32',
-            //         m_subjectId: 'I7N3G6G',
-            //         m_versionId: study.dataVersions[study?.currentDataVersion].id,
-            //         m_visitId: '1',
-            //         id: '0002',
-            //         metadata: {
-            //             'uploader:org': createdUserAuthorisedProject.organisation,
-            //             'uploader:user': createdUserAuthorisedProject.id,
-            //             'uploader:wp': 'wp5.2',
-            //             [`role:${createdRole_study_accessData.id}`]: true
-            //         },
-            //         uploadedAt: 10000000,
-            //         value: '2'
-            //     }]);
-            //     const resMetadataOrg = await authorisedUser.post('/graphql').send({
-            //         query: print(GET_DATA_RECORDS),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             queryString: {
-            //                 data_requested: ['31', '32'],
-            //                 format: 'raw',
-            //                 cohort: [[]],
-            //                 new_fields: [],
-            //                 metadata: [
-            //                     [
-            //                         {
-            //                             key: 'uploader:wp',
-            //                             op: '=',
-            //                             parameter: 'wp5.1'
-            //                         }
-            //                     ]
-            //                 ]
-            //             }
-            //         }
-            //     });
-            //     expect(resMetadataOrg.status).toBe(200);
-            //     expect(resMetadataOrg.body.errors).toBeUndefined();
-            //     expect(resMetadataOrg.body.data.getDataRecords.data).toEqual({
-            //         I7N3G6G: { 1: { 31: '1', m_subjectId: 'I7N3G6G', m_visitId: '1' } }
-            //     });
-            //     await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, { $set: { ontologyTrees: [] } });
-            // });
-
             test('Create an ontology tree (authorised user)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(CREATE_ONTOLOGY_TREE),
@@ -4083,7 +3977,7 @@ if (global.hasMinio) {
                         }
                     }
                 });
-                const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.createOntologyTree).toEqual({
@@ -4108,7 +4002,7 @@ if (global.hasMinio) {
                     metadata: null
                 });
                 // clear ontologyTrees
-                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
+                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
                         ontologyTrees: []
                     }
@@ -4173,7 +4067,7 @@ if (global.hasMinio) {
                     query: print(CREATE_NEW_DATA_VERSION),
                     variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
                 });
-                const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                const study: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(DELETE_ONTOLOGY_TREE),
                     variables: {
@@ -4186,10 +4080,10 @@ if (global.hasMinio) {
                     id: study.ontologyTrees[0].name,
                     successful: true
                 });
-                const updatedStudy: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                const updatedStudy: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 expect(updatedStudy.ontologyTrees.length).toBe(2); // both records
                 // clear study
-                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
+                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
                         dataVersions: [],
                         currentDataVersion: -1,
@@ -4222,7 +4116,7 @@ if (global.hasMinio) {
                         }
                     }
                 });
-                const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                const study: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 const res = await user.post('/graphql').send({
                     query: print(DELETE_ONTOLOGY_TREE),
                     variables: {
@@ -4234,7 +4128,7 @@ if (global.hasMinio) {
                 expect(res.body.data.deleteOntologyTree).toBe(null);
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                await db.collections.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
                     $set: {
                         ontologyTrees: []
                     }
@@ -4292,7 +4186,7 @@ if (global.hasMinio) {
                         }
                     }
                 });
-                const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                const study: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 const resWithoutVersion = await authorisedUser.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
                     variables: {
@@ -4355,7 +4249,7 @@ if (global.hasMinio) {
                     metadata: null
                 });
                 // clear study
-                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
+                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
                         dataVersions: [],
                         currentDataVersion: -1,
@@ -4405,7 +4299,7 @@ if (global.hasMinio) {
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                 // clear study
-                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
+                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
                         dataVersions: [],
                         currentDataVersion: -1,
@@ -4455,7 +4349,7 @@ if (global.hasMinio) {
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                 // clear study
-                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
+                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
                         dataVersions: [],
                         currentDataVersion: -1,
@@ -4471,7 +4365,7 @@ if (global.hasMinio) {
                 });
                 // edit a field so that the datatype mismatched with the exisiting value
                 // this happens when a field is deleted first and then modified and added, while some data has been uploaded before deleting, causing conflicts
-                await db.collections!.field_dictionary_collection.findOneAndUpdate({
+                await db.collections.field_dictionary_collection.findOneAndUpdate({
                     studyId: createdStudy.id,
                     fieldId: '32'
                 }, {

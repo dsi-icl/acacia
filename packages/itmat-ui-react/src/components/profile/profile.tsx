@@ -62,7 +62,7 @@ export const ProfileManagementSection: FunctionComponent = () => {
                                             username: user.username,
                                             email: user.email
                                         }
-                                    });
+                                    }).catch(() => { return; });
                                 }}>
                                     Request new expiry date!
                                 </Button>
@@ -133,7 +133,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     const orgList: IOrganisation[] = getorgsdata.getOrganisations;
 
     return (
-        <Mutation<any, any>
+        <Mutation<never, { id: string, emailNotificationsActivated: boolean }>
             mutation={EDIT_USER}
             onCompleted={() => setSavedSuccessfully(true)}
         >
@@ -143,7 +143,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     createdAt: dayjs(user.createdAt),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.name
-                }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
+                }} layout='vertical' onFinish={(variables) => { submit({ variables: formatSubmitObj(variables) }).catch(() => { return; }); }}>
                     <Form.Item name='username' label='Username'>
                         <Input disabled />
                     </Form.Item>
@@ -207,7 +207,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                                     forgotPassword: true,
                                     username: user.username
                                 }
-                            });
+                            }).catch(() => { return; });
                         }}>
                             Send a password reset email
                         </Button>
@@ -231,7 +231,7 @@ export const showTimeFunc = {
 
 /* More time control due to different behaviors in chrome and firefox, also correct errors of summer/winter time offset */
 export const changeTimeFunc = {
-    changeDate: function (inputs: any, value: any) {
+    changeDate: function (inputs, value) {
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
         const offsetTime = new Date(inputs.expiredAt - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000);
         let newDate;
@@ -244,7 +244,7 @@ export const changeTimeFunc = {
         }
         return { ...inputs, expiredAt: newDate.valueOf() };
     },
-    changeTime: function (inputs: any, value: any) {
+    changeTime: function (inputs, value) {
         const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
         return { ...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000 };
@@ -270,7 +270,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
         const exportedKeyPair = await Key.exportRSAKey(keyPair);
         setExportedKeyPair(exportedKeyPair);
         const message = exportedKeyPair.publicKey;
-        const signature = await cryptoInBrowser.signGen(message, keyPair.privateKey!);
+        const signature = await cryptoInBrowser.signGen(message, keyPair.privateKey);
         setSignature(signature);
         setcompletedKeypairGen(true);
     };
@@ -311,14 +311,14 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
 
     if (completedKeypairGen) {
         return (
-            <Mutation<any, any>
+            <Mutation<never, never>
                 mutation={REGISTER_PUBKEY}
                 onCompleted={() => setCompletedRegister(true)}
             >
                 {(submit, { loading, error }) =>
                     <Form title='RegisterPublicKeyCompletedKeyPai' initialValues={{
                         associatedUserId: userId
-                    }} layout='vertical' onFinish={(variables) => submit({ variables })}>
+                    }} layout='vertical' onFinish={(variables) => { submit({ variables }).catch(() => { return; }); }}>
 
                         <Form.Item name='associatedUserId' label='User ID'>
                             <Input disabled />
@@ -406,7 +406,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
     }
 
     return (
-        <Mutation<any, any>
+        <Mutation<never, never>
             mutation={REGISTER_PUBKEY}
             onCompleted={() => setCompletedRegister(true)}
         >
@@ -414,7 +414,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                 <>
                     <Form title='RegisterPublicKey' initialValues={{
                         associatedUserId: userId
-                    }} layout='vertical' onFinish={(variables) => submit({ variables })}>
+                    }} layout='vertical' onFinish={(variables) => { submit({ variables }).catch(() => { return; }); }}>
 
                         <Form.Item name='associatedUserId' label='User ID'>
                             <Input disabled />
@@ -462,7 +462,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                     </Form>
 
                     <br />
-                    <Button type='primary' onClick={() => keyGenInBrowser()}>
+                    <Button type='primary' onClick={() => { keyGenInBrowser().catch(() => { return; }); }}>
                         Do not have public/private keypair? Generate one (In-browser)!
                     </Button>
 
@@ -534,7 +534,7 @@ export const RsaSigner: FunctionComponent = () => {
             <p>Public Key: </p>
             <textarea cols={120} rows={10} name='privateKey' value={publicKey} onChange={handlePublicKey} required> </textarea>
             <br />
-            <Button type='primary' onClick={() => signGen()}>
+            <Button type='primary' onClick={() => { signGen().catch(() => { return; }); }}>
                 Generate Signature (In-Browser)
             </Button>
         </div>
@@ -593,7 +593,7 @@ export const TokenManagement: FunctionComponent<{ userId: string }> = ({ userId 
     return (
         <Form title='TokenManagement' initialValues={{
             pubkey: ipubkey?.pubkey.replace(/\n/g, '\\n')
-        }} layout='vertical' onFinish={(variables) => tokenGen({ variables })}>
+        }} layout='vertical' onFinish={(variables) => { tokenGen({ variables }).catch(() => { return; }); }}>
             <p>To generate an access token, you need to enter the signature signed by your private-key</p>
             <p>Current refresh counter: <strong>{ipubkey?.refreshCounter}</strong></p>
             <Form.Item name='pubkey' label='Your registered public key'>

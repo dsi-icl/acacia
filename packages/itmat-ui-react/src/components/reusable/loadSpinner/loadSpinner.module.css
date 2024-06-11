@@ -7,18 +7,18 @@
 }
 
 .loader {
-    --path: #2F3545;
+    --path: #2f3545;
     --dot: #bf1472;
     --duration: 3s;
     width: 44px;
     height: 44px;
-    position: relative;    
+    position: relative;
     display: inline-block;
     margin: 0 16px;
 }
 
 .loader:before {
-    content: '';
+    content: "";
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -28,7 +28,8 @@
     top: 37px;
     left: 21px;
     transform: translate(-10px, -18px);
-    animation: dotTriangle var(--duration) cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
+    animation: dotTriangle var(--duration)
+        cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
 }
 
 .loader svg {
@@ -45,7 +46,8 @@
     stroke-linecap: round;
     stroke-dasharray: 145 calc(221 - 145) 145 calc(221 - 145);
     stroke-dashoffset: 0;
-    animation: pathTriangle var(--duration) cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
+    animation: pathTriangle var(--duration)
+        cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
 }
 
 @keyframes pathTriangle {

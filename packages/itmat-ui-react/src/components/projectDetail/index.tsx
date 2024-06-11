@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { GET_PROJECT, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { userTypes } from '@itmat-broker/itmat-types';
+import { IJobEntry, IProject, IRoleQL, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../reusable/loadSpinner';
 import css_dataset from '../datasetDetail/projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
@@ -17,7 +17,7 @@ export const ProjectDetailPage: FunctionComponent = () => {
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     return (
-        <Query<any, any>
+        <Query<{ getProject: IProject & { roles: IRoleQL[], jobs: IJobEntry[] } }, { projectId?: string, admin: boolean }>
             query={GET_PROJECT}
             variables={{ projectId, admin: whoamidata.whoAmI.type === userTypes.ADMIN }}
         >
@@ -29,10 +29,11 @@ export const ProjectDetailPage: FunctionComponent = () => {
                 return <div className={css_dataset.page_container}>
                     <div className={css_dataset.ariane}>
                         <h2>{data.getProject.name.toUpperCase()}</h2>
-                        <Query<any, any> query={WHO_AM_I}>
+                        <Query<{ whoAmI: IUserWithoutToken }, object> query={WHO_AM_I}>
                             {({ loading, error, data: sessionData }) => {
                                 if (loading) return <LoadSpinner />;
                                 if (error) return <p>{error.toString()}</p>;
+                                if (!sessionData) { return null; }
                                 if (sessionData.whoAmI.type === userTypes.ADMIN) {
                                     return <div className={css_dataset.tabs}>
                                         <NavLink to='dashboard' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DASHBOARD</div></NavLink>

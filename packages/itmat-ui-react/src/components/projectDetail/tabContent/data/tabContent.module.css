@@ -21,7 +21,7 @@
             "b b"
             "c c"
             "d d"
-            "e e"
+            "e e";
     }
 
     .metadata span {
@@ -58,7 +58,7 @@
     }
 
     .grid_icon {
-        font-size: '600px';
+        font-size: "600px";
     }
 
     .title {
@@ -83,7 +83,7 @@
             "a a"
             "b b"
             "c c"
-            "d e"
+            "d e";
     }
 
     .metadata span {
@@ -120,7 +120,7 @@
     }
 
     .grid_icon {
-        font-size: '600px';
+        font-size: "600px";
     }
 
     .title {

@@ -3,6 +3,7 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-setup/src",
     "projectType": "library",
+    "tags": [],
     "targets": {
         "build": {
             "executor": "@nx/js:tsc",
@@ -45,6 +46,5 @@
                 "command": "node dist/packages/itmat-setup/src/runSetup.js"
             }
         }
-    },
-    "tags": []
+    }
 }

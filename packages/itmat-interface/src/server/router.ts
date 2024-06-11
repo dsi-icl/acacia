@@ -9,9 +9,9 @@ import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import MongoStore from 'connect-mongo';
-// import cors from 'cors';
 import express from 'express';
 import { Express } from 'express';
+import { Request, Response, RequestHandler as NativeRequestHandler } from 'express-serve-static-core';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import http from 'node:http';
@@ -19,28 +19,23 @@ import passport from 'passport';
 import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
 import { typeDefs } from '../graphql/typeDefs';
-import { fileDownloadController } from '../rest/fileDownload';
-import { userLoginUtils } from '../utils/userLoginUtils';
-import { IConfiguration } from '../utils/configManager';
-import { logPlugin } from '../log/logPlugin';
-import { spaceFixing } from '../utils/regrex';
+import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
-import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
 import { IUser } from '@itmat-broker/itmat-types';
-
-interface ApolloServerContext {
-    token?: string;
-}
-
+import { ApolloServerContext } from '../graphql/ApolloServerContext';
+import { DMPContext } from '../graphql/resolvers/context';
+import { logPluginInstance } from '../log/logPlugin';
+import { IConfiguration, spaceFixing, userRetrieval } from '@itmat-broker/itmat-cores';
+import { userLoginUtils } from '../utils/userLoginUtils';
 
 export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
     private readonly config: IConfiguration;
-    public readonly proxies: Array<RequestHandler> = [];
+    public readonly proxies: Array<RequestHandler<Request, Response>> = [];
 
     constructor(config: IConfiguration) {
 
@@ -52,9 +47,6 @@ export class Router {
             max: 500
         }));
 
-        // if (process.env.NODE_ENV === 'development')
-        //     this.app.use(cors({ credentials: true }));
-
         this.app.use(express.json({ limit: '50mb' }));
         this.app.use(express.urlencoded({ extended: true }));
 
@@ -62,9 +54,9 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(
             session({
-                store: process.env.NODE_ENV === 'test' ? undefined : MongoStore.create({
+                store: process.env['NODE_ENV'] === 'test' ? undefined : MongoStore.create({
                     client: db.client,
-                    collectionName: config.database.collections.sessions_collection
+                    collectionName: config.database.collections['sessions_collection']
                 }),
                 secret: this.config.sessionsSecret,
                 saveUninitialized: false,
@@ -85,13 +77,11 @@ export class Router {
         passport.deserializeUser(userLoginUtils.deserialiseUser);
 
         this.server = http.createServer({
-            allowHTTP1: true,
             keepAlive: true,
             keepAliveInitialDelay: 0,
             requestTimeout: 0,
-            headersTimeout: 0,
             noDelay: true
-        } as any, this.app);
+        }, this.app);
 
         this.server.timeout = 0;
         this.server.headersTimeout = 0;
@@ -101,12 +91,13 @@ export class Router {
             socket.setKeepAlive(true);
             socket.setNoDelay(true);
             socket.setTimeout(0);
-            (socket as any).timeout = 0;
+            (socket as unknown as Record<string, unknown>)['timeout'] = 0;
         });
     }
 
     async init() {
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const _this = this;
 
         /* putting schema together */
@@ -129,10 +120,10 @@ export class Router {
             plugins: [
                 {
                     async serverWillStart() {
-                        logPlugin.serverWillStartLogPlugin();
+                        await logPluginInstance.serverWillStartLogPlugin();
                         return {
                             async drainServer() {
-                                serverCleanup.dispose();
+                                await serverCleanup.dispose();
                             }
                         };
                     },
@@ -141,10 +132,10 @@ export class Router {
                             async executionDidStart(requestContext) {
                                 const operation = requestContext.operationName;
                                 const actionData = requestContext.request.variables;
-                                (requestContext as any).request.variables = spaceFixing(operation as any, actionData);
+                                requestContext.request.variables = operation ? spaceFixing(operation, actionData) : undefined;
                             },
                             async willSendResponse(requestContext) {
-                                logPlugin.requestDidStartLogPlugin(requestContext);
+                                await logPluginInstance.requestDidStartLogPlugin(requestContext);
                             }
                         };
                     }
@@ -168,37 +159,39 @@ export class Router {
             // logLevel: 'debug',
             autoRewrite: true,
             changeOrigin: true,
-            onProxyReq: function (preq, req, res) {
-                if (!req.user)
-                    return res.status(403).redirect('/');
-                res.cookie('ae_proxy', req.headers['host']);
-                const data = (req.user as IUser).username + ':token';
-                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-                if (req.body && Object.keys(req.body).length) {
-                    const contentType = preq.getHeader('Content-Type');
-                    preq.setHeader('origin', _this.config.aeEndpoint);
-                    const writeBody = (bodyData: string) => {
-                        preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-                        preq.write(bodyData);
-                        preq.end();
-                    };
+            on: {
+                proxyReq: function (preq, req: Request, res: Response) {
+                    if (!req.user)
+                        return res.status(403).redirect('/');
+                    res.cookie('ae_proxy', req.headers['host']);
+                    const data = (req.user as IUser).username + ':token';
+                    preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                    if (req.body && Object.keys(req.body).length) {
+                        const contentType = preq.getHeader('Content-Type');
+                        preq.setHeader('origin', _this.config.aeEndpoint);
+                        const writeBody = (bodyData: string) => {
+                            preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                            preq.write(bodyData);
+                            preq.end();
+                        };
 
-                    if (contentType === 'application/json') {  // contentType.includes('application/json')
-                        writeBody(JSON.stringify(req.body));
+                        if (contentType === 'application/json') {
+                            writeBody(JSON.stringify(req.body));
+                        }
+
+                        if (contentType === 'application/x-www-form-urlencoded') {
+                            writeBody(qs.stringify(req.body));
+                        }
+
                     }
-
-                    if (contentType === 'application/x-www-form-urlencoded') {
-                        writeBody(qs.stringify(req.body));
-                    }
-
+                },
+                proxyReqWs: function (preq) {
+                    const data = 'username:token';
+                    preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                },
+                error: function (err, req, res, target) {
+                    console.error(err, target);
                 }
-            },
-            onProxyReqWs: function (preq) {
-                const data = 'username:token';
-                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-            },
-            onError: function (err, req, res, target) {
-                console.error(err, target);
             }
         });
 
@@ -211,7 +204,7 @@ export class Router {
         const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
 
         proxy_routers.forEach(router => {
-            this.app.use(router, ae_proxy);
+            this.app.use(router, ae_proxy as NativeRequestHandler);
         });
 
         await gqlServer.start();
@@ -221,27 +214,27 @@ export class Router {
             express.json(),
             graphqlUploadExpress(),
             expressMiddleware(gqlServer, {
-                // context: async({ req }) => ({ token: req.headers.token })
-                context: async ({ req, res }) => {
-                    /* Bounce all unauthenticated graphql requests */
-                    // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
-                    //     throw new ForbiddenError('not logged in');
-                    // }
+                context: async ({ req, res }): Promise<DMPContext> => {
                     const token: string = req.headers.authorization || '';
                     if ((token !== '') && (req.user === undefined)) {
                         // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
                         const decodedPayload = jwt.decode(token);
                         // obtain the public-key of the robot user in the JWT payload
-                        const pubkey = (decodedPayload as any).publicKey;
+                        let pubkey;
+                        if (decodedPayload !== null && typeof decodedPayload === 'object') {
+                            pubkey = decodedPayload['publicKey'];
+                        } else {
+                            throw new GraphQLError('JWT verification failed. ', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+                        }
 
                         // verify the JWT
-                        jwt.verify(token, pubkey, function (error: any) {
+                        jwt.verify(token, pubkey, function (error) {
                             if (error) {
                                 throw new GraphQLError('JWT verification failed. ' + error, { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
                             }
                         });
                         // store the associated user with the JWT to context
-                        const associatedUser = await userRetrieval(pubkey);
+                        const associatedUser = await userRetrieval(db, pubkey);
                         req.user = associatedUser;
                     }
                     return ({ req, res });
@@ -272,7 +265,7 @@ export class Router {
         //     next();
         // });
 
-        this.app.get('/file/:fileId', fileDownloadController);
+        this.app.get('/file/:fileId', fileDownloadControllerInstance.fileDownloadController);
 
     }
 
@@ -280,7 +273,7 @@ export class Router {
         return this.app;
     }
 
-    public getProxy(): RequestHandler {
+    public getProxy(): RequestHandler<Request, Response> {
         return this.proxies[0];
     }
 

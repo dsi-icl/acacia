@@ -3,7 +3,7 @@
     grid-template-columns: 60% 40%;
     grid-template-rows: 100%;
     height: 100%;
-    grid-template-areas: "main sub"
+    grid-template-areas: "main sub";
 }
 
 .main_page {
@@ -84,7 +84,7 @@
     width: 100%;
 }
 
-.permissions_section>div {
+.permissions_section > div {
     padding: 0.4rem 1rem;
     display: inline-block;
     margin: 0 1rem 1rem 0;
@@ -93,17 +93,17 @@
     box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.3);
 }
 
-.permissions_section>div:not(.permission_selected):hover {
+.permissions_section > div:not(.permission_selected):hover {
     background-color: var(--color-permission-unselected);
 }
 
-.permissions_section>.permission_selected {
+.permissions_section > .permission_selected {
     color: black;
     background-color: var(--color-status-finish);
 }
 
-.permissions_section>.permission_selected::after {
-    content: '✓'
+.permissions_section > .permission_selected::after {
+    content: "✓";
 }
 
 .data_permissions {

@@ -1,0 +1,17 @@
+# Add files here to ignore them from prettier formatting
+
+/.nx/cache
+*.json
+*.ts
+*.tsx
+*.mts
+*.mtsx
+*.cts
+*.ctsx
+*.js
+*.jsx
+*.mjs
+*.mjsx
+*.cjs
+*.cjsx
+*.yaml

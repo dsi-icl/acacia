@@ -47,14 +47,14 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
                 fileId
             },
             refetchQueries: ['getStudy']
-        });
+        }).catch(() => { return; });
     };
 
     if (getOrgsLoading || getUsersLoading)
         return <LoadSpinner />;
 
     if (getOrgsError || getUsersError)
-        return <>An error occured, please contact your administrator: {(getOrgsError as any).message} {(getUsersError as any).message}</>;
+        return <>An error occured, please contact your administrator: {getOrgsError?.message} {getUsersError?.message}</>;
 
     const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
 

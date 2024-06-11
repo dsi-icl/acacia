@@ -5,12 +5,12 @@ export interface IFieldEntry {
     fieldName: string;
     tableName?: string;
     dataType: enumValueType;
-    possibleValues?: IValueDescription[];
+    possibleValues?: IValueDescription[] | null;
     unit?: string;
     comments?: string;
-    metadata?: any;
-    dateAdded: string;
-    dateDeleted: string | null;
+    metadata?: Record<string, unknown>;
+    dateAdded: number;
+    dateDeleted: number | null;
     dataVersion: string | null;
 }
 

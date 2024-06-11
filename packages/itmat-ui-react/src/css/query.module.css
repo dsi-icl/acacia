@@ -48,7 +48,7 @@
     padding: 0px;
     border: 0px;
     grid-template-rows: 1fr 3rem;
-    grid-template-areas: "editorCore" "submitButton"
+    grid-template-areas: "editorCore" "submitButton";
 }
 
 .submitButton {
@@ -60,7 +60,6 @@
     box-shadow: 2px;
     color: rgb(241, 241, 241);
     font-weight: bold;
-
 }
 
 .submitButton:hover {
@@ -74,7 +73,6 @@
     color: white;
     cursor: pointer;
 }
-
 
 .fields {
     grid-area: fields;

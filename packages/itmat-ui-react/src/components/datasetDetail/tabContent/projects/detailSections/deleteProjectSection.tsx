@@ -2,7 +2,7 @@ import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { Navigate } from 'react-router';
 import { WHO_AM_I, DELETE_PROJECT, GET_STUDY } from '@itmat-broker/itmat-models';
-import { IProject } from '@itmat-broker/itmat-types';
+import { IProject, IStudy, IUserWithoutToken } from '@itmat-broker/itmat-types';
 
 export const DeleteProjectSection: FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -21,11 +21,14 @@ export const DeleteProjectSection: FunctionComponent<{ studyId: string; projectI
     return <>
         <p style={{ color: 'red' }}>Warning! This is irreversible! If you really want to delete this project, please type the name of the project ({projectName}) below to confirm.</p>
         <input type='text' placeholder={projectName} value={inputText} onChange={(e) => { setInput(e.target.value); setError(''); }} /> <br /><br />
-        <Mutation<any, any>
+        <Mutation<never, { projectId: string }>
             mutation={DELETE_PROJECT}
             update={(store) => {
                 // Read the data from our cache for this query.
-                const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId, admin: true } });
+                const data = store.readQuery<{ getStudy: IStudy & { projects: IProject[] } }, { studyId: string, admin: boolean }>({ query: GET_STUDY, variables: { studyId, admin: true } });
+                if (data === null) {
+                    return;
+                }
                 // Add our comment from the mutation to the end.
                 const newProjects = data.getStudy.projects.filter((el: IProject) => el.id !== projectId);
                 data.getStudy.projects = newProjects;
@@ -33,7 +36,10 @@ export const DeleteProjectSection: FunctionComponent<{ studyId: string; projectI
                 store.writeQuery({ query: GET_STUDY, variables: { studyId, admin: true }, data });
 
                 // Read the data from our cache for this query.
-                const whoAmI: any = store.readQuery({ query: WHO_AM_I });
+                const whoAmI = store.readQuery<{ whoAmI: IUserWithoutToken & { access: { id: string, studies: IStudy[], projects: IProject[] } } }>({ query: WHO_AM_I });
+                if (whoAmI === null) {
+                    return;
+                }
                 // Add our comment from the mutation to the end.
                 // const newWhoAmIProjects = whoAmI.whoAmI.access.projects.filter((el: IProject) => el.id !== projectId);
                 whoAmI.whoAmI.access.projects = newProjects;
@@ -49,7 +55,7 @@ export const DeleteProjectSection: FunctionComponent<{ studyId: string; projectI
                         if (inputText !== projectName) {
                             setError('Project name not matched.');
                         } else {
-                            deleteProject({ variables: { projectId } });
+                            deleteProject({ variables: { projectId } }).catch(() => { return; });
                         }
                     }} style={{ display: 'inline-block', width: '30%' }}>Really delete!
                     </button>

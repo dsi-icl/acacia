@@ -3,7 +3,7 @@ import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IProject, userTypes } from '@itmat-broker/itmat-types';
+import { IGenericResponse, IProject, userTypes } from '@itmat-broker/itmat-types';
 import css from './scaffold.module.css';
 import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined, SettingOutlined, ProjectOutlined, DesktopOutlined, WarningTwoTone } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -87,10 +87,10 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
 
         <div>
             <NavLink title='Logout' to='/'>
-                <Mutation<any, any>
+                <Mutation<{ logout: IGenericResponse }, never>
                     mutation={LOGOUT}
-                    update={(cache, { data: { logout } }) => {
-                        if (logout.successful === true) {
+                    update={(cache, { data }) => {
+                        if (data && data.logout.successful === true) {
                             cache.writeQuery({
                                 query: WHO_AM_I,
                                 data: { whoAmI: null }
@@ -99,7 +99,7 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
                     }}
                 >
                     {(logout) => (
-                        <div className={css.button} onClick={() => { logout(); }}><PoweroffOutlined /> Logout</div>
+                        <div className={css.button} onClick={() => { logout().catch(() => { return; }); }}><PoweroffOutlined /> Logout</div>
                     )}
                 </Mutation>
             </NavLink>

@@ -11,8 +11,7 @@ import { Db, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
-import { errorCodes } from '../../src/graphql/errors';
-import * as mfa from '../../src/utils/mfa';
+import { errorCodes, generateTOTP } from '@itmat-broker/itmat-cores';
 import { GET_LOGS, LOGIN, DELETE_USER } from '@itmat-broker/itmat-models';
 import { userTypes, IUser, ILogEntry, LOG_STATUS, LOG_ACTION, LOG_TYPE, USER_AGENT } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
@@ -87,7 +86,7 @@ describe('LOG API', () => {
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
             const newloggedoutuser = request.agent(app);
-            const otp = mfa.generateTOTP(userSecret).toString();
+            const otp = generateTOTP(userSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
                 variables: {
@@ -97,7 +96,7 @@ describe('LOG API', () => {
                 }
             });
             expect(res.status).toBe(200);
-            const findLogInMongo = await db.collections!.log_collection.find({}).toArray();
+            const findLogInMongo = await db.collections.log_collection.find({}).toArray();
             const lastLog = findLogInMongo.pop();
             expect(lastLog).toBeDefined();
             if (!lastLog)
@@ -138,7 +137,7 @@ describe('LOG API', () => {
                 status: LOG_STATUS.SUCCESS,
                 errors: ''
             }];
-            await db.collections!.log_collection.insertMany(logSample);
+            await db.collections.log_collection.insertMany(logSample);
         });
 
         afterAll(async () => {

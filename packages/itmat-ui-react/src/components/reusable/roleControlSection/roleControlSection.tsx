@@ -2,7 +2,7 @@ import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE, GET_USERS, GET_PROJECT, GET_STUDY, GET_ORGANISATIONS } from '@itmat-broker/itmat-models';
-import { IRoleQL, IUser, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { IRoleQL, IUser, atomicOperation, IPermissionManagementOptions, ICohortSelection } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button, Form, Input, Alert, Popconfirm, Checkbox, Collapse, Divider, Table, Col, Row } from 'antd';
@@ -61,7 +61,10 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
                         <LoadSpinner />
                     </span>
                     : <div className={css.right_aligned}>
-                        <Popconfirm title={<>Are you sure about deleting role <i>{role.name}</i>?</>} onConfirm={() => removeRole({ variables: { roleId: role.id } })} okText='Yes' cancelText='No'>
+                        <Popconfirm title={<>Are you sure about deleting role <i>{role.name}</i>?</>} onConfirm={() => {
+                            removeRole({ variables: { roleId: role.id } })
+                                .catch(() => { return; });
+                        }} okText='Yes' cancelText='No'>
                             <Button icon={<DeleteOutlined />} danger ></Button>
                         </Popconfirm>
                     </div>
@@ -130,13 +133,15 @@ export const AddRole: FunctionComponent<AddRoleProps> = ({
 
     return (
         <div className={css.add_new_role_section}>
-            <Form onFinish={(variables) => addNewRole({
-                variables: {
-                    ...variables,
-                    studyId,
-                    projectId
-                }
-            })}>
+            <Form onFinish={(variables) => {
+                addNewRole({
+                    variables: {
+                        ...variables,
+                        studyId,
+                        projectId
+                    }
+                }).catch(() => { return; });
+            }}>
                 <Form.Item name='roleName' >
                     <Input placeholder='Role name' />
                 </Form.Item>
@@ -168,6 +173,29 @@ export const AddRole: FunctionComponent<AddRoleProps> = ({
 
 type PermissionsControlPanelProps = {
     role: IRoleQL
+}
+
+type EditRole = {
+    roleId: string;
+    permissionChanges: {
+        data: {
+            subjectIds: string[],
+            visitIds: string[],
+            fieldIds: string[],
+            uploaders: string[],
+            hasVersioned: boolean,
+            operations: string[],
+            filters: ICohortSelection[][]
+        },
+        manage: {
+            own: atomicOperation[],
+            role: atomicOperation[],
+            job: atomicOperation[],
+            query: atomicOperation[],
+            ontologyTrees: atomicOperation[]
+        }
+    },
+    description: string
 }
 
 const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> = ({
@@ -258,7 +286,7 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
         ];
     };
     return (
-        <Mutation<any, any>
+        <Mutation<never, EditRole>
             mutation={EDIT_ROLE}
         // onCompleted={() => setSavedSuccessfully(true)}
         >
@@ -267,30 +295,32 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                     ...role.permissions.data,
                     ...role.permissions.manage,
                     description: role.description
-                }} layout='vertical' onFinish={(variables) => submit({
-                    variables: {
-                        roleId: role.id,
-                        permissionChanges: {
-                            data: {
-                                subjectIds: variables.subjectIds,
-                                visitIds: variables.visitIds,
-                                fieldIds: variables.fieldIds,
-                                uploaders: variables.uploaders,
-                                hasVersioned: variables.hasVersioned,
-                                operations: variables.operations,
-                                filters: variables.filters
+                }} layout='vertical' onFinish={(variables) => {
+                    submit({
+                        variables: {
+                            roleId: role.id,
+                            permissionChanges: {
+                                data: {
+                                    subjectIds: variables.subjectIds,
+                                    visitIds: variables.visitIds,
+                                    fieldIds: variables.fieldIds,
+                                    uploaders: variables.uploaders,
+                                    hasVersioned: variables.hasVersioned,
+                                    operations: variables.operations,
+                                    filters: variables.filters
+                                },
+                                manage: {
+                                    own: variables.own,
+                                    role: variables.role,
+                                    job: variables.job,
+                                    query: variables.query,
+                                    ontologyTrees: variables.ontologyTrees
+                                }
                             },
-                            manage: {
-                                own: variables.own,
-                                role: variables.role,
-                                job: variables.job,
-                                query: variables.query,
-                                ontologyTrees: variables.ontologyTrees
-                            }
-                        },
-                        description: variables.description
-                    }
-                })}>
+                            description: variables.description
+                        }
+                    }).catch(() => { return; });
+                }}>
                     <div>
                         <div>
                             <Form.Item name='description' label='Description'>
@@ -455,7 +485,7 @@ type UsersControlPanelProps = {
     projectId?: string;
     availableUserList: IUser[];
     originallySelectedUsers: IUser[];
-    permissions: any;
+    permissions;
 }
 
 const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
@@ -469,7 +499,7 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
 
     const handleSelect = (value: string) => {
-        return editUsers({
+        editUsers({
             variables: {
                 roleId,
                 userChanges: {
@@ -478,11 +508,11 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 },
                 permissionChanges: permissions
             }
-        });
+        }).catch(() => { return; });
     };
 
     const handleDeselect = (value: string) => {
-        return editUsers({
+        editUsers({
             variables: {
                 roleId,
                 userChanges: {
@@ -491,10 +521,10 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 },
                 permissionChanges: permissions
             }
-        });
+        }).catch(() => { return; });
     };
 
-    const handleFilter = (value: string, option: any) => {
+    const handleFilter = (value: string, option) => {
         const searchTerm = value?.trim()?.toLocaleLowerCase();
         const user = availableUserList.filter(user => user.id === option.value)?.[0];
         if (!user || !searchTerm || searchTerm === '')
@@ -525,7 +555,7 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                         }
                     }).then(() => {
                         onClose();
-                    });
+                    }).catch(() => { return; });
                 }}
             >
                 {label}
@@ -547,7 +577,7 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     }), {});
 
     return (
-        <Select<any>
+        <Select<Array<string>>
             mode='multiple'
             loading={loading}
             style={{ width: '100%' }}

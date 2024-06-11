@@ -14,7 +14,7 @@
     padding-bottom: 4rem;
 }
 
-.login_box [class*=ant-select] {
+.login_box [class*="ant-select"] {
     text-align: left;
 }
 

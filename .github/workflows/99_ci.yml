@@ -3,88 +3,88 @@ name: Test and Build CI
 on: [push]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node: [20.x]
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest]
+                node: [20.x]
 
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Derive appropriate SHAs for base and head for `nx affected` commands
-        uses: nrwl/nx-set-shas@v4
-        with:
-          main-branch-name: master
-          error-on-no-successful-workflow: true
+            - name: Derive appropriate SHAs for base and head for `nx affected` commands
+              uses: nrwl/nx-set-shas@v4
+              with:
+                  main-branch-name: master
+                  error-on-no-successful-workflow: true
 
-      - run: |
-          echo "Nx base: ${{ env.NX_BASE }}"
-          echo "Git head: ${{ env.NX_HEAD }}"
+            - run: |
+                  echo "Nx base: ${{ env.NX_BASE }}"
+                  echo "Git head: ${{ env.NX_HEAD }}"
 
-      - name: Using Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
+            - name: Using Node.js ${{ matrix.node }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: yarn
 
-      - name: Disable TCP/UDP Offloading
-        shell: bash
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            sudo ethtool -K eth0 tx off rx off
-            exit 0
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            sudo sysctl -w net.link.generic.system.hwcksum_tx=0
-            sudo sysctl -w net.link.generic.system.hwcksum_rx=0
-            exit 0
-          else
-            echo "$RUNNER_OS not supported"
-            exit 0
-          fi
+            - name: Disable TCP/UDP Offloading
+              shell: bash
+              run: |
+                  if [ "$RUNNER_OS" == "Linux" ]; then
+                    sudo ethtool -K eth0 tx off rx off
+                    exit 0
+                  elif [ "$RUNNER_OS" == "macOS" ]; then
+                    sudo sysctl -w net.link.generic.system.hwcksum_tx=0
+                    sudo sysctl -w net.link.generic.system.hwcksum_rx=0
+                    exit 0
+                  else
+                    echo "$RUNNER_OS not supported"
+                    exit 0
+                  fi
 
-      - name: Installing dependencies
-        run: |
-          yarn install --network-timeout 1000000 --forzen-lockfile
+            - name: Installing dependencies
+              run: |
+                  yarn install --network-timeout 1000000 --forzen-lockfile
 
-      - name: Checking for lint
-        run: |
-          yarn run nx affected --target=lint --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }}
+            - name: Checking for lint
+              run: |
+                  yarn run nx affected --target=lint --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }}
 
-      - name: Building packages
-        run: |
-          yarn run nx affected --target=build --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
+            - name: Building packages
+              run: |
+                  yarn run nx affected --target=build --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
 
-      - name: Running unit tests
-        run: |
-          yarn run nx affected --target=test --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
-        env:
-          CI: true
+            - name: Running unit tests
+              run: |
+                  yarn run nx affected --target=test --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
+              env:
+                  CI: true
 
-  # email_test:
-  #   runs-on: itmat
-  #   strategy:
-  #     matrix:
-  #       node: [10.x, 12.x]
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - name: Using Node.js ${{ matrix.node }}
-  #     uses: actions/setup-node@v1
-  #     with:
-  #       node-version: ${{ matrix.node }}
-  #   - name: Installing dependencies
-  #     run: yarn install
-  #   - name: Checking for lint
-  #     run: yarn run lint
-  #   - name: Building packages
-  #     run: yarn run build
-  #   - name: Running unit tests
-  #     run: yarn run test
-  #     env:
-  #       CI: true
-  #       TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}
-  #       TEST_SMTP_USERNAME: ${{ secrets.TEST_SMTP_USERNAME }}
-  #       TEST_RECEIVER_EMAIL_ADDR: ${{ secrets.TEST_RECEIVER_EMAIL_ADDR }}
+    # email_test:
+    #   runs-on: itmat
+    #   strategy:
+    #     matrix:
+    #       node: [10.x, 12.x]
+    #   steps:
+    #   - uses: actions/checkout@v1
+    #   - name: Using Node.js ${{ matrix.node }}
+    #     uses: actions/setup-node@v1
+    #     with:
+    #       node-version: ${{ matrix.node }}
+    #   - name: Installing dependencies
+    #     run: yarn install
+    #   - name: Checking for lint
+    #     run: yarn run lint
+    #   - name: Building packages
+    #     run: yarn run build
+    #   - name: Running unit tests
+    #     run: yarn run test
+    #     env:
+    #       CI: true
+    #       TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}
+    #       TEST_SMTP_USERNAME: ${{ secrets.TEST_SMTP_USERNAME }}
+    #       TEST_RECEIVER_EMAIL_ADDR: ${{ secrets.TEST_RECEIVER_EMAIL_ADDR }}

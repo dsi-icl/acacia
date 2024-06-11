@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { IJobEntry } from '@itmat-broker/itmat-types';
 
-export const JobSection: FunctionComponent<{ jobs: Array<IJobEntry<any>> }> = ({ jobs }) => {
+export const JobSection: FunctionComponent<{ jobs: Array<IJobEntry> }> = ({ jobs }) => {
     return <div>
         {jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
             <table>
@@ -23,7 +23,7 @@ export const JobSection: FunctionComponent<{ jobs: Array<IJobEntry<any>> }> = ({
     </div>;
 };
 
-const OneJob: FunctionComponent<{ job: IJobEntry<any> }> = ({ job }) => {
+const OneJob: FunctionComponent<{ job: IJobEntry }> = ({ job }) => {
     return (
         <tr>
             <td></td>

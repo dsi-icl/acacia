@@ -7,7 +7,7 @@
     display: grid;
     grid-template-columns: 16rem 1fr;
     grid-template-rows: calc(100% - 2rem) 2rem;
-    grid-template-areas: "mainMenuBar mainPanel" "statusBar statusBar"
+    grid-template-areas: "mainMenuBar mainPanel" "statusBar statusBar";
 }
 
 .main_panel {

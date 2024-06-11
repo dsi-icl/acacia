@@ -6,7 +6,7 @@ import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
-import { errorCodes } from '../../src/graphql/errors';
+import { errorCodes } from '@itmat-broker/itmat-cores';
 import { Db, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -80,7 +80,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
 });
 
 describe('STUDY API', () => {
-    let adminId: any;
+    let adminId: string;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
@@ -90,7 +90,7 @@ describe('STUDY API', () => {
 
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
         let createdProject;
-        let createdStudy: { id: any; name: any; };
+        let createdStudy;
         let createdRole_study;
         let createdRole_study_manageProject;
         let createdRole_project;
@@ -755,9 +755,9 @@ describe('STUDY API', () => {
             }
 
             /* delete values in db */
-            await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
-            await db.collections!.data_collection.deleteMany({ m_studyId: createdStudy.id });
-            await db.collections!.files_collection.deleteMany({ studyId: createdStudy.id });
+            await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
+            await db.collections.data_collection.deleteMany({ m_studyId: createdStudy.id });
+            await db.collections.files_collection.deleteMany({ studyId: createdStudy.id });
 
             /* study user cannot delete study */
             {
@@ -810,9 +810,9 @@ describe('STUDY API', () => {
                 });
 
                 // study data is NOT deleted for audit purposes - unless explicitly requested separately
-                const roles = await db.collections!.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                const projects = await db.collections!.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 expect(roles).toEqual([]);
                 expect(projects).toEqual([]);
                 expect(study).toBe(null);
@@ -832,8 +832,8 @@ describe('STUDY API', () => {
         });
 
         afterEach(async () => {
-            await db.collections!.standardizations_collection.deleteMany({});
-            await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, { $set: { dataVersions: [], currentDataVersion: -1 } });
+            await db.collections.standardizations_collection.deleteMany({});
+            await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, { $set: { dataVersions: [], currentDataVersion: -1 } });
         });
 
         test('Create standardization (authorised user)', async () => {
@@ -857,7 +857,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            const std = await db.collections!.standardizations_collection.findOne({});
+            const std = await db.collections.standardizations_collection.findOne({});
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.createStandardization).toEqual({
@@ -940,7 +940,7 @@ describe('STUDY API', () => {
                     type: 'fakeType'
                 }
             });
-            const std = await db.collections!.standardizations_collection.findOne({ studyId: createdStudy.id, type: 'fakeType', field: ['$testField'] });
+            const std = await db.collections.standardizations_collection.findOne({ studyId: createdStudy.id, type: 'fakeType', field: ['$testField'] });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getStandardization[0]).toEqual({
@@ -1012,7 +1012,7 @@ describe('STUDY API', () => {
                 }
             });
             // modify the uploadedAt of the second uploading as we use mock
-            await db.collections!.standardizations_collection.findOneAndUpdate({ stdRules: { $elemMatch: { entry: 'fakeEntryNew' } } }, {
+            await db.collections.standardizations_collection.findOneAndUpdate({ stdRules: { $elemMatch: { entry: 'fakeEntryNew' } } }, {
                 $set: {
                     uploadedAt: 1591134065001
                 }
@@ -1096,7 +1096,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            const std = await db.collections!.standardizations_collection.findOne({});
+            const std = await db.collections.standardizations_collection.findOne({});
             const res = await authorisedUserStudy.post('/graphql').send({
                 query: print(DELETE_STANDARDIZATION),
                 variables: {

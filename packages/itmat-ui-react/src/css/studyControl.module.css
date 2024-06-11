@@ -4,8 +4,7 @@
     display: grid;
     grid-template-columns: 1.5fr 1fr;
     grid-template-rows: 100%;
-    grid-template-areas:
-        "studyDashboard extraActionPanel"
+    grid-template-areas: "studyDashboard extraActionPanel";
 }
 
 .studyDashboard {
@@ -20,9 +19,9 @@
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         grid-template-rows: 1fr 1fr;
-        grid-template-areas: 
+        grid-template-areas:
             "jobs jobs addShortcut"
-            "applicationList curation deleteStudy"
+            "applicationList curation deleteStudy";
     }
 }
 
@@ -32,7 +31,6 @@
     height: 100%;
     overflow: auto;
 }
-
 
 .studyControl > div > div {
     padding: 2% 2%;

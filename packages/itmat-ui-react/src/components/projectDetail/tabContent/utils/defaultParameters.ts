@@ -1,4 +1,4 @@
-export const options: any = {
+export const options = {
     ops: ['=', '!=', '<', '>', '>=', '<='],
     tagColors: {
         visit: 'red',
@@ -15,10 +15,10 @@ export const statisticsTypes: string[] = [
     'ttest', 'ztest'
 ];
 
-export const analysisTemplate: any = {
+export const analysisTemplate = {
 };
 
-export const dataTypeMapping: any = {
+export const dataTypeMapping = {
     int: 'Integer',
     dec: 'Decimal',
     str: 'String',

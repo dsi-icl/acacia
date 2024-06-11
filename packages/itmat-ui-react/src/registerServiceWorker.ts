@@ -21,9 +21,13 @@ const isLocalhost = Boolean(
 
 export default function register(): void {
     if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+        const base = process.env['NX_REACT_APP_BASEHREF'];
+        if (!base) {
+            return;
+        }
         // The URL constructor is available in all browsers that support SW.
         const publicUrl = new URL(
-            process.env.NX_REACT_APP_BASEHREF!,
+            base,
             window.location.toString()
         );
         if (publicUrl.origin !== window.location.origin) {
@@ -47,7 +51,7 @@ export default function register(): void {
                         'This web app is being served cache-first by a service ' +
                         'worker. To learn more, visit https://goo.gl/SC7cgQ'
                     );
-                });
+                }).catch(() => { return; });
             } else {
                 // Is not local host. Just register service worker
                 registerValidSW(swUrl);
@@ -94,14 +98,14 @@ function checkValidServiceWorker(swUrl: string) {
             // Ensure service worker exists, and that we really are getting a JS file.
             if (
                 response.status === 404 ||
-                response.headers.get('content-type')!.indexOf('javascript') === -1
+                response.headers.get('content-type')?.indexOf('javascript') === -1
             ) {
                 // No service worker found. Probably a different app. Reload the page.
-                navigator.serviceWorker.ready.then((registration) => {
-                    registration.unregister().then(() => {
+                navigator.serviceWorker.ready.then(async (registration) => {
+                    return registration.unregister().then(() => {
                         window.location.reload();
                     });
-                });
+                }).catch(() => { return; });
             } else {
                 // Service worker found. Proceed as normal.
                 registerValidSW(swUrl);
@@ -116,8 +120,8 @@ function checkValidServiceWorker(swUrl: string) {
 
 export function unregister(): void {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-            registration.unregister();
-        });
+        navigator.serviceWorker.ready.then(async (registration) => {
+            return registration.unregister();
+        }).catch(() => { return; });
     }
 }

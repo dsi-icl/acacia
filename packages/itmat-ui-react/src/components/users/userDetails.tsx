@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IOrganisation, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { IGenericResponse, IOrganisation, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
 import { WHO_AM_I, DELETE_USER, EDIT_USER, GET_USERS, REQUEST_USERNAME_OR_RESET_PASSWORD, GET_ORGANISATIONS, GET_STUDY } from '@itmat-broker/itmat-models';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -96,6 +96,17 @@ export const UserDetailsSection: FunctionComponent = () => {
     );
 };
 
+type EditUser = IUserWithoutToken & {
+    organisation: string,
+    type: userTypes,
+    metadata: {
+        [key: string]: unknown,
+        aePermission: boolean,
+        logPermission: boolean
+    },
+    expiredAt: number
+}
+
 export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { access?: { id: string, projects: { id: string, name: string, studyId: string }[], studies: { id: string, name: string }[] } }) }> = ({ user }) => {
 
     const [userIsDeleted, setUserIsDeleted] = useState(false);
@@ -133,7 +144,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
     const orgList: IOrganisation[] = getorgsdata.getOrganisations;
     return (
-        <Mutation<any, any>
+        <Mutation<never, EditUser>
             mutation={EDIT_USER}
             onCompleted={() => setSavedSuccessfully(true)}
         >
@@ -144,7 +155,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     createdAt: dayjs(user.createdAt),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.id
-                }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
+                }} layout='vertical' onFinish={(variables) => { submit({ variables: formatSubmitObj(variables) }).catch(() => { return; }); }}>
                     <Form.Item name='username' label='Username'>
                         <Input disabled />
                     </Form.Item>
@@ -217,7 +228,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                                             forgotPassword: true,
                                             username: user.username
                                         }
-                                    });
+                                    }).catch(() => { return; });
                                 }}>
                                     Send a password reset email
                                 </Button>
@@ -225,13 +236,13 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                             : null
                         }
                         &nbsp;&nbsp;&nbsp;
-                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
-                            ? <Mutation<any, any>
+                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN && user.access
+                            ? <Mutation<{ deleteUser: IGenericResponse }, { userId: string }>
                                 mutation={DELETE_USER}
                                 refetchQueries={[
                                     { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
                                     /* quick fix: TO_DO, change to cache modification later */
-                                    ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
+                                    ...(user.access.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
                                 ]}
                             >
 
@@ -241,7 +252,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                                     }
                                     if (error) return <p>{error.message}</p>;
                                     return (
-                                        <Popconfirm title={<>Are you sure about deleting user <i>{user.username}</i>?</>} onConfirm={() => { deleteUser({ variables: { userId: user.id } }); }} okText='Yes' cancelText='No'>
+                                        <Popconfirm title={<>Are you sure about deleting user <i>{user.username}</i>?</>} onConfirm={() => { deleteUser({ variables: { userId: user.id } }).catch(() => { return; }); }} okText='Yes' cancelText='No'>
                                             <Button type='primary' danger disabled={loading}>
                                                 Delete this user
                                             </Button>
@@ -271,7 +282,7 @@ export const showTimeFunc = {
 
 /* More time control due to different behaviors in chrome and firefox, also correct errors of summer/winter time offset */
 export const changeTimeFunc = {
-    changeDate: function (inputs: any, value: any) {
+    changeDate: function (inputs, value) {
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
         const offsetTime = new Date(inputs.expiredAt - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000);
         let newDate;
@@ -284,7 +295,7 @@ export const changeTimeFunc = {
         }
         return { ...inputs, expiredAt: newDate.valueOf() };
     },
-    changeTime: function (inputs: any, value: any) {
+    changeTime: function (inputs, value) {
         const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
         return { ...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000 };

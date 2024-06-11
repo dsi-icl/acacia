@@ -6,15 +6,13 @@ import request, { SuperAgentTest } from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
-import { makeAESIv, makeAESKeySalt, encryptEmail } from '../../src/graphql/resolvers/userResolvers';
 import { v4 as uuid } from 'uuid';
 import { Router } from '../../src/server/router';
-import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
-import * as mfa from '../../src/utils/mfa';
+import { errorCodes, generateTOTP, encryptEmail, makeAESKeySalt, makeAESIv } from '@itmat-broker/itmat-cores';
 import {
     WHO_AM_I,
     GET_USERS,
@@ -109,7 +107,7 @@ describe('USERS API', () => {
         beforeAll(async () => {
             loggedoutUser = request.agent(app);
             encryptedEmailForStandardUser =
-                await encryptEmail(SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
+                await encryptEmail(config.aesSecret, SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
         });
 
         test('Request reset password with non-existent user providing username', async () => {
@@ -196,7 +194,7 @@ describe('USERS API', () => {
 
         test('Request reset password with existing user providing email', async () => {
             /* setup: replacing the seed user's email with slurp test email */
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate({
+            const updateResult = await db.collections.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
             }, { $set: { email: TEMP_USER_TEST_EMAIL } });
             expect(updateResult).not.toBeNull();
@@ -215,7 +213,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
-            const modifiedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            const modifiedUser = await db.collections.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
             expect(modifiedUser).toBeDefined();
             expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
             expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
@@ -224,14 +222,14 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
+            const cleanupResult = await db.collections.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
             expect(cleanupResult).not.toBeNull();
             expect(cleanupResult.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
 
         test('Request reset password with existing user providing username', async () => {
             /* setup: replacing the seed user's email with test email */
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate({
+            const updateResult = await db.collections.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
             }, { $set: { email: TEMP_USER_TEST_EMAIL } });
             expect(updateResult).not.toBeNull();
@@ -250,7 +248,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
-            const modifiedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            const modifiedUser = await db.collections.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
             expect(modifiedUser).toBeDefined();
             expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
             expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
@@ -259,7 +257,7 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
+            const cleanupResult = await db.collections.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
             expect(cleanupResult).not.toBeNull();
             expect(cleanupResult.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
@@ -288,7 +286,7 @@ describe('USERS API', () => {
                 timeOfRequest: new Date().valueOf(),
                 used: false
             };
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
@@ -311,7 +309,7 @@ describe('USERS API', () => {
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
-            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult2 = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
@@ -327,7 +325,7 @@ describe('USERS API', () => {
                 timeOfRequest: new Date().valueOf(),
                 used: false
             };
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
@@ -350,7 +348,7 @@ describe('USERS API', () => {
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
-            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult2 = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
@@ -364,7 +362,7 @@ describe('USERS API', () => {
                 timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1,
                 used: false
             };
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
@@ -387,7 +385,7 @@ describe('USERS API', () => {
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
-            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult2 = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
@@ -409,7 +407,7 @@ describe('USERS API', () => {
                     used: false
                 }
             ];
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: resetPWrequests } }
             );
@@ -432,7 +430,7 @@ describe('USERS API', () => {
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
-            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult2 = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
@@ -446,7 +444,7 @@ describe('USERS API', () => {
                 timeOfRequest: new Date().valueOf(),
                 used: false
             };
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
@@ -467,7 +465,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.resetPassword).toEqual({ successful: true });
-            const checkedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            const checkedUser = await db.collections.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
             await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere', checkedUser.otpSecret);
             const whoami = await newloggedoutuser.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(whoami.status).toBe(200);
@@ -495,7 +493,7 @@ describe('USERS API', () => {
             });
 
             /* cleanup */
-            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult2 = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [], password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi' } }
             );
@@ -516,7 +514,7 @@ describe('USERS API', () => {
                     used: false
                 }
             ];
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: resetPWrequest } }
             );
@@ -535,7 +533,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.resetPassword).toEqual({ successful: true });
-            const checkedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            const checkedUser = await db.collections.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
             await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere', checkedUser.otpSecret);
             const whoami = await newloggedoutuser.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(whoami.status).toBe(200);
@@ -579,7 +577,7 @@ describe('USERS API', () => {
             expect(resAgain.body.data.resetPassword).toEqual(null);
 
             /* cleanup */
-            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+            const updateResult2 = await db.collections.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [], password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi' } }
             );
@@ -692,7 +690,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
             const newloggedoutuser = request.agent(app);
-            const otp = mfa.generateTOTP(userSecret).toString();
+            const otp = generateTOTP(userSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
                 variables: {
@@ -737,7 +735,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
             const newloggedoutuser = request.agent(app);
-            const otp = mfa.generateTOTP(adminSecret).toString();
+            const otp = generateTOTP(adminSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
                 variables: {
@@ -1104,7 +1102,7 @@ describe('USERS API', () => {
                 .collection<IUser>(config.database.collections.users_collection)
                 .findOne({ username: 'testuser0' }));
 
-            const incorrectTotp = mfa.generateTOTP(createdUser.otpSecret) + 1;
+            const incorrectTotp = generateTOTP(createdUser.otpSecret) + 1;
             const res_login = await admin.post('/graphql')
                 .set('Content-type', 'application/json')
                 .send({

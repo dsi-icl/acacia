@@ -7,7 +7,7 @@ import { useQuery } from '@apollo/client/react/hooks';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 
-export const DashboardTabContent: FunctionComponent<{ studyId: string; projectId: string; jobs: Array<IJobEntry<any>> }> = ({ projectId, jobs }) => {
+export const DashboardTabContent: FunctionComponent<{ studyId: string; projectId: string; jobs: Array<IJobEntry> }> = ({ projectId, jobs }) => {
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
     if (getProjectLoading) {
         return <LoadSpinner />;

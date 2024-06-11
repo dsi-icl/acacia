@@ -33,7 +33,7 @@ export const RequestResetPassword: FunctionComponent = () => {
     }
 
     return (
-        <Mutation<any, any>
+        <Mutation<never, never>
             mutation={REQUEST_USERNAME_OR_RESET_PASSWORD}
             onError={() => { return; }}
             onCompleted={() => setRequestCompleted(true)}
@@ -46,13 +46,15 @@ export const RequestResetPassword: FunctionComponent = () => {
                             <h1>Forgot your {forgotUsername ? 'username' : 'password'}?</h1>
                             <br />
                             <div>
-                                <Form onFinish={(variables) => requestPasswordReset({
-                                    variables: {
-                                        ...variables,
-                                        forgotUsername,
-                                        forgotPassword: true
-                                    }
-                                })}>
+                                <Form onFinish={(variables) => {
+                                    requestPasswordReset({
+                                        variables: {
+                                            ...variables,
+                                            forgotUsername,
+                                            forgotPassword: true
+                                        }
+                                    }).catch(() => { return; });
+                                }}>
                                     {forgotUsername ?
                                         <Form.Item name='email' hasFeedback rules={[{ required: true, message: ' ' }]}>
                                             <Input placeholder='Email' />

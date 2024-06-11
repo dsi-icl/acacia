@@ -23,28 +23,27 @@ To make our life easier, we use [Yarn](https://yarnpkg.com/) a lot. Make sure yo
 
 This software requires both MongoDB and MinIO to be available. Follow the installation guidelines for these software directly from their respective websites:
 
-- [https://docs.mongodb.com](https://docs.mongodb.com/manual/installation/)
-- [https://docs.min.io](https://docs.min.io/docs/minio-quickstart-guide.html)
+-   [https://docs.mongodb.com](https://docs.mongodb.com/manual/installation/)
+-   [https://docs.min.io](https://docs.min.io/docs/minio-quickstart-guide.html)
 
 ### Install dependencies and build the project
 
 Building the library is easy. First run `yarn install && yarn build`, to build the application. The current application is built ontop of a system called ICL-ITMAT-Broker comprised of multiple components including :
 
-- itmat-commons
-- itmat-docker
-- itmat-interface
-- itmat-job-executor
-- itmat-models
-- itmat-setup
-- itmat-types
-- itmat-ui-react
-- itmat-ui-react-e2e
+-   itmat-commons
+-   itmat-docker
+-   itmat-interface
+-   itmat-job-executor
+-   itmat-models
+-   itmat-setup
+-   itmat-types
+-   itmat-ui-react
 
 ### Requirements bootstrap (quick treatment)
 
 Using Docker to quickly setup a development environment for the DMP is easy.
 
-*Note: The IP addresses, ranges, paths and container names used below serve as examples only, those should be adjusted to match you environment settings and requirements.*
+_Note: The IP addresses, ranges, paths and container names used below serve as examples only, those should be adjusted to match you environment settings and requirements._
 
 First create an environment file for the MinIO server:
 
@@ -82,7 +81,7 @@ rs0 [direct: primary] admin> rs.status().ok
 1
 ```
 
-Depending on your DNS configuration you may need to add the container hostname map to IP (MongoDB listening)  to your `/etc/hosts` file.
+Depending on your DNS configuration you may need to add the container hostname map to IP (MongoDB listening) to your `/etc/hosts` file.
 `127.0.0.1  [hostname of MongoDB container]`
 (If your dmp service is running on the host machine, you need to add this line to the hosts file on your host machine, because the MongoDB client in the host machine will try to connect to the MongoDB server by its hostname of the container)
 

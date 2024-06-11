@@ -6,6 +6,25 @@
 //  * @constructor
 //  */
 
+import { ICohortSelection, IEquationDescription, IQueryString, IStudyDataVersion } from '@itmat-broker/itmat-types';
+import { Filter } from 'mongodb';
+
+type MongoAggregationOperand = MongoAggregationExpression | string | number;
+
+type MongoAggregationExpression =
+    | { $multiply: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $add: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $subtract: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $divide: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $pow: [string, number] } // MongoDB expects field name and a number for $pow
+    | number
+    | string;
+
+interface AddFields {
+    [key: string]: MongoAggregationExpression;
+}
+
+
 class PipelineGenerator {
     constructor(private readonly config = {}) { }
 
@@ -45,7 +64,7 @@ class PipelineGenerator {
         }
     }
     */
-    public buildPipeline(query: any, studyId: string, availableDataVersions: any) {
+    public buildPipeline(query: IQueryString, studyId: string, availableDataVersions: Array<IStudyDataVersion | null | undefined>) {
         // check query, then decide whether to parse the query
         if (query['data_requested'] === undefined || query['cohort'] === undefined || query['new_fields'] === undefined) {
             return null;
@@ -54,18 +73,26 @@ class PipelineGenerator {
             return null;
         }
 
-        const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
+        const fields: {
+            _id: 0;
+            m_subjectId: 1;
+            m_visitId: 1;
+            [key: string]: 1 | 0
+        } = { _id: 0, m_subjectId: 1, m_visitId: 1 };
         // We send back the requested fields
-        query.data_requested.forEach((field: any) => {
-            (fields as any)[field] = 1;
+        query.data_requested.forEach((field) => {
+            fields[field] = 1;
         });
-        const addFields = {};
+        const addFields: AddFields = {};
         // We send back the newly created derived fields by default
         if (query.new_fields.length > 0) {
-            query.new_fields.forEach((field: any) => {
+            query.new_fields.forEach((field) => {
                 if (field.op === 'derived') {
-                    (fields as any)[field.name] = 1;
-                    (addFields as any)[field.name] = this._createNewField(field.value);
+                    fields[field.name] = 1;
+                    const newField = this._createNewField(field.value);
+                    if (Object.keys(newField).length !== 0) {
+                        addFields[field.name] = newField as MongoAggregationExpression;
+                    }
                 } else {
                     return 'Error';
                 }
@@ -73,8 +100,8 @@ class PipelineGenerator {
         }
         let match = {};
         if (query.cohort.length > 1) {
-            const subqueries: any = [];
-            query.cohort.forEach((subcohort: any) => {
+            const subqueries: Filter<unknown>[] = [];
+            query.cohort.forEach((subcohort) => {
                 // addFields.
                 subqueries.push(this._translateCohort(subcohort));
             });
@@ -82,7 +109,7 @@ class PipelineGenerator {
         } else {
             match = this._translateCohort(query.cohort[0]);
         }
-        let dataVersionsFilter: any;
+        let dataVersionsFilter;
         if (availableDataVersions == null) {
             dataVersionsFilter = null;
         } else {
@@ -118,43 +145,39 @@ class PipelineGenerator {
      * @return json formated in the mongo format in the pipeline stage addfield
      * @private
      */
-    private _createNewField(expression: any) {
+    private _createNewField(expression: IEquationDescription) {
         let newField = {};
-        switch (expression.op) {
-            case '*':
+
+        if (typeof expression.left === 'object' && typeof expression.right === 'object') {
+            if (expression.op === '*') {
                 newField = {
                     $multiply: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '/':
+            } else if (expression.op === '/') {
                 newField = {
                     $divide: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '-':
+            } else if (expression.op === '-') {
                 newField = {
                     $subtract: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '+':
+            } else if (expression.op === '+') {
                 newField = {
                     $add: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '^':
-                // NB the right side my be an integer while the left must be a field !
+            }
+        } else if (typeof expression.left === 'object' && typeof expression.right === 'string') {
+            if (expression.op === '^') {
                 newField = {
                     $pow: ['$' + expression.left, parseInt(expression.right, 10)]
                 };
-                break;
-            case 'val':
+            }
+        } else if (typeof expression.left === 'string') {
+            if (expression.op === 'val') {
                 newField = parseFloat(expression.left);
-                break;
-            case 'field':
+            } else if (expression.op === 'field') {
                 newField = '$' + expression.left;
-                break;
-            default:
-                break;
+            }
         }
 
         return newField;
@@ -167,69 +190,68 @@ class PipelineGenerator {
      * @returns {boolean}
      * @private
      */
-    private _isEmptyObject(obj: any) {
-        return !Object.keys(obj).length;
+    private _isEmptyObject(obj: unknown) {
+        return obj ? !Object.keys(obj).length : true;
     }
 
     /**
      * @fn _translateCohort
      * @desc Tranforms a query into a mongo query.
-     * @param cohort
+     * @param cohorts
      * @private
      */
-    private _translateCohort(cohort: any) {
-        const match = {};
-
-        cohort.forEach(function (select: any) {
+    private _translateCohort(cohorts: ICohortSelection[]) {
+        const match: Record<string, unknown> = {};
+        cohorts.forEach(function (select) {
 
             switch (select.op) {
                 case '=':
                     // select.value must be an array
-                    (match as any)[select.field] = { $in: [select.value] };
+                    match[select.field] = { $in: [select.value] };
                     break;
                 case '!=':
                     // select.value must be an array
-                    (match as any)[select.field] = { $ne: [select.value] };
+                    match[select.field] = { $ne: [select.value] };
                     break;
                 case '<':
                     // select.value must be a float
-                    (match as any)[select.field] = { $lt: parseFloat(select.value) };
+                    match[select.field] = { $lt: parseFloat(select.value) };
                     break;
                 case '>':
                     // select.value must be a float
-                    (match as any)[select.field] = { $gt: parseFloat(select.value) };
+                    match[select.field] = { $gt: parseFloat(select.value) };
                     break;
                 case 'derived': {
                     // equation must only have + - * /
                     const derivedOperation = select.value.split(' ');
                     if (derivedOperation[0] === '=') {
-                        (match as any)[select.field] = { $eq: parseFloat(select.value) };
+                        match[select.field] = { $eq: parseFloat(select.value) };
                     }
                     if (derivedOperation[0] === '>') {
-                        (match as any)[select.field] = { $gt: parseFloat(select.value) };
+                        match[select.field] = { $gt: parseFloat(select.value) };
                     }
                     if (derivedOperation[0] === '<') {
-                        (match as any)[select.field] = { $lt: parseFloat(select.value) };
+                        match[select.field] = { $lt: parseFloat(select.value) };
                     }
                     break;
                 }
                 case 'exists':
                     // We check if the field exists. This is to be used for checking if a patient
                     // has an image
-                    (match as any)[select.field] = { $exists: true };
+                    match[select.field] = { $exists: true };
                     break;
                 case 'count': {
                     // counts can only be positive. NB: > and < are inclusive e.g. < is <=
                     const countOperation = select.value.split(' ');
                     const countfield = select.field + '.count';
                     if (countOperation[0] === '=') {
-                        (match as any)[countfield] = { $eq: parseInt(countOperation[1], 10) };
+                        match[countfield] = { $eq: parseInt(countOperation[1], 10) };
                     }
                     if (countOperation[0] === '>') {
-                        (match as any)[countfield] = { $gt: parseInt(countOperation[1], 10) };
+                        match[countfield] = { $gt: parseInt(countOperation[1], 10) };
                     }
                     if (countOperation[0] === '<') {
-                        (match as any)[countfield] = { $lt: parseInt(countOperation[1], 10) };
+                        match[countfield] = { $lt: parseInt(countOperation[1], 10) };
                     }
                     break;
                 }
