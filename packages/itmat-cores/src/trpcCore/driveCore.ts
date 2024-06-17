@@ -106,7 +106,7 @@ export class TRPCDriveCore {
      *
      * @return IDrive
      */
-    public async createDriveFile(requester: IUserWithoutToken | undefined, parentId: string | null, description: string | undefined, fileType: enumFileTypes, file: FileUpload | null) {
+    public async createDriveFile(requester: IUserWithoutToken | undefined, parentId: string | null, description: string | undefined, fileType: enumFileTypes, file: FileUpload) {
         if (!requester) {
             throw new CoreError(
                 enumCoreErrors.NOT_LOGGED_IN,

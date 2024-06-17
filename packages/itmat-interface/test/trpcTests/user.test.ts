@@ -104,9 +104,6 @@ if (global.hasMinio) {
 
     describe('tRPC User APIs', () => {
         test('Create a user', async () => {
-            if (process.env.SKIP_EMAIL_TEST) {
-                return;
-            }
             const response = await admin.post('/trpc/user.createUser')
                 .send({
                     username: 'test',

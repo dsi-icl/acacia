@@ -16,7 +16,8 @@ import * as Config from './config';
 import * as ZodSchema from './zod';
 import * as Utils from './utils';
 import * as Drive from './drive';
-import * as Permission  from './permission';
+import * as Permission from './permission';
+import * as Cache from './cache';
 
 export * from './field';
 export * from './file';
@@ -37,5 +38,6 @@ export * from './zod';
 export * from './utils';
 export * from './drive';
 export * from './permission';
+export * from './cache';
 
-export const Types = { File, Job, Log, User, Organisation, Pubkey, Study, Query, Field, Data, Standardization, Common, Base, CoreErrors, Config, ZodSchema, Utils, Drive, Permission };
+export const Types = { File, Job, Log, User, Organisation, Pubkey, Study, Query, Field, Data, Standardization, Common, Base, CoreErrors, Config, ZodSchema, Utils, Drive, Permission, Cache };

@@ -54,7 +54,7 @@ const collections = {
         name: 'ROLE_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { name: 1, studyId: 1, projectId: 1, deleted: 1 }, unique: true }
+            { key: { 'name': 1, 'studyId': 1, 'life.createdTime': 1 }, unique: true }
         ]
     },
     field_dictionary_collection: {
@@ -107,6 +107,20 @@ const collections = {
         name: 'DRIVE_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true }
+        ]
+    },
+    colddata_collection: {
+        name: 'COLDDATA_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { 'studyId': 1, 'fieldId': 1, 'life.createdTime': 1, 'life.deletedTime': 1, 'properties': 1 }, unique: true }
+        ]
+    },
+    cache_collection: {
+        name: 'CACHE_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { 'keyHash': 1, 'type': 1, 'life.createdTime': 1 }, unique: true }
         ]
     }
 };
