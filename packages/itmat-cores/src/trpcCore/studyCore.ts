@@ -37,7 +37,7 @@ export class TRPCStudyCore {
             return studyId ? await this.db.collections.studies_collection.find({ 'id': studyId, 'life.deletedTime': null }).toArray() :
                 await this.db.collections.studies_collection.find({ 'life.deletedTime': null }).toArray();
         }
-        const roleStudyIds = (await this.permissionCore.getRolesOfUser(requester)).map(role => role.studyId);
+        const roleStudyIds = (await this.permissionCore.getRolesOfUser(requester, requester.id)).map(role => role.studyId);
 
         const query: Filter<IStudy> = { 'life.deletedTime': null };
         if (studyId) {
@@ -179,7 +179,7 @@ export class TRPCStudyCore {
                 enumCoreErrors.NOT_LOGGED_IN
             );
         }
-        const roleStudyRoles: enumStudyRoles[] = (await this.permissionCore.getRolesOfUser(requester, studyId)).map(role => role.studyRole);
+        const roleStudyRoles: enumStudyRoles[] = (await this.permissionCore.getRolesOfUser(requester, requester.id, studyId)).map(role => role.studyRole);
         if (requester.type !== enumUserTypes.ADMIN && !roleStudyRoles.includes(enumStudyRoles.STUDY_MANAGER)) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -307,7 +307,7 @@ export class TRPCStudyCore {
             );
         }
 
-        const roleStudyRoles: enumStudyRoles[] = (await this.permissionCore.getRolesOfUser(requester)).map(role => role.studyRole);
+        const roleStudyRoles: enumStudyRoles[] = (await this.permissionCore.getRolesOfUser(requester, requester.id)).map(role => role.studyRole);
         if (requester.type !== enumUserTypes.ADMIN && !roleStudyRoles.includes(enumStudyRoles.STUDY_MANAGER)) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -448,7 +448,7 @@ export class TRPCStudyCore {
         }
 
         /* check privileges */
-        const roleStudyRoles: enumStudyRoles[] = (await this.permissionCore.getRolesOfUser(requester)).map(role => role.studyRole);
+        const roleStudyRoles: enumStudyRoles[] = (await this.permissionCore.getRolesOfUser(requester, requester.id)).map(role => role.studyRole);
         if (requester.type !== enumUserTypes.ADMIN && !roleStudyRoles.includes(enumStudyRoles.STUDY_MANAGER)) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,

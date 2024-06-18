@@ -77,7 +77,7 @@ export class TRPCDataCore {
                 enumCoreErrors.NOT_LOGGED_IN
             );
         }
-        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, studyId);
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -163,7 +163,7 @@ export class TRPCDataCore {
             );
         }
 
-        const roles = await this.permissionCore.getRolesOfUser(requester, fieldInput.studyId);
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, fieldInput.studyId);
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -279,7 +279,7 @@ export class TRPCDataCore {
             );
         }
 
-        const roles = await this.permissionCore.getRolesOfUser(requester, fieldInput.studyId);
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, fieldInput.studyId);
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -395,7 +395,7 @@ export class TRPCDataCore {
             );
         }
 
-        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, studyId);
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -745,7 +745,7 @@ export class TRPCDataCore {
                 enumCoreErrors.NOT_LOGGED_IN
             );
         }
-        const roles = (await this.permissionCore.getRolesOfUser(requester, studyId));
+        const roles = (await this.permissionCore.getRolesOfUser(requester, requester.id, studyId));
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -864,7 +864,7 @@ export class TRPCDataCore {
                 enumCoreErrors.NOT_LOGGED_IN
             );
         }
-        const roles = (await this.permissionCore.getRolesOfUser(requester, studyId));
+        const roles = (await this.permissionCore.getRolesOfUser(requester, requester.id, studyId));
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -957,7 +957,7 @@ export class TRPCDataCore {
                 enumCoreErrors.NOT_LOGGED_IN
             );
         }
-        const roles = (await this.permissionCore.getRolesOfUser(requester, studyId));
+        const roles = (await this.permissionCore.getRolesOfUser(requester, requester.id, studyId));
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -1168,7 +1168,7 @@ export class TRPCDataCore {
             );
         }
 
-        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, studyId);
         if (roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
@@ -1224,7 +1224,7 @@ export class TRPCDataCore {
             );
         }
 
-        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, studyId);
         if (requester.type !== enumUserTypes.ADMIN && roles.length === 0) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
