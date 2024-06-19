@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { GraphQLError } from 'graphql';
-import { PermissionCore } from '../core/permissionCore';
+import { PermissionCore } from '../GraphQLCore/permissionCore';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 
@@ -49,7 +49,7 @@ export class FileDownloadController {
             try {
                 /* download file */
                 const file = await this._db.collections.files_collection.findOne({ id: requestedFile, deleted: null });
-                if (!file) {
+                if (!file || !file.studyId) {
                     res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
                     return;
                 }

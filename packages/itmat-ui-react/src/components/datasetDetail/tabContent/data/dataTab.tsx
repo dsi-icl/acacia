@@ -3,7 +3,7 @@ import { generateCascader } from '../../../../utils/tools';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { Query } from '@apollo/client/react/components';
 import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, WHO_AM_I, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-models';
-import { userTypes, IOntologyRoute, ICohortSelection, INewFieldSelection } from '@itmat-broker/itmat-types';
+import { enumUserTypes, IOntologyRoute, ICohortSelection, INewFieldSelection } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import { DataSummaryVisual } from './dataSummary';
@@ -154,7 +154,7 @@ export const DataManagementTabContentFetch: FunctionComponent = () => {
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            {whoAmIData.whoAmI.type === userTypes.ADMIN ?
+            {whoAmIData.whoAmI.type === enumUserTypes.ADMIN ?
                 <Subsection title='Create New Data Version'>
                     <Modal
                         width='80%'

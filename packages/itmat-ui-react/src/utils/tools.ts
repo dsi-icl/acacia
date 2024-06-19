@@ -1,5 +1,5 @@
 import jStat from 'jstat';
-import { IFieldEntry, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
+import { IField, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
 
 export function get_t_test(t_array1: number[], t_array2: number[], digits: number) {
     if (t_array1.length <= 1 || t_array2.length <= 1) {
@@ -26,12 +26,12 @@ export function get_z_test(t_array1: number[], t_array2: number[], digits: numbe
     return [parseFloat(z_score.toFixed(digits)), parseFloat(z_pval.toFixed(digits))];
 }
 
-export function filterFields(fields: IFieldEntry[], ontologyTree: IOntologyTree) {
+export function filterFields(fields: IField[], ontologyTree: IOntologyTree) {
     if (fields.length === 0 || ontologyTree.routes === undefined || ontologyTree.routes?.length === undefined) {
         return [];
     }
 
-    const validFields: IFieldEntry[] = [];
+    const validFields: IField[] = [];
     const validRouteFields: string[] = ontologyTree.routes.map(el => el.field[0].replace('$', ''));
     fields.forEach(el => {
         if (validRouteFields.includes(el.fieldId.toString())) {
@@ -244,12 +244,12 @@ export function generateCascader(root, array, includeEnd: boolean) {
     }
 }
 
-export function findDmField(ontologyTree: IOntologyTree, fields: IFieldEntry[], key: string) {
+export function findDmField(ontologyTree: IOntologyTree, fields: IField[], key: string) {
     const node: IOntologyRoute | undefined = ontologyTree?.routes?.filter(el => el.name === key)[0];
     if (!node) {
         return null;
     }
-    const field: IFieldEntry = fields.filter(el => JSON.stringify(['$' + el.fieldId]) === JSON.stringify(node.field))[0];
+    const field: IField = fields.filter(el => JSON.stringify(['$' + el.fieldId]) === JSON.stringify(node.field))[0];
     if (!field) {
         return null;
     }

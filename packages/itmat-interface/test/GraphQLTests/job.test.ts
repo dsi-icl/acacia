@@ -170,7 +170,7 @@ describe('JOB API', () => {
         test('Create a query curation job (user with privilege)', async () => {
             /* setup: creating a privileged user */
             const username = uuid();
-            const authorisedUserProfile = {
+            const authorisedUserProfile: IUser = {
                 username,
                 type: 'STANDARD',
                 firstname: `${username}_firstname`,
@@ -181,8 +181,13 @@ describe('JOB API', () => {
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
                 organisation: 'organisation_system',
-                deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                life: {
+                    createdTime: 200000000,
+                    createdUserId: 'admin',
+                    deletedTime: null,
+                    deletedUserId: null
+                }
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 

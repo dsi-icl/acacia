@@ -2,7 +2,7 @@ import { FunctionComponent, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
 import { Table, Button, notification, Tooltip } from 'antd';
 import { DELETE_FILE, WHO_AM_I, GET_ORGANISATIONS, GET_USERS } from '@itmat-broker/itmat-models';
-import { IFile, userTypes } from '@itmat-broker/itmat-types';
+import { IFile, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import dayjs from 'dayjs';
@@ -186,7 +186,7 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
             width: '10rem',
             key: 'download'
         }]
-        .concat(!loadingWhoAmI && dataWhoAmI?.whoAmI?.type === userTypes.ADMIN ? [
+        .concat(!loadingWhoAmI && dataWhoAmI?.whoAmI?.type === enumUserTypes.ADMIN ? [
             {
                 render: (__unused__value, record) => (
                     <Button icon={<DeleteOutlined />} loading={isDeleting[record.id]} danger onClick={() => deletionHandler(record.id)}>
@@ -262,7 +262,7 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
             width: '10rem',
             key: 'download'
         }]
-        .concat(!loadingWhoAmI && dataWhoAmI?.whoAmI?.type === userTypes.ADMIN ? [
+        .concat(!loadingWhoAmI && dataWhoAmI?.whoAmI?.type === enumUserTypes.ADMIN ? [
             {
                 render: (__unused__value, record) => (
                     <Button icon={<DeleteOutlined />} loading={isDeleting[record.id]} danger onClick={() => deletionHandler(record.id)}>
@@ -296,7 +296,7 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
             }
         }
         columns={isStudyLevel ? fileNameColumns : fileDetailsColumns}
-        dataSource={files.sort((a, b) => { return parseFloat(b.uploadTime) - parseFloat(a.uploadTime); })}
+        dataSource={files.sort((a, b) => { return b.life.createdTime - a.life.createdTime; })}
         size='small' />;
 
 };

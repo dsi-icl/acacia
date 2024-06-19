@@ -18,7 +18,7 @@ export const DataSummaryVisual: FunctionComponent<{ studyId: string; selectedVer
             <NumberOfRecords data={getStudyData} key={'records'} />
             <NewestVersionOfData version={versions[selectedVersion]?.version || 'n/a'} tag={versions[selectedVersion]?.tag || 'n/a'} key={'data'} />
             <NumberOfVisits data={getStudyData} key={'visits'} />
-            <DateOfUpload date={versions[selectedVersion]?.updateDate} />
+            <DateOfUpload date={versions[selectedVersion]?.life.createdTime} />
         </div>
 
     </>;

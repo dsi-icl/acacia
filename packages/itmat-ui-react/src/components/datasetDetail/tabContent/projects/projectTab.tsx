@@ -6,7 +6,7 @@ import { ProjectDetail } from './detailSections/projectDetail';
 import { ProjectListSection, AddNewProject } from './projectListSection';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { WHO_AM_I } from '@itmat-broker/itmat-models';
-import { userTypes } from '@itmat-broker/itmat-types';
+import { enumUserTypes } from '@itmat-broker/itmat-types';
 import css from './tabContent.module.css';
 
 export const ProjectsTabContent: FunctionComponent<{ projectList: { id: string; name: string }[] }> = ({ projectList }) => {
@@ -17,7 +17,7 @@ export const ProjectsTabContent: FunctionComponent<{ projectList: { id: string; 
     }
     if (!studyId || whoAmIError)
         return <Navigate to='/datasets' />;
-    if (whoAmIData.whoAmI.type === userTypes.ADMIN) {
+    if (whoAmIData.whoAmI.type === enumUserTypes.ADMIN) {
         return <Routes>
             <Route path=':projectId/*' element={<ProjectDetail />} />
             <Route path='/' element={<div className={`${css.tab_page_wrapper} ${css.left_panel} fade_in`}>

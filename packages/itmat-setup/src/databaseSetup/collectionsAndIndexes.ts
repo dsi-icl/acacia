@@ -13,15 +13,15 @@ const collections = {
         name: 'USER_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { username: 1, deleted: 1 }, unique: true },
-            { key: { email: 1, deleted: 1 }, unique: true }
+            { key: { 'username': 1, 'life.deletedTime': 1 }, unique: true },
+            { key: { 'email': 1, 'life.deletedTime': 1 }, unique: true }
         ]
     },
     studies_collection: {
         name: 'STUDY_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { name: 1, deleted: 1 }, unique: true }
+            { key: { 'name': 1, 'life.deletedTime': 1 }, unique: true }
         ]
     },
     projects_collection: {
@@ -47,7 +47,7 @@ const collections = {
         name: 'DATA_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { m_studyId: 1, m_versionId: 1, m_subjectId: 1, m_visitId: 1, m_fieldId: 1, uploadedAt: -1 }, unique: true }
+            { key: { 'studyId': 1, 'fieldId': 1, 'life.createdTime': 1, 'life.deletedTime': 1, 'properties': 1 }, unique: true }
         ]
     },
     roles_collection: {
@@ -93,6 +93,13 @@ const collections = {
         name: 'STANDARDIZATION_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true }
+        ]
+    },
+    configs_collection: {
+        name: 'CONFIG_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { type: 1, key: 1 }, unique: true }
         ]
     }
 };

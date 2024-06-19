@@ -30,7 +30,7 @@ import {
     DELETE_STANDARDIZATION,
     CREATE_ONTOLOGY_TREE
 } from '@itmat-broker/itmat-models';
-import { userTypes, IUser, studyType, IStudy, IProject, IRole, IPermissionManagementOptions, atomicOperation } from '@itmat-broker/itmat-types';
+import { enumUserTypes, IUser, studyType, IStudy, IProject, IRole, IPermissionManagementOptions, atomicOperation } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 
 
@@ -354,7 +354,7 @@ describe('STUDY API', () => {
                 const username = uuid();
                 const newUser: IUser = {
                     username: username,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${username}_firstname`,
                     lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -365,10 +365,15 @@ describe('STUDY API', () => {
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
-                    deleted: null,
                     id: `AuthorisedProjectUser_${username}`,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
                 createdUserAuthorised = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
@@ -448,7 +453,7 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorised.id,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${createdUserAuthorised.username}_firstname`,
                     lastname: `${createdUserAuthorised.username}_lastname`,
                     organisation: 'organisation_system',
@@ -469,7 +474,7 @@ describe('STUDY API', () => {
                 const username = uuid();
                 const newUser: IUser = {
                     username: username,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${username}_firstname`,
                     lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -480,10 +485,15 @@ describe('STUDY API', () => {
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
-                    deleted: null,
                     id: `AuthorisedStudyUser_${username}`,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
                 createdUserAuthorisedStudy = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
@@ -563,7 +573,7 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorisedStudy.id,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${createdUserAuthorisedStudy.username}_firstname`,
                     lastname: `${createdUserAuthorisedStudy.username}_lastname`,
                     organisation: 'organisation_system',
@@ -587,7 +597,7 @@ describe('STUDY API', () => {
                 const username = uuid();
                 const newUser: IUser = {
                     username: username,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${username}_firstname`,
                     lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -598,10 +608,15 @@ describe('STUDY API', () => {
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
-                    deleted: null,
                     id: `AuthorisedStudyUserManageProject_${username}`,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
 
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
@@ -682,7 +697,7 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorisedStudyManageProjects.id,
-                    type: userTypes.STANDARD,
+                    type: enumUserTypes.STANDARD,
                     firstname: `${createdUserAuthorisedStudyManageProjects.username}_firstname`,
                     lastname: `${createdUserAuthorisedStudyManageProjects.username}_lastname`,
                     organisation: 'organisation_system',
@@ -705,7 +720,7 @@ describe('STUDY API', () => {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                 expect(res.body.data.whoAmI).toStrictEqual({
                     username: 'admin',
-                    type: userTypes.ADMIN,
+                    type: enumUserTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
                     organisation: 'organisation_system',
@@ -721,15 +736,14 @@ describe('STUDY API', () => {
                         }],
                         studies: [{
                             id: createdStudy.id,
-                            name: createdStudy.name,
-                            type: studyType.SENSOR
+                            name: createdStudy.name
                         }]
                     },
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
-                    metadata: null
+                    metadata: {}
                 });
             }
             /* connecting users */
@@ -790,7 +804,7 @@ describe('STUDY API', () => {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                 expect(res.body.data.whoAmI).toEqual({
                     username: 'admin',
-                    type: userTypes.ADMIN,
+                    type: enumUserTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
                     organisation: 'organisation_system',
@@ -806,13 +820,13 @@ describe('STUDY API', () => {
                     emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
-                    metadata: null
+                    metadata: {}
                 });
 
                 // study data is NOT deleted for audit purposes - unless explicitly requested separately
                 const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
                 const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                const study = await db.collections.studies_collection.findOne({ 'id': createdStudy.id, 'life.deletedTime': null });
                 expect(roles).toEqual([]);
                 expect(projects).toEqual([]);
                 expect(study).toBe(null);

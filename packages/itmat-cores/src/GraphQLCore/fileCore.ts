@@ -1,4 +1,4 @@
-import { IDataEntry, IFile, IOrganisation, IPermissionManagementOptions, IUserWithoutToken, atomicOperation, deviceTypes } from '@itmat-broker/itmat-types';
+import { IFile, IPermissionManagementOptions, IUserWithoutToken, atomicOperation, deviceTypes, enumFileCategories, enumFileTypes } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
 import { FileUpload } from 'graphql-upload-minimal';
@@ -7,7 +7,6 @@ import { validate } from '@ideafast/idgen';
 import { fileSizeLimit } from '../utils/definition';
 import crypto from 'crypto';
 import { makeGenericReponse } from '../utils/responses';
-import { MatchKeysAndValues } from 'mongodb';
 import { errorCodes } from '../utils/errors';
 import { PermissionCore } from './permissionCore';
 import { StudyCore } from './studyCore';
@@ -49,13 +48,14 @@ export class FileCore {
 
         let targetFieldId: string;
         let isStudyLevel = false;
-        // obtain sitesIDMarker from db
-        const sitesIDMarkers = (await this.db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<Record<string, string | null>>((acc, curr) => {
-            if (curr.metadata?.siteIDMarker) {
-                acc[curr.metadata.siteIDMarker] = curr.shortname;
+        const organisations = await this.db.collections.organisations_collection.find({ 'life.deletedTime': null }).toArray();
+        const sitesIDMarkers: Record<string, string> = organisations.reduce((acc, curr) => {
+            if (curr.metadata['siteIDMarker']) {
+                acc[String(curr.metadata['siteIDMarker'])] = curr.shortname ?? curr.name;
             }
             return acc;
         }, {});
+
         // if the description object is empty, then the file is study-level data
         // otherwise, a subjectId must be provided in the description object
         // we will check other properties in the decription object (deviceId, startDate, endDate)
@@ -100,7 +100,7 @@ export class FileCore {
         const file_ = await file;
         const fileNameParts = file_.filename.split('.');
 
-        return new Promise<IFile>((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             (async () => {
                 try {
                     let fileName: string = file_.filename;
@@ -202,42 +202,56 @@ export class FileCore {
                         reject(new GraphQLError('File size mismatch', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                         return;
                     }
+                    const fileParts: string[] = file_.filename.split('.');
+                    const fileExtension = fileParts.length === 1 ? 'UNKNOWN' : fileParts[fileParts.length - 1].trim().toLowerCase();
                     const fileEntry: IFile = {
                         id: uuid(),
-                        fileName: fileName,
                         studyId: studyId,
+                        userId: null,
+                        fileName: fileName,
+                        fileSize: readBytes,
                         description: description,
-                        uploadTime: `${Date.now()}`,
-                        uploadedBy: requester.id,
-                        deleted: null,
-                        metadata: metadata,
-                        fileSize: readBytes.toString(),
+                        properties: {},
                         uri: fileUri,
-                        hash: hashString
+                        hash: hashString,
+                        fileType: fileExtension in enumFileTypes ? enumFileTypes[fileExtension] : enumFileTypes.UNKNOWN,
+                        fileCategory: enumFileCategories.STUDY_DATA_FILE,
+                        sharedUsers: [],
+                        life: {
+                            createdTime: Date.now(),
+                            createdUser: requester.id,
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: metadata
                     };
-                    fileEntry.fileSize = readBytes.toString();
-                    fileEntry.uri = fileUri;
-                    fileEntry.hash = hashString;
                     if (!isStudyLevel) {
                         await this.db.collections.data_collection.insertOne({
                             id: uuid(),
-                            m_studyId: studyId,
-                            m_subjectId: parsedDescription.participantId,
-                            m_versionId: null,
-                            m_visitId: targetVisitId,
-                            m_fieldId: targetFieldId,
-                            value: '',
-                            uploadedAt: (new Date()).valueOf(),
-                            metadata: {
-                                'uploader:user': requester.id,
-                                'add': [fileEntry.id],
-                                'remove': []
-                            }
+                            studyId: studyId,
+                            fieldId: targetFieldId,
+                            dataVersion: null,
+                            value: fileEntry.id,
+                            properties: {
+                                m_subjectId: parsedDescription.participantId,
+                                m_visitId: targetVisitId
+                            },
+                            life: {
+                                createdTime: Date.now(),
+                                createdUser: requester.id,
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         });
                     }
                     const insertResult = await this.db.collections.files_collection.insertOne(fileEntry);
                     if (insertResult.acknowledged) {
-                        resolve(fileEntry);
+                        resolve({
+                            ...fileEntry,
+                            uploadTime: fileEntry.life.createdTime,
+                            uploadedBy: requester.id
+                        });
                     } else {
                         throw new GraphQLError(errorCodes.DATABASE_ERROR);
                     }
@@ -255,7 +269,7 @@ export class FileCore {
         }
         const file = await this.db.collections.files_collection.findOne({ deleted: null, id: fileId });
 
-        if (!file) {
+        if (!file || !file.studyId || !file.description) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
@@ -278,44 +292,21 @@ export class FileCore {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
         // update data record
-        const obj = {
-            m_studyId: file.studyId,
-            m_subjectId: parsedDescription.participantId,
-            m_versionId: null,
-            m_visitId: targetVisitId,
-            m_fieldId: targetFieldId
-        };
-        const existing = await this.db.collections.data_collection.findOne(obj);
-        if (!existing) {
-            await this.db.collections.data_collection.insertOne({
-                ...obj,
-                id: uuid(),
-                uploadedAt: (new Date()).valueOf(),
-                value: '',
-                metadata: {
-                    add: [],
-                    remove: []
-                }
-            });
-        }
-        const objWithData: Partial<MatchKeysAndValues<IDataEntry>> = {
-            ...obj,
+        await this.db.collections.data_collection.insertOne({
             id: uuid(),
-            value: '',
-            uploadedAt: (new Date()).valueOf(),
-            metadata: {
-                'uploader:user': requester.id,
-                'add': existing?.metadata?.add ?? [],
-                'remove': (existing?.metadata?.remove || []).concat(fileId)
-            }
-        };
-        const updateResult = await this.db.collections.data_collection.updateOne(obj, { $set: objWithData }, { upsert: true });
-
-        // const updateResult = await this.db.collections.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
-        if (updateResult.modifiedCount === 1 || updateResult.upsertedCount === 1) {
-            return makeGenericReponse();
-        } else {
-            throw new GraphQLError(errorCodes.DATABASE_ERROR);
-        }
+            studyId: file.studyId,
+            fieldId: targetFieldId,
+            dataVersion: null,
+            value: fileId,
+            properties: file.properties,
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: Date.now(),
+                deletedUser: requester.id
+            },
+            metadata: {}
+        });
+        return makeGenericReponse(file.id);
     }
 }

@@ -26,9 +26,6 @@ export const studyResolvers: DMPResolversMap = {
         getOntologyTree: async (_parent, { studyId, projectId, treeName, versionId }: { studyId: string, projectId?: string, treeName?: string, versionId?: string }, context) => {
             return await studyCore.getOntologyTree(context.req.user, studyId, projectId, treeName, versionId);
         },
-        checkDataComplete: async (_parent, { studyId }: { studyId: string }, context) => {
-            return await studyCore.checkDataComplete(context.req.user, studyId);
-        },
         getDataRecords: async (_parent, { studyId, queryString, versionId, projectId }: { queryString, studyId: string, versionId: string | null | undefined, projectId?: string }, context) => {
             return await studyCore.getDataRecords(context.req.user, queryString, studyId, versionId, projectId);
         }

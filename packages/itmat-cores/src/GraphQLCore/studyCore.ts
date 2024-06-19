@@ -1,10 +1,10 @@
 import { GraphQLError } from 'graphql';
-import { IFile, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry, deviceTypes, IOrganisation, IUserWithoutToken, IPermissionManagementOptions, atomicOperation, userTypes, IOntologyTree, ISubjectDataRecordSummary, IQueryString, IGroupedData, enumValueType, IValueDescription } from '@itmat-broker/itmat-types';
+import { IFile, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IField, deviceTypes, IUserWithoutToken, IPermissionManagementOptions, atomicOperation, enumUserTypes, IOntologyTree, IQueryString, IGroupedData, enumFileTypes, enumFileCategories, enumDataTypes, ICategoricalOption } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../utils/errors';
 import { ICombinedPermissions, PermissionCore, translateCohort } from './permissionCore';
 import { validate } from '@ideafast/idgen';
-import type { Filter, MatchKeysAndValues } from 'mongodb';
+import type { Filter } from 'mongodb';
 import { FileUpload } from 'graphql-upload-minimal';
 import crypto from 'crypto';
 import { fileSizeLimit } from '../utils/definition';
@@ -13,23 +13,34 @@ import { buildPipeline, dataStandardization, translateMetadata } from '../utils/
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 
+enum enumV2DataType {
+    'INT' = 'int',
+    'DEC' = 'dec',
+    'STR' = 'str',
+    'BOOL' = 'bool',
+    'DATE' = 'date',
+    'FILE' = 'file',
+    'JSON' = 'json',
+    'CAT' = 'cat'
+}
+
 export interface CreateFieldInput {
     fieldId: string;
     fieldName: string
-    tableName: string
-    dataType: enumValueType
-    possibleValues?: IValueDescription[]
+    tableName?: string
+    dataType: enumV2DataType;
+    possibleValues?: ICategoricalOption[]
     unit?: string
     comments?: string
-    metadata: Record<string, unknown>
+    metadata?: Record<string, unknown>
 }
 
 export interface EditFieldInput {
     fieldId: string;
     fieldName: string;
     tableName?: string;
-    dataType: enumValueType;
-    possibleValues?: IValueDescription[]
+    dataType: enumV2DataType;
+    possibleValues?: ICategoricalOption[]
     unit?: string
     comments?: string
 }
@@ -73,11 +84,15 @@ export class StudyCore {
         );
         if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
-        const study = await this.db.collections.studies_collection.findOne({ id: studyId, deleted: null });
+        const study = await this.db.collections.studies_collection.findOne({ 'id': studyId, 'life.deletedTime': null });
         if (study === null || study === undefined) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        return study;
+        return {
+            ...study,
+            createdBy: study.life.createdUser,
+            deleted: study.life.deletedTime
+        };
     }
 
     public async getProject(requester: IUserWithoutToken | undefined, projectId: string) {
@@ -110,6 +125,54 @@ export class StudyCore {
         return project;
     }
 
+    /**
+     * This function convert the new field type to the old ones for consistency with the GraphQL schema
+     */
+    public fieldTypeConverter(fields: IField[]) {
+        return fields.map((field) => {
+            return {
+                ...field,
+                possibleValues: field.categoricalOptions ? field.categoricalOptions.map((el) => {
+                    return {
+                        id: el.id,
+                        code: el.code,
+                        description: el.description,
+                        life: {
+                            createdTime: el.life.createdTime,
+                            createdUser: el.life.createdUser,
+                            deletedTime: el.life.deletedTime,
+                            deletedUser: el.life.deletedUser
+                        },
+                        metadata: {}
+                    };
+                }) : [],
+                dataType: (() => {
+                    if (field.dataType === enumDataTypes.INTEGER) {
+                        return enumV2DataType.INT;
+                    } else if (field.dataType === enumDataTypes.DECIMAL) {
+                        return enumV2DataType.DEC;
+                    } else if (field.dataType === enumDataTypes.STRING) {
+                        return enumV2DataType.STR;
+                    } else if (field.dataType === enumDataTypes.BOOLEAN) {
+                        return enumV2DataType.BOOL;
+                    } else if (field.dataType === enumDataTypes.DATETIME) {
+                        return enumV2DataType.DATE;
+                    } else if (field.dataType === enumDataTypes.FILE) {
+                        return enumV2DataType.FILE;
+                    } else if (field.dataType === enumDataTypes.JSON) {
+                        return enumV2DataType.JSON;
+                    } else if (field.dataType === enumDataTypes.CATEGORICAL) {
+                        return enumV2DataType.CAT;
+                    } else {
+                        return enumV2DataType.STR;
+                    }
+                })(),
+                dateAdded: field.life.createdTime.toString(),
+                dateDeleted: field.life.deletedTime ? field.life.deletedTime.toString() : null
+            };
+        });
+    }
+
     public async getStudyFields(requester: IUserWithoutToken | undefined, studyId: string, projectId?: string, versionId?: string | null) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -134,14 +197,14 @@ export class StudyCore {
         // check the metadata:role:**** for versioned data directly
         const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
         // check the regular expressions for unversioned data
-        if (requester.type === userTypes.ADMIN) {
+        if (requester.type === enumUserTypes.ADMIN) {
             if (versionId === null) {
                 availableDataVersions.push(null);
             }
-            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                 $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
             }, {
-                $sort: { dateAdded: -1 }
+                $sort: { 'life.createdTime': -1 }
             }, {
                 $group: {
                     _id: '$fieldId',
@@ -154,15 +217,15 @@ export class StudyCore {
             }, {
                 $sort: { fieldId: 1 }
             }]).toArray();
-            return fieldRecords.filter(el => el.dateDeleted === null);
+            return this.fieldTypeConverter(fieldRecords.filter(el => el.life.deletedTime === null));
         }
         // unversioned data could not be returned by metadata filters
         if (versionId === null && aggregatedPermissions.hasVersioned) {
             availableDataVersions.push(null);
-            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                 $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
             }, {
-                $sort: { dateAdded: -1 }
+                $sort: { 'life.createdTime': -1 }
             }, {
                 $match: {
                     fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) }
@@ -179,7 +242,7 @@ export class StudyCore {
             }, {
                 $sort: { fieldId: 1 }
             }]).toArray();
-            return fieldRecords.filter(el => el.dateDeleted === null);
+            return this.fieldTypeConverter(fieldRecords.filter(el => el.life.deletedTime === null));
         } else {
             // metadata filter
             const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
@@ -187,10 +250,10 @@ export class StudyCore {
                 subqueries.push(translateMetadata(subMetadata));
             });
             const metadataFilter = { $or: subqueries };
-            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                 $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
             }, {
-                $sort: { dateAdded: -1 }
+                $sort: { 'life.createdTime': -1 }
             }, { $match: metadataFilter }, {
                 $group: {
                     _id: '$fieldId',
@@ -202,11 +265,10 @@ export class StudyCore {
                 }
             }, {
                 $sort: { fieldId: 1 }
-            }, {
-                $set: { metadata: null }
             }]).toArray();
-            return fieldRecords.filter(el => el.dateDeleted === null);
+            return this.fieldTypeConverter(fieldRecords.filter(el => el.life.deletedTime === null));
         }
+        return [];
     }
 
     public async getOntologyTree(requester: IUserWithoutToken | undefined, studyId: string, projectId?: string, treeName?: string, versionId?: string) {
@@ -278,143 +340,6 @@ export class StudyCore {
         }
     }
 
-    public async checkDataComplete(requester: IUserWithoutToken | undefined, studyId: string) {
-        if (!requester) {
-            throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-        }
-
-        /* user can get study if he has readonly permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            studyId
-        );
-        if (!hasPermission) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-        }
-        // we only check data that hasnt been pushed to a new data version
-        const data: IDataEntry[] = await this.db.collections.data_collection.find({
-            m_studyId: studyId,
-            m_versionId: null,
-            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
-        }).toArray();
-        const fieldMapping = (await this.db.collections.field_dictionary_collection.aggregate([{
-            $match: { studyId: studyId }
-        }, {
-            $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } }
-        }, {
-            $sort: { dateAdded: -1 }
-        }, {
-            $group: {
-                _id: '$fieldId',
-                doc: { $last: '$$ROOT' }
-            }
-        }
-        ]).toArray()).map(el => el['doc']).filter(eh => eh.dateDeleted === null).reduce((acc, curr) => {
-            acc[curr.fieldId] = curr;
-            return acc;
-        }, {});
-        const summary: ISubjectDataRecordSummary[] = [];
-        // we will not check data whose fields are not defined, because data that the associated fields are undefined will not be returned while querying data
-        for (const record of data) {
-            let error: string | null = null;
-            if (fieldMapping[record.m_fieldId] !== undefined && fieldMapping[record.m_fieldId] !== null) {
-                switch (fieldMapping[record.m_fieldId].dataType) {
-                    case 'dec': {// decimal
-                        if (typeof record.value === 'number') {
-                            if (!/^\d+(.\d+)?$/.test(record.value.toString())) {
-                                error = `Field ${record.m_fieldId}: Cannot parse as decimal.`;
-                                break;
-                            }
-                        } else {
-                            error = `Field ${record.m_fieldId}: Cannot parse as decimal.`;
-                            break;
-                        }
-                        break;
-                    }
-                    case 'int': {// integer
-                        if (typeof record.value === 'number') {
-                            if (!/^-?\d+$/.test(record.value.toString())) {
-                                error = `Field ${record.m_fieldId}: Cannot parse as integer.`;
-                                break;
-                            }
-                        } else {
-                            error = `Field ${record.m_fieldId}: Cannot parse as integer.`;
-                            break;
-                        }
-                        break;
-                    }
-                    case 'bool': {// boolean
-                        if (typeof record.value !== 'boolean') {
-                            error = `Field ${record.m_fieldId}: Cannot parse as boolean.`;
-                            break;
-                        }
-                        break;
-                    }
-                    case 'str': {
-                        break;
-                    }
-                    // 01/02/2021 00:00:00
-                    case 'date': {
-                        if (typeof record.value === 'string') {
-                            const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
-                            if (!record.value.match(matcher)) {
-                                error = `Field ${record.m_fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
-                                break;
-                            }
-                        } else {
-                            error = `Field ${record.m_fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
-                            break;
-                        }
-                        break;
-                    }
-                    case 'json': {
-                        break;
-                    }
-                    case 'file': {
-                        if (typeof record.value === 'string') {
-                            const file = await this.db.collections.files_collection.findOne({ id: record.value });
-                            if (!file) {
-                                error = `Field ${record.m_fieldId}: Cannot parse as file or file does not exist.`;
-                                break;
-                            }
-                        } else {
-                            error = `Field ${record.m_fieldId}: Cannot parse as file or file does not exist.`;
-                            break;
-                        }
-                        break;
-                    }
-                    case 'cat': {
-                        if (typeof record.value === 'string') {
-                            if (!fieldMapping[record.m_fieldId].possibleValues.map((el) => el.code).includes(record.value.toString())) {
-                                error = `Field ${record.m_fieldId}: Cannot parse as categorical, value not in value list.`;
-                                break;
-                            }
-                        } else {
-                            error = `Field ${record.m_fieldId}: Cannot parse as categorical, value not in value list.`;
-                            break;
-                        }
-                        break;
-                    }
-                    default: {
-                        error = `Field ${record.m_fieldId}: Invalid data Type.`;
-                        break;
-                    }
-                }
-            }
-            error && summary.push({
-                subjectId: record.m_subjectId,
-                visitId: record.m_visitId,
-                fieldId: record.m_fieldId,
-                error: error
-            });
-        }
-
-        return summary;
-    }
-
     public async getDataRecords(requester: IUserWithoutToken | undefined, queryString: IQueryString, studyId: string, versionId: string | null | undefined, projectId?: string) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -438,12 +363,12 @@ export class StudyCore {
         const aggregatedPermissions = this.permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
         let availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        let fieldRecords: IFieldEntry[] = [];
+        let fieldRecords: IField[] = [];
         let result;
         let metadataFilter;
         // we obtain the data by different requests
         // admin used will not filtered by metadata filters
-        if (requester.type === userTypes.ADMIN) {
+        if (requester.type === enumUserTypes.ADMIN) {
             if (versionId !== undefined) {
                 if (versionId === null) {
                     availableDataVersions.push(null);
@@ -454,7 +379,7 @@ export class StudyCore {
                 }
             }
 
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                 $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
             }, {
                 $sort: { dateAdded: -1 }
@@ -484,7 +409,7 @@ export class StudyCore {
             // unversioned data: metadatafilter for versioned data and all unversioned tags
             if (versionId === null && aggregatedPermissions.hasVersioned) {
                 availableDataVersions.push(null);
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
@@ -514,7 +439,7 @@ export class StudyCore {
                 if (versionId === '-1') {
                     availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
                 }
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
@@ -541,7 +466,7 @@ export class StudyCore {
                 }
             } else if (versionId !== undefined) {
                 availableDataVersions = [versionId];
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
@@ -623,8 +548,8 @@ export class StudyCore {
             return [];
         }
         const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const fileFieldIds: string[] = (await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
-            $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
+        const fileFieldIds: string[] = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+            $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumDataTypes.FILE }
         }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
             $sort: { dateAdded: -1 }
         }, {
@@ -642,9 +567,9 @@ export class StudyCore {
         let adds: string[] = [];
         let removes: string[] = [];
         // versioned data
-        if (requester.type === userTypes.ADMIN) {
+        if (requester.type === enumUserTypes.ADMIN) {
             const fileRecords = await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { m_studyId: study.id, m_fieldId: { $in: fileFieldIds } }
+                $match: { studyId: study.id, fieldId: { $in: fileFieldIds } }
             }]).toArray();
             adds = fileRecords.map(el => el.metadata?.add || []).flat();
             removes = fileRecords.map(el => el.metadata?.remove || []).flat();
@@ -655,7 +580,7 @@ export class StudyCore {
             });
             const metadataFilter = { $or: subqueries };
             const versionedFileRecors = await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                $match: { studyId: study.id, dataVersion: { $in: availableDataVersions }, fieldId: { $in: fileFieldIds } }
             }, {
                 $match: metadataFilter
             }]).toArray();
@@ -666,16 +591,16 @@ export class StudyCore {
                     continue;
                 }
                 filters.push({
-                    m_subjectId: { $in: role.subjectIds.map((el: string) => new RegExp(el)) },
-                    m_visitId: { $in: role.visitIds.map((el: string) => new RegExp(el)) },
-                    m_fieldId: { $in: role.fieldIds.map((el: string) => new RegExp(el)) },
-                    m_versionId: null
+                    'properties.m_subjectId': { $in: role.subjectIds.map((el: string) => new RegExp(el)) },
+                    'properties.m_visitId': { $in: role.visitIds.map((el: string) => new RegExp(el)) },
+                    'fieldId': { $in: role.fieldIds.map((el: string) => new RegExp(el)) },
+                    'dataVersion': null
                 });
             }
             let unversionedFileRecords: IDataEntry[] = [];
             if (filters.length !== 0) {
                 unversionedFileRecords = await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                    $match: { m_studyId: study.id, m_versionId: null, m_fieldId: { $in: fileFieldIds } }
+                    $match: { studyId: study.id, dataVersion: null, fieldId: { $in: fileFieldIds } }
                 }, {
                     $match: { $or: filters }
                 }]).toArray();
@@ -701,21 +626,21 @@ export class StudyCore {
             return [[], []];
         }
         const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const versionedSubjects = (await this.db.collections.data_collection.distinct('m_subjectId', {
-            m_studyId: study.id,
-            m_versionId: availableDataVersions[availableDataVersions.length - 1],
-            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            value: { $ne: null }
+        const versionedSubjects = (await this.db.collections.data_collection.distinct('properties.m_subjectId', {
+            'studyId': study.id,
+            'dataVersion': availableDataVersions[availableDataVersions.length - 1],
+            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+            'value': { $ne: null }
         })).sort() || [];
-        const unVersionedSubjects = hasPermission.hasVersioned ? (await this.db.collections.data_collection.distinct('m_subjectId', {
-            m_studyId: study.id,
-            m_versionId: null,
-            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            value: { $ne: null }
+        const unVersionedSubjects = hasPermission.hasVersioned ? (await this.db.collections.data_collection.distinct('properties.m_subjectId', {
+            'studyId': study.id,
+            'dataVersion': null,
+            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+            'value': { $ne: null }
         })).sort() || [] : [];
         return [versionedSubjects, unVersionedSubjects];
     }
@@ -733,21 +658,21 @@ export class StudyCore {
             return [[], []];
         }
         const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const versionedVisits = (await this.db.collections.data_collection.distinct('m_visitId', {
-            m_studyId: study.id,
-            m_versionId: availableDataVersions[availableDataVersions.length - 1],
-            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            value: { $ne: null }
+        const versionedVisits = (await this.db.collections.data_collection.distinct('properties.m_visitId', {
+            'studyId': study.id,
+            'dataVersion': availableDataVersions[availableDataVersions.length - 1],
+            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+            'value': { $ne: null }
         })).sort((a, b) => parseFloat(a) - parseFloat(b));
-        const unVersionedVisits = hasPermission.hasVersioned ? (await this.db.collections.data_collection.distinct('m_visitId', {
-            m_studyId: study.id,
-            m_versionId: null,
-            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            value: { $ne: null }
+        const unVersionedVisits = hasPermission.hasVersioned ? (await this.db.collections.data_collection.distinct('properties.m_visitId', {
+            'studyId': study.id,
+            'dataVersion': null,
+            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+            'value': { $ne: null }
         })).sort((a, b) => parseFloat(a) - parseFloat(b)) : [];
         return [versionedVisits, unVersionedVisits];
     }
@@ -766,23 +691,23 @@ export class StudyCore {
         }
         const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
         const numberOfVersioned: number = (await this.db.collections.data_collection.aggregate([{
-            $match: { m_studyId: study.id, m_versionId: availableDataVersions[availableDataVersions.length - 1], value: { $ne: null } }
+            $match: { studyId: study.id, dataVersion: availableDataVersions[availableDataVersions.length - 1], value: { $ne: null } }
         }, {
             $match: {
-                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
+                'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
             }
         }, {
             $count: 'count'
         }]).toArray())[0]?.['count'] || 0;
         const numberOfUnVersioned: number = hasPermission.hasVersioned ? (await this.db.collections.data_collection.aggregate([{
-            $match: { m_studyId: study.id, m_versionId: null, value: { $ne: null } }
+            $match: { studyId: study.id, dataVersion: null, value: { $ne: null } }
         }, {
             $match: {
-                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
+                'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
             }
         }, {
             $count: 'count'
@@ -826,9 +751,9 @@ export class StudyCore {
             return [];
         }
         const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
-        let fieldRecords: IFieldEntry[] = [];
-        if (requester.type === userTypes.ADMIN) {
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
+        let fieldRecords: IField[] = [];
+        if (requester.type === enumUserTypes.ADMIN) {
+            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                 $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
             }, {
                 $group: {
@@ -851,8 +776,8 @@ export class StudyCore {
                 subqueries.push(translateMetadata(subMetadata));
             });
             const metadataFilter = { $or: subqueries };
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
-                $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
+            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                $match: { 'studyId': project.studyId, 'life.deletedTime': null, 'dataVersion': { $in: availableDataVersions }, 'fieldId': { $in: ontologyTreeFieldIds } }
             }, { $match: metadataFilter }, {
                 $group: {
                     _id: '$fieldId',
@@ -904,8 +829,8 @@ export class StudyCore {
             return [];
         }
         const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
-        const fileFieldIds: string[] = (await this.db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
-            $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
+        const fileFieldIds: string[] = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+            $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumDataTypes.FILE }
         }, { $match: { $and: [{ fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } }, { fieldId: { $in: ontologyTreeFieldIds } }] } }, {
             $group: {
                 _id: '$fieldId',
@@ -922,7 +847,7 @@ export class StudyCore {
         let remove: string[] = [];
         if (Object.keys(hasPermission.matchObj).length === 0) {
             (await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                $match: { studyId: study.id, dataVersion: { $in: availableDataVersions }, fieldId: { $in: fileFieldIds } }
             }]).toArray()).forEach(element => {
                 add = add.concat(element.metadata?.add || []);
                 remove = remove.concat(element.metadata?.remove || []);
@@ -934,7 +859,7 @@ export class StudyCore {
             });
             const metadataFilter = { $or: subqueries };
             (await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                $match: { studyId: study.id, dataVersion: { $in: availableDataVersions }, fieldId: { $in: fileFieldIds } }
             }, {
                 $match: metadataFilter
             }]).toArray()).forEach(element => {
@@ -998,9 +923,9 @@ export class StudyCore {
         // const ontologyTreeFieldIds = (availableTrees[0]?.routes || []).map(el => el.field[0].replace('$', ''));
 
         let fieldRecords;
-        if (requester.type === userTypes.ADMIN) {
+        if (requester.type === enumUserTypes.ADMIN) {
             fieldRecords = await this.db.collections.field_dictionary_collection.aggregate([{
-                $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                $match: { 'studyId': project.studyId, 'life.deletedTime': null, 'dataVersion': { $in: availableDataVersions } }
             }, {
                 $group: {
                     _id: '$fieldId',
@@ -1018,7 +943,7 @@ export class StudyCore {
             });
             metadataFilter = { $or: subqueries };
             fieldRecords = await this.db.collections.field_dictionary_collection.aggregate([{
-                $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                $match: { 'studyId': project.studyId, 'life.deletedTime': null, 'dataVersion': { $in: availableDataVersions } }
             }, { $match: metadataFilter }, {
                 $group: {
                     _id: '$fieldId',
@@ -1035,7 +960,7 @@ export class StudyCore {
             cohort: [[]],
             new_fields: []
         };
-        const pipeline = buildPipeline(emptyQueryString, project.studyId, [availableDataVersions[availableDataVersions.length - 1]], fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN, false);
+        const pipeline = buildPipeline(emptyQueryString, project.studyId, [availableDataVersions[availableDataVersions.length - 1]], fieldRecords as IField[], metadataFilter, requester.type === enumUserTypes.ADMIN, false);
         const result = await this.db.collections.data_collection.aggregate<{ m_subjectId: string, m_visitId: string, m_fieldId: string, value: unknown }>(pipeline, { allowDiskUse: true }).toArray();
         summary['subjects'] = Array.from(new Set(result.map((el) => el.m_subjectId))).sort();
         summary['visits'] = Array.from(new Set(result.map((el) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
@@ -1073,13 +998,13 @@ export class StudyCore {
         return await this.db.collections.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
     }
 
-    public async createNewStudy(requester: IUserWithoutToken | undefined, studyName: string, description: string, type: studyType): Promise<IStudy> {
+    public async createNewStudy(requester: IUserWithoutToken | undefined, studyName: string, description: string, type: studyType) {
         /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        if (requester.type !== userTypes.ADMIN) {
+        if (requester.type !== enumUserTypes.ADMIN) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -1105,21 +1030,28 @@ export class StudyCore {
         const study: IStudy = {
             id: uuid(),
             name: studyName,
-            createdBy: requester.id,
             currentDataVersion: -1,
-            lastModified: new Date().valueOf(),
             dataVersions: [],
-            deleted: null,
             description: description,
-            type: type,
             ontologyTrees: [],
-            metadata: {}
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {
+                type: type
+            }
         };
         await this.db.collections.studies_collection.insertOne(study);
-        return study;
+        return {
+            ...study,
+            type: type
+        };
     }
 
-    public async validateAndGenerateFieldEntry(fieldEntry: Partial<IFieldEntry>, requester: IUserWithoutToken) {
+    public async validateAndGenerateFieldEntry(fieldEntry: CreateFieldInput, requester: IUserWithoutToken) {
         // duplicates with existing fields are checked by caller function
         const error: string[] = [];
         const complusoryField = [
@@ -1139,11 +1071,12 @@ export class StudyCore {
             error.push('FieldId should contain letters, numbers and _ only.');
         }
         // data types
-        if (!fieldEntry.dataType || !Object.values(enumValueType).includes(fieldEntry.dataType)) {
+        const dataTypes = ['int', 'dec', 'str', 'bool', 'date', 'file', 'json', 'cat'];
+        if (!fieldEntry.dataType || !dataTypes.includes(fieldEntry.dataType)) {
             error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'bool' for boolean, 'date' for datetime, 'file' for FILE, 'json' for json.`);
         }
         // check possiblevalues to be not-empty if datatype is categorical
-        if (fieldEntry.dataType === enumValueType.CATEGORICAL) {
+        if (fieldEntry.dataType === 'cat') {
             if (fieldEntry.possibleValues !== undefined && fieldEntry.possibleValues !== null) {
                 if (fieldEntry.possibleValues.length === 0) {
                     error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: possible values can't be empty if data type is categorical.`);
@@ -1159,9 +1092,9 @@ export class StudyCore {
         const newField = {
             fieldId: fieldEntry.fieldId,
             fieldName: fieldEntry.fieldName,
-            tableName: fieldEntry.tableName,
+            tableName: null,
             dataType: fieldEntry.dataType,
-            possibleValues: fieldEntry.dataType === enumValueType.CATEGORICAL ? fieldEntry.possibleValues : null,
+            possibleValues: fieldEntry.dataType === 'cat' ? fieldEntry.possibleValues : null,
             unit: fieldEntry.unit,
             comments: fieldEntry.comments,
             metadata: {
@@ -1209,7 +1142,7 @@ export class StudyCore {
                 response.push({ successful: false, code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have permissions to create this field.' });
                 continue;
             }
-            const { fieldEntry, error: thisError } = await this.validateAndGenerateFieldEntry(oneFieldInput, requester);
+            const { error: thisError } = await this.validateAndGenerateFieldEntry(oneFieldInput, requester);
             if (thisError.length !== 0) {
                 response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
                 isError = true;
@@ -1218,25 +1151,47 @@ export class StudyCore {
             }
             // // construct the rest of the fields
             if (!isError) {
-                const newFieldEntry: IFieldEntry = {
-                    ...fieldEntry,
-                    fieldId: oneFieldInput.fieldId,
-                    fieldName: oneFieldInput.fieldName,
-                    dataType: oneFieldInput.dataType,
+                const newFieldEntry: IField = {
                     id: uuid(),
                     studyId: studyId,
+                    fieldName: oneFieldInput.fieldName,
+                    fieldId: oneFieldInput.fieldId,
+                    dataType: (() => {
+                        if (oneFieldInput.dataType === 'int') {
+                            return enumDataTypes.INTEGER;
+                        } else if (oneFieldInput.dataType === 'dec') {
+                            return enumDataTypes.DECIMAL;
+                        } else if (oneFieldInput.dataType === 'str') {
+                            return enumDataTypes.STRING;
+                        } else if (oneFieldInput.dataType === 'bool') {
+                            return enumDataTypes.BOOLEAN;
+                        } else if (oneFieldInput.dataType === 'date') {
+                            return enumDataTypes.DATETIME;
+                        } else if (oneFieldInput.dataType === 'file') {
+                            return enumDataTypes.FILE;
+                        } else if (oneFieldInput.dataType === 'json') {
+                            return enumDataTypes.JSON;
+                        } else if (oneFieldInput.dataType === 'cat') {
+                            return enumDataTypes.CATEGORICAL;
+                        } else {
+                            return enumDataTypes.STRING;
+                        }
+                    })(),
+                    categoricalOptions: oneFieldInput.dataType === 'cat' ? oneFieldInput.possibleValues : undefined,
+                    unit: oneFieldInput.unit,
+                    comments: oneFieldInput.comments,
                     dataVersion: null,
-                    dateAdded: Date.now(),
-                    dateDeleted: null,
+                    life: {
+                        createdTime: Date.now(),
+                        createdUser: requester.id,
+                        deletedTime: null,
+                        deletedUser: null
+                    },
                     metadata: {
-                        uploader: requester.id
+                        tableName: oneFieldInput.tableName
                     }
                 };
-                bulk.find({
-                    fieldId: fieldEntry.fieldId,
-                    studyId: studyId,
-                    dataVersion: null
-                }).upsert().updateOne({ $set: newFieldEntry });
+                bulk.insert(newFieldEntry);
             }
         }
         if (bulk.batches.length > 0) {
@@ -1250,39 +1205,58 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        if (requester.type !== userTypes.ADMIN) {
+        if (requester.type !== enumUserTypes.ADMIN) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
         // check fieldId exist
-        const searchField = await this.db.collections.field_dictionary_collection.findOne<IFieldEntry>({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
+        const searchField = await this.db.collections.field_dictionary_collection.findOne<IField>({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
         if (!searchField) {
             throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         searchField.fieldId = fieldInput.fieldId;
         searchField.fieldName = fieldInput.fieldName;
-        searchField.dataType = fieldInput.dataType;
         if (fieldInput.tableName) {
-            searchField.tableName = fieldInput.tableName;
+            searchField.metadata['tableName'] = fieldInput.tableName;
         }
         if (fieldInput.unit) {
             searchField.unit = fieldInput.unit;
         }
         if (fieldInput.possibleValues) {
-            searchField.possibleValues = fieldInput.possibleValues;
+            searchField.categoricalOptions = fieldInput.possibleValues;
         }
         if (fieldInput.tableName) {
-            searchField.tableName = fieldInput.tableName;
+            searchField.metadata['tableName'] = fieldInput.tableName;
         }
         if (fieldInput.comments) {
             searchField.comments = fieldInput.comments;
         }
 
-        const { fieldEntry, error } = await this.validateAndGenerateFieldEntry(searchField, requester);
+        const { error } = await this.validateAndGenerateFieldEntry({ ...this.fieldTypeConverter([searchField])[0], dataType: fieldInput.dataType }, requester);
         if (error.length !== 0) {
             throw new GraphQLError(JSON.stringify(error), { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
         }
-        const newFieldEntry = { ...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.dateDeleted, studyId: searchField.studyId };
+        // const newFieldEntry = { ...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.dateDeleted, studyId: searchField.studyId };
+        const newFieldEntry: IField = {
+            id: searchField.id,
+            studyId: searchField.studyId,
+            fieldName: searchField.fieldName,
+            fieldId: searchField.fieldId,
+            dataType: searchField.dataType,
+            categoricalOptions: searchField.categoricalOptions,
+            unit: searchField.unit,
+            comments: searchField.comments,
+            dataVersion: null,
+            life: {
+                createdTime: searchField.life.createdTime,
+                createdUser: searchField.life.createdUser,
+                deletedTime: searchField.life.deletedTime,
+                deletedUser: searchField.life.deletedUser
+            },
+            verifier: searchField.verifier,
+            properties: searchField.properties,
+            metadata: searchField.metadata
+        };
         await this.db.collections.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: newFieldEntry.fieldId }, { $set: newFieldEntry });
 
         return newFieldEntry;
@@ -1308,26 +1282,32 @@ export class StudyCore {
 
         // check fieldId exist
         const searchField = await this.db.collections.field_dictionary_collection.find({ studyId: studyId, fieldId: fieldId, dateDeleted: null }).limit(1).sort({ dateAdded: -1 }).toArray();
-        if (searchField.length === 0 || searchField[0].dateDeleted !== null) {
+        if (searchField.length === 0 || searchField[0].life.deletedTime !== null) {
             throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
 
-        const fieldEntry = {
+        const fieldEntry: IField = {
             id: uuid(),
             studyId: studyId,
-            fieldId: searchField[0].fieldId,
             fieldName: searchField[0].fieldName,
-            tableName: searchField[0].tableName,
+            fieldId: searchField[0].fieldId,
             dataType: searchField[0].dataType,
-            possibleValues: searchField[0].possibleValues,
+            categoricalOptions: searchField[0].categoricalOptions,
             unit: searchField[0].unit,
             comments: searchField[0].comments,
             dataVersion: null,
-            dateAdded: (new Date()).valueOf(),
-            dateDeleted: (new Date()).valueOf()
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: Date.now(),
+                deletedUser: requester.id
+            },
+            verifier: searchField[0].verifier,
+            properties: searchField[0].properties,
+            metadata: searchField[0].metadata
         };
         await this.db.collections.field_dictionary_collection.insertOne(fieldEntry);
-        return searchField[0];
+        return this.fieldTypeConverter([fieldEntry])[0];
     }
 
     public async editStudy(requester: IUserWithoutToken | undefined, studyId: string, description: string): Promise<IStudy> {
@@ -1335,7 +1315,7 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        if (requester.type !== userTypes.ADMIN) {
+        if (requester.type !== enumUserTypes.ADMIN) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -1369,7 +1349,7 @@ export class StudyCore {
         // get all dataVersions that are valid (before/equal the current version)
         const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
         const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate([{
-            $sort: { dateAdded: -1 }
+            $sort: { 'life.createdTime': -1 }
         }, {
             $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
         }, {
@@ -1382,7 +1362,7 @@ export class StudyCore {
         }
         ]).toArray();
         // filter those that have been deleted
-        const fieldsList = fieldRecords.map(el => el['doc']).filter(eh => eh.dateDeleted === null);
+        const fieldsList = fieldRecords.map(el => el['doc']).filter(eh => eh.life.deletedTime === null);
         const response = (await this.uploadOneDataClip(studyId, hasPermission.raw, fieldsList, data, requester));
 
         return response;
@@ -1410,12 +1390,12 @@ export class StudyCore {
         let validFields;
         // filter
         if (subjectIds === undefined || subjectIds === null || subjectIds.length === 0) {
-            validSubjects = (await this.db.collections.data_collection.distinct('m_subjectId', { m_studyId: studyId }));
+            validSubjects = (await this.db.collections.data_collection.distinct('properties.m_subjectId', { studyId: studyId }));
         } else {
             validSubjects = subjectIds;
         }
         if (visitIds === undefined || visitIds === null || visitIds.length === 0) {
-            validVisits = (await this.db.collections.data_collection.distinct('m_visitId', { m_studyId: studyId }));
+            validVisits = (await this.db.collections.data_collection.distinct('properties.m_visitId', { studyId: studyId }));
         } else {
             validVisits = visitIds;
         }
@@ -1432,17 +1412,22 @@ export class StudyCore {
                     if (!(await this.permissionCore.checkDataEntryValid(hasPermission.raw, fieldId, subjectId, visitId))) {
                         continue;
                     }
-                    bulk.find({ m_studyId: studyId, m_subjectId: subjectId, m_visitId: visitId, m_fieldId: fieldId, m_versionId: null }).upsert().updateOne({
-                        $set: {
-                            m_studyId: studyId,
+                    bulk.insert({
+                        studyId: studyId,
+                        fieldId: fieldId,
+                        value: null,
+                        properties: {
                             m_subjectId: subjectId,
-                            m_visitId: visitId,
-                            m_versionId: null,
-                            m_fieldId: fieldId,
-                            value: null,
-                            uploadedAt: (new Date()).valueOf(),
-                            id: uuid()
-                        }
+                            m_visitId: visitId
+                        },
+                        dataVersion: null,
+                        life: {
+                            createdTime: Date.now(),
+                            createdUser: requester.id,
+                            deletedTime: Date.now(),
+                            deletedUser: requester.id
+                        },
+                        id: uuid()
                     });
                     response.push({ successful: true, description: `SubjectId-${subjectId}:visitId-${visitId}:fieldId-${fieldId} is deleted.` });
                 }
@@ -1463,7 +1448,7 @@ export class StudyCore {
         }
 
         /* check privileges */
-        if (requester.type !== userTypes.ADMIN) {
+        if (requester.type !== enumUserTypes.ADMIN) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -1472,15 +1457,14 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
         }
         const newDataVersionId = uuid();
-        const newContentId = uuid();
 
         // update data
         const resData = await this.db.collections.data_collection.updateMany({
-            m_studyId: studyId,
-            m_versionId: null
+            studyId: studyId,
+            dataVersion: null
         }, {
             $set: {
-                m_versionId: newDataVersionId
+                dataVersion: newDataVersionId
             }
         });
         // update field
@@ -1516,10 +1500,15 @@ export class StudyCore {
         // insert a new version into study
         const newDataVersion: IStudyDataVersion = {
             id: newDataVersionId,
-            contentId: newContentId, // same content = same id - used in reverting data, version control
             version: dataVersion,
             tag: tag,
-            updateDate: (new Date().valueOf()).toString()
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {}
         };
         await this.db.collections.studies_collection.updateOne({ id: studyId }, {
             $push: { dataVersions: newDataVersion },
@@ -1543,22 +1532,22 @@ export class StudyCore {
                     validSubjects = [];
                     const subqueries = translateCohort(role.permissions.data.filters);
                     validSubjects = (await this.db.collections.data_collection.aggregate<{
-                        m_subjectId: string, m_visitId: string, m_fieldId: string, value: string | number | boolean | { [key: string]: unknown }
+                        'm_subjectId': string, m_visitId: string, fieldId: string, value: string | number | boolean | { [key: string]: unknown }
                     }>([{
-                        $match: { m_fieldId: { $in: role.permissions.data.filters.map(el => el.field) } }
+                        $match: { fieldId: { $in: role.permissions.data.filters.map(el => el.field) } }
                     },
                     {
                         $sort: { uploadedAt: -1 }
                     }, {
                         $group: {
-                            _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId', m_fieldId: '$m_fieldId' },
+                            _id: { m_subjectId: '$properties.m_subjectId', m_visitId: '$properties.m_visitId', m_fieldId: '$fieldId' },
                             doc: { $first: '$$ROOT' }
                         }
                     }, {
                         $project: {
-                            m_subjectId: '$doc.m_subjectId',
-                            m_visitId: '$doc.m_visitId',
-                            m_fieldId: '$doc.m_fieldId',
+                            m_subjectId: '$doc.properties.m_subjectId',
+                            m_visitId: '$doc.properties.m_visitId',
+                            m_fieldId: '$doc.fieldId',
                             value: '$doc.value',
                             _id: 0
                         }
@@ -1572,25 +1561,25 @@ export class StudyCore {
             }
             const tag = `metadata.${'role:'.concat(role.id)}`;
             await this.db.collections.data_collection.updateMany({
-                m_studyId: studyId,
-                m_versionId: newDataVersionId,
-                $and: [
-                    { m_subjectId: { $in: filters.subjectIds.map((el: string) => new RegExp(el)) } },
-                    { m_subjectId: { $in: validSubjects } }
+                'studyId': studyId,
+                'dataVersion': newDataVersionId,
+                '$and': [
+                    { 'properties.m_subjectId': { $in: filters.subjectIds.map((el: string) => new RegExp(el)) } },
+                    { 'properties.m_subjectId': { $in: validSubjects } }
                 ],
-                m_visitId: { $in: filters.visitIds.map((el: string) => new RegExp(el)) },
-                m_fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
+                'properties.m_visitId': { $in: filters.visitIds.map((el: string) => new RegExp(el)) },
+                'fieldId': { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
             }, {
                 $set: { [tag]: true }
             });
             await this.db.collections.data_collection.updateMany({
-                m_studyId: studyId,
-                m_versionId: newDataVersionId,
+                studyId: studyId,
+                dataVersion: newDataVersionId,
                 $or: [
-                    { m_subjectId: { $nin: filters.subjectIds.map((el: string) => new RegExp(el)) } },
-                    { m_subjectId: { $nin: validSubjects } },
-                    { m_visitId: { $nin: filters.visitIds.map((el: string) => new RegExp(el)) } },
-                    { m_fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) } }
+                    { 'properties.m_subjectId': { $nin: filters.subjectIds.map((el: string) => new RegExp(el)) } },
+                    { 'properties.m_subjectId': { $nin: validSubjects } },
+                    { 'properties.m_visitId': { $nin: filters.visitIds.map((el: string) => new RegExp(el)) } },
+                    { fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) } }
                 ]
             }, {
                 $set: { [tag]: false }
@@ -1613,10 +1602,14 @@ export class StudyCore {
         if (newDataVersion === null) {
             throw new GraphQLError('No matched or modified records', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
-        return newDataVersion;
+        return {
+            ...newDataVersion,
+            updateDate: newDataVersion.life.createdTime.toString(),
+            contentId: uuid()
+        };
     }
 
-    public async uploadOneDataClip(studyId: string, permissions, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUserWithoutToken): Promise<unknown> {
+    public async uploadOneDataClip(studyId: string, permissions, fieldList: Partial<IField>[], data: IDataClip[], requester: IUserWithoutToken): Promise<unknown> {
         const response: IGenericResponse[] = [];
         let bulk = this.db.collections.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
@@ -1648,7 +1641,7 @@ export class StudyCore {
                 parsedValue = '99999';
             } else {
                 switch (fieldInDb.dataType) {
-                    case 'dec': {// decimal
+                    case enumDataTypes.DECIMAL: {// decimal
                         if (typeof (dataClip.value) !== 'string') {
                             error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
                             break;
@@ -1660,7 +1653,7 @@ export class StudyCore {
                         parsedValue = parseFloat(dataClip.value);
                         break;
                     }
-                    case 'int': {// integer
+                    case enumDataTypes.INTEGER: {// integer
                         if (typeof (dataClip.value) !== 'string') {
                             error = `Field ${dataClip.fieldId}: Cannot parse as integer.`;
                             break;
@@ -1672,7 +1665,7 @@ export class StudyCore {
                         parsedValue = parseInt(dataClip.value, 10);
                         break;
                     }
-                    case 'bool': {// boolean
+                    case enumDataTypes.BOOLEAN: {// boolean
                         if (typeof (dataClip.value) !== 'string') {
                             error = `Field ${dataClip.fieldId}: Cannot parse as boolean.`;
                             break;
@@ -1685,7 +1678,7 @@ export class StudyCore {
                         }
                         break;
                     }
-                    case 'str': {
+                    case enumDataTypes.STRING: {
                         if (typeof (dataClip.value) !== 'string') {
                             error = `Field ${dataClip.fieldId}: Cannot parse as string.`;
                             break;
@@ -1694,7 +1687,7 @@ export class StudyCore {
                         break;
                     }
                     // 01/02/2021 00:00:00
-                    case 'date': {
+                    case enumDataTypes.DATETIME: {
                         if (typeof (dataClip.value) !== 'string') {
                             error = `Field ${dataClip.fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
                             break;
@@ -1707,11 +1700,11 @@ export class StudyCore {
                         parsedValue = dataClip.value.toString();
                         break;
                     }
-                    case 'json': {
+                    case enumDataTypes.JSON: {
                         parsedValue = dataClip.value;
                         break;
                     }
-                    case 'file': {
+                    case enumDataTypes.FILE: {
                         if (!dataClip.file || typeof (dataClip.file) === 'string') {
                             error = `Field ${dataClip.fieldId}: Cannot parse as file.`;
                             break;
@@ -1726,12 +1719,12 @@ export class StudyCore {
                         }
                         break;
                     }
-                    case 'cat': {
-                        if (!fieldInDb.possibleValues) {
+                    case enumDataTypes.CATEGORICAL: {
+                        if (!fieldInDb.categoricalOptions) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, possible values not defined.`;
                             break;
                         }
-                        if (dataClip.value && !fieldInDb.possibleValues.map((el) => el.code).includes(dataClip.value?.toString())) {
+                        if (dataClip.value && !fieldInDb.categoricalOptions.map((el) => el.code).includes(dataClip.value?.toString())) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                             break;
                         } else {
@@ -1751,58 +1744,25 @@ export class StudyCore {
             } else {
                 response.push({ successful: true, description: `${dataClip.subjectId}-${dataClip.visitId}-${dataClip.fieldId}` });
             }
-            const obj = {
-                m_studyId: studyId,
-                m_versionId: null,
-                m_subjectId: dataClip.subjectId,
-                m_visitId: dataClip.visitId,
-                m_fieldId: dataClip.fieldId
-            };
-            let objWithData: Partial<MatchKeysAndValues<IDataEntry>>;
-            // update the file data differently
-            if (fieldInDb.dataType === 'file') {
-                const existing = await this.db.collections.data_collection.findOne<IDataEntry>(obj);
-                if (!existing) {
-                    await this.db.collections.data_collection.insertOne({
-                        ...obj,
-                        id: uuid(),
-                        uploadedAt: (new Date()).valueOf(),
-                        value: '',
-                        metadata: {
-                            add: [],
-                            remove: []
-                        }
-                    });
-                }
+            bulk.insert({
+                id: uuid(),
+                studyId: studyId,
+                fieldId: dataClip.fieldId,
+                dataVersion: null,
+                value: parsedValue,
+                properties: {
+                    m_subjectId: dataClip.subjectId,
+                    m_visitId: dataClip.visitId
+                },
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: requester.id,
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            });
 
-                objWithData = {
-                    ...obj,
-                    id: uuid(),
-                    value: '',
-                    uploadedAt: (new Date()).valueOf(),
-                    metadata: {
-                        ...dataClip.metadata,
-                        participantId: dataClip.subjectId,
-                        add: (existing?.metadata?.add || []).concat(parsedValue),
-                        uploader: requester.id
-                    },
-                    uploadedBy: requester.id
-                };
-                bulk.find(obj).updateOne({ $set: objWithData });
-            } else {
-                objWithData = {
-                    ...obj,
-                    id: uuid(),
-                    value: parsedValue,
-                    uploadedAt: (new Date()).valueOf(),
-                    metadata: {
-                        ...dataClip.metadata,
-                        uploader: requester.id
-                    },
-                    uploadedBy: requester.id
-                };
-                bulk.insert(objWithData);
-            }
             if (bulk.batches.length > 999) {
                 await bulk.execute();
                 bulk = this.db.collections.data_collection.initializeUnorderedBulkOp();
@@ -1821,19 +1781,20 @@ export class StudyCore {
         if (!study) {
             return { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: 'Study does not exist.' };
         }
-        const sitesIDMarkers = (await this.db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<{ [key: string]: string | null }>((acc, curr) => {
-            if (curr.metadata?.siteIDMarker) {
-                acc[curr.metadata.siteIDMarker] = curr.shortname;
+        const organisations = await this.db.collections.organisations_collection.find({ 'life.deletedTime': null }).toArray();
+        const sitesIDMarkers: Record<string, string> = organisations.reduce((acc, curr) => {
+            if (curr.metadata['siteIDMarker']) {
+                acc[String(curr.metadata['siteIDMarker'])] = curr.shortname ?? curr.name;
             }
             return acc;
-        }, {});
+        }, {} as Record<string, string>);
         // check file metadata
+        let parsedDescription: Record<string, unknown>;
+        let startDate: number;
+        let endDate: number;
+        let deviceId: string;
+        let participantId: string;
         if (data.metadata) {
-            let parsedDescription: Record<string, unknown>;
-            let startDate: number;
-            let endDate: number;
-            let deviceId: string;
-            let participantId: string;
             try {
                 parsedDescription = data.metadata;
                 if (!parsedDescription['startDate'] || !parsedDescription['endDate'] || !parsedDescription['deviceId'] || !parsedDescription['participantId']) {
@@ -1864,22 +1825,11 @@ export class StudyCore {
         const file: FileUpload = await data.file;
 
         // check if old files exist; if so, denote it as deleted
-        const dataEntry = await this.db.collections.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null, m_fieldId: data.fieldId });
+        const dataEntry = await this.db.collections.data_collection.findOne({ 'studyId': studyId, 'properties.m_visitId': data.visitId, 'properties.m_subjectId': data.subjectId, 'dataVersion': null, 'fieldId': data.fieldId });
         const oldFileId = dataEntry ? dataEntry.value : null;
         return new Promise<IFile>((resolve, reject) => {
             (async () => {
                 try {
-                    const fileEntry: Partial<IFile> = {
-                        id: uuid(),
-                        fileName: file.filename,
-                        studyId: studyId,
-                        description: JSON.stringify({}),
-                        uploadTime: `${Date.now()}`,
-                        uploadedBy: uploader.id,
-                        deleted: null,
-                        metadata: (data.metadata as Record<string, unknown>)
-                    };
-
                     if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
                         reject(new GraphQLError('File should not be larger than 8GB', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                         return;
@@ -1923,10 +1873,29 @@ export class StudyCore {
                         reject(new GraphQLError('File size mismatch', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                         return;
                     }
+                    const fileParts: string[] = file.filename.split('.');
+                    const fileExtension = fileParts.length === 1 ? enumFileTypes.UNKNOWN : (fileParts[fileParts.length - 1].trim().toUpperCase() in enumFileTypes ? fileParts[fileParts.length - 1].trim().toUpperCase() : enumFileTypes.UNKNOWN);
 
-                    fileEntry.fileSize = readBytes.toString();
-                    fileEntry.uri = fileUri;
-                    fileEntry.hash = hashString;
+                    const fileEntry: Partial<IFile> = {
+                        id: uuid(),
+                        studyId: studyId,
+                        userId: null,
+                        fileName: file.filename,
+                        fileSize: readBytes,
+                        description: JSON.stringify({}),
+                        properties: {
+                            participantId: participantId,
+                            deviceId: deviceId,
+                            startDate: startDate,
+                            endDate: endDate,
+                            site: sitesIDMarkers[participantId.substr(0, 1).toUpperCase()] ?? 'Unknown'
+                        },
+                        uri: fileUri,
+                        hash: hashString,
+                        fileType: fileExtension in enumFileTypes ? enumFileTypes[fileExtension] : enumFileTypes.UNKNOWN,
+                        fileCategory: enumFileCategories.STUDY_DATA_FILE,
+                        sharedUsers: []
+                    };
                     const insertResult = await this.db.collections.files_collection.insertOne(fileEntry as IFile);
                     if (insertResult.acknowledged) {
                         // delete old file if existing
@@ -2079,7 +2048,7 @@ export class StudyCore {
         };
 
         const getListOfPatientsResult = await this.db.collections.data_collection.aggregate([
-            { $match: { m_studyId: studyId } },
+            { $match: { studyId: studyId } },
             { $group: { _id: null, array: { $addToSet: '$m_subjectId' } } },
             { $project: { array: 1 } }
         ]).toArray();
@@ -2101,10 +2070,10 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        if (requester.type !== userTypes.ADMIN) {
+        if (requester.type !== enumUserTypes.ADMIN) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
-        const study = await this.db.collections.studies_collection.findOne({ id: studyId, deleted: null });
+        const study = await this.db.collections.studies_collection.findOne({ 'id': studyId, 'life.deletedTime': null });
         if (!study) {
             throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
@@ -2116,7 +2085,7 @@ export class StudyCore {
 
         try {
             /* delete the study */
-            await this.db.collections.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
+            await this.db.collections.studies_collection.findOneAndUpdate({ 'id': studyId, 'life.deletedTime': null }, { $set: { 'life.deletedUser': requester.id, 'life.deletedTime': timestamp } });
 
             /* delete all projects related to the study */
             await this.db.collections.projects_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
@@ -2125,7 +2094,7 @@ export class StudyCore {
             await this.permissionCore.removeRoleFromStudyOrProject({ studyId });
 
             /* delete all files belong to the study*/
-            await this.db.collections.files_collection.updateMany({ studyId, deleted: null }, { $set: { deleted: timestamp } });
+            await this.db.collections.files_collection.updateMany({ studyId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': timestamp } });
 
             await session.commitTransaction();
             session.endSession().catch(() => { return; });

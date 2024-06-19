@@ -10,7 +10,11 @@ const userCore = Object.freeze(new UserCore(db, mailer, config));
 export const userResolvers: DMPResolversMap = {
     Query: {
         whoAmI: (_parent, _args, context) => {
-            return context.req.user;
+            return {
+                ...context.req.user,
+                createdAt: context.req.user?.life.createdTime,
+                deleted: context.req.user?.life.deletedTime
+            };
         },
         getUsers: async (_parent, args: { userId?: string }) => {
             return await userCore.getUsers(args.userId);

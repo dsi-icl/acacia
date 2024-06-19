@@ -1,4 +1,4 @@
-import { LOG_ACTION, LOG_STATUS, userTypes } from '@itmat-broker/itmat-types';
+import { LOG_ACTION, LOG_STATUS, enumUserTypes } from '@itmat-broker/itmat-types';
 import { FetchResult } from '@apollo/client';
 
 export function logFun(mutationFunc: (__unused__data: { variables }) => Promise<FetchResult<never>>, whoamidata, type: LOG_ACTION, actionData, status: LOG_STATUS) {
@@ -10,7 +10,7 @@ export function logFun(mutationFunc: (__unused__data: { variables }) => Promise<
         variables: {
             requesterId: whoamidata ? whoamidata.whoAmI.id : 'NA',
             requesterName: whoamidata ? whoamidata.whoAmI.username : 'NA',
-            requesterType: whoamidata ? whoamidata.whoAmI.type : userTypes.STANDARD,
+            requesterType: whoamidata ? whoamidata.whoAmI.type : enumUserTypes.STANDARD,
             action: type,
             actionData: logData,
             status: status
