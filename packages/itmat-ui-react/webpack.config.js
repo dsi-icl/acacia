@@ -47,13 +47,6 @@ module.exports = composePlugins(
             Buffer: ['buffer', 'Buffer']
         }));
 
-        config.optimization = {
-            concatenateModules: false
-        };
-
-        // Enable source maps for easier debugging
-        config.devtool = 'source-map';
-
         return config;
     }
 );
