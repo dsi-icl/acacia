@@ -1212,8 +1212,7 @@ describe('STUDY API', () => {
                     ]
                 }
             });
-            console.log(await db.collections.field_dictionary_collection.find({}).toArray());
-            const t = await authorisedUserStudy.post('/graphql').send({
+            await authorisedUserStudy.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: {
                     studyId: createdStudy.id,
@@ -1234,7 +1233,6 @@ describe('STUDY API', () => {
                     ]
                 }
             });
-            console.log(JSON.stringify(t.body.data.uploadDataInArray));
             await admin.post('/graphql').send({
                 query: print(CREATE_ONTOLOGY_TREE),
                 variables: {
@@ -1455,7 +1453,6 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            console.log(JSON.stringify(res.body.data.getDataRecords));
             expect(res.body.data.getDataRecords.data.QS.sort((a: { entry_reserved: string; entry_inc: number; }, b: { entry_reserved: any; entry_inc: number; }) => {
                 return a.entry_reserved !== b.entry_reserved ? a.entry_reserved.localeCompare(b.entry_reserved)
                     : a.entry_inc - b.entry_inc;

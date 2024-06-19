@@ -690,6 +690,143 @@ if (global.hasMinio) {
             expect(response3.status).toBe(400);
             expect(response3.body.error.message).toBe('You have to edit at lease one property.');
         });
+        test('Copy a drive node (self)', async () => {
+            function createDriveFile(filePath, parentId) {
+                const request = parentId ? user.post('/trpc/drive.createDriveFile')
+                    .attach('file', filePath)
+                    .field('parentId', parentId) :
+                    user.post('/trpc/drive.createDriveFile')
+                        .attach('file', filePath);
+                return request;
+            }
+            const response1 = await user.post('/trpc/drive.createDriveFolder')
+                .send({
+                    folderName: 'Test',
+                    parentId: null
+                });
+            const filePath = path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt');
+            await createDriveFile(filePath, response1.body.result.data.id);
+            const reponse2 = await user.post('/trpc/drive.createDriveFolder')
+                .send({
+                    folderName: 'Test2',
+                    parentId: null
+                });
+            const response = await user.post('/trpc/drive.copyDrive')
+                .send({
+                    driveId: response1.body.result.data.id,
+                    targetParentId: reponse2.body.result.data.id
+                });
+            expect(response.status).toBe(200);
+            expect(response.body.result.data.successful).toBe(true);
+            const drives = await db.collections.drives_collection.find({ managerId: userProfile.id }).toArray();
+            expect(drives).toHaveLength(6);
+            expect(drives.filter(el => el.name === 'Test')).toHaveLength(2);
+            expect(drives.filter(el => el.type === enumDriveNodeTypes.FILE)).toHaveLength(2);
+            expect(drives.filter(el => el.type === enumDriveNodeTypes.FOLDER)).toHaveLength(4); // including one root
+        });
+        test('Copy a drive node (unauthorised permission)', async () => {
+            function createDriveFile(filePath, parentId) {
+                const request = parentId ? admin.post('/trpc/drive.createDriveFile')
+                    .attach('file', filePath)
+                    .field('parentId', parentId) :
+                    admin.post('/trpc/drive.createDriveFile')
+                        .attach('file', filePath);
+                return request;
+            }
+            const response1 = await admin.post('/trpc/drive.createDriveFolder')
+                .send({
+                    folderName: 'Test',
+                    parentId: null
+                });
+            const filePath = path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt');
+            await createDriveFile(filePath, response1.body.result.data.id);
+            const userRootDrive = await db.collections.drives_collection.findOne({ managerId: userProfile.id });
+            const response = await user.post('/trpc/drive.copyDrive')
+                .send({
+                    driveId: response1.body.result.data.id,
+                    targetParentId: userRootDrive?.id
+                });
+            expect(response.status).toBe(400);
+            expect(response.body.error.message).toBe(enumCoreErrors.NO_PERMISSION_ERROR);
+        });
+        test('Copy a drive node (target parent does not exist)', async () => {
+            function createDriveFile(filePath, parentId) {
+                const request = parentId ? user.post('/trpc/drive.createDriveFile')
+                    .attach('file', filePath)
+                    .field('parentId', parentId) :
+                    user.post('/trpc/drive.createDriveFile')
+                        .attach('file', filePath);
+                return request;
+            }
+            const response1 = await user.post('/trpc/drive.createDriveFolder')
+                .send({
+                    folderName: 'Test',
+                    parentId: null
+                });
+            const filePath = path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt');
+            await createDriveFile(filePath, response1.body.result.data.id);
+            const response = await user.post('/trpc/drive.copyDrive')
+                .send({
+                    driveId: response1.body.result.data.id,
+                    targetParentId: 'random'
+                });
+            expect(response.status).toBe(400);
+            expect(response.body.error.message).toBe(enumCoreErrors.NO_PERMISSION_ERROR);
+        });
+        test('Copy a drive node (drive does not exist)', async () => {
+            const userRootDrive = await db.collections.drives_collection.findOne({ managerId: userProfile.id });
+            const response = await user.post('/trpc/drive.copyDrive')
+                .send({
+                    driveId: 'random',
+                    targetParentId: userRootDrive?.id
+                });
+            expect(response.status).toBe(400);
+            expect(response.body.error.message).toBe(enumCoreErrors.NO_PERMISSION_ERROR);
+        });
+        test('Copy drive from other users', async () => {
+            const adminDrive = await db.collections.drives_collection.findOne({ managerId: adminProfile.id });
+            const response = await admin.post('/trpc/drive.createDriveFolder')
+                .send({
+                    folderName: 'Test',
+                    parentId: adminDrive.id
+                });
+            await db.collections.drives_collection.findOneAndUpdate({ id: response.body.result.data.id }, {
+                $push: {
+                    sharedUsers: {
+                        iid: userProfile.id,
+                        read: true,
+                        write: false,
+                        delete: false
+                    }
+                }
+            });
+            const userRootDrive = await db.collections.drives_collection.findOne({ managerId: userProfile.id });
+            const response2 = await user.post('/trpc/drive.copyDrive')
+                .send({
+                    driveId: response.body.result.data.id,
+                    targetParentId: userRootDrive.id
+                });
+            expect(response2.status).toBe(200);
+            expect(response2.body.result.data.successful).toBe(true);
+            const drives = await db.collections.drives_collection.find({ managerId: userProfile.id }).toArray();
+            expect(drives).toHaveLength(2);
+        });
+        test('Copy drive from other users (no permission)', async () => {
+            const adminDrive = await db.collections.drives_collection.findOne({ managerId: adminProfile.id });
+            const response = await admin.post('/trpc/drive.createDriveFolder')
+                .send({
+                    folderName: 'Test',
+                    parentId: adminDrive.id
+                });
+            const userRootDrive = await db.collections.drives_collection.findOne({ managerId: userProfile.id });
+            const response2 = await user.post('/trpc/drive.copyDrive')
+                .send({
+                    driveId: response.body.result.data.id,
+                    targetParentId: userRootDrive.id
+                });
+            expect(response2.status).toBe(400);
+            expect(response2.body.error.message).toBe(enumCoreErrors.NO_PERMISSION_ERROR);
+        });
     });
 } else {
     test(`${__filename.split(/[\\/]/).pop()} skipped because it requires Minio on Docker`, () => {

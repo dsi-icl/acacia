@@ -6,7 +6,7 @@ import { IBase } from './base';
 export interface IDrive extends IBase {
     managerId: string;
     path: string[];
-    restricted: boolean; // whether to allow delete on this node. User own folders are protected.
+    restricted: boolean; // whether to allow deletion on this node. User own folders are protected.
     name: string; // folder name or file name
     description?: string;
     fileId: string | null; // null for folder

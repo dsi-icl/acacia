@@ -52,40 +52,65 @@ export class TRPCFileCore {
                 );
             }
         }
-
         let fileConfig: ISystemConfig | IStudyConfig | IUserConfig | IDocConfig | ICacheConfig | IDomainConfig | null = null;
         let userRepoRemainingSpace = 0;
         let fileSizeLimit: number;
         let defaultFileBucketId: string;
-
         if (fileCategory === enumFileCategories.STUDY_DATA_FILE && studyId) {
+            // study file config
             const config = await this.db.collections.configs_collection.findOne({ type: enumConfigType.STUDYCONFIG, key: studyId });
-            fileConfig = config ? config.properties : defaultSettings.studyConfig;
+            if (config) {
+                fileConfig = config.properties;
+            } else {
+                fileConfig = defaultSettings.studyConfig;
+            }
             fileSizeLimit = (fileConfig as IStudyConfig).defaultMaximumFileSize;
             defaultFileBucketId = studyId;
         } else if (fileCategory === enumFileCategories.USER_DRIVE_FILE) {
+            // user file config
             const config = await this.db.collections.configs_collection.findOne({ type: enumConfigType.USERCONFIG, key: requester.id });
-            fileConfig = config ? config.properties as IUserConfig : defaultSettings.userConfig;
-            const totalSize = (await this.db.collections.files_collection.aggregate([
-                { $match: { 'userId': requester.id, 'life.deletedTime': null } },
-                { $group: { _id: '$userId', totalSize: { $sum: '$fileSize' } } }
-            ]))[0]?.totalSize ?? 0;
+            if (config) {
+                fileConfig = config.properties as IUserConfig;
+            } else {
+                fileConfig = defaultSettings.userConfig;
+            }
+            const aggregationResult = await this.db.collections.files_collection.aggregate([
+                {
+                    $match: { 'userId': requester.id, 'life.deletedTime': null }
+                },
+                {
+                    $group: { _id: '$userId', totalSize: { $sum: '$fileSize' } }
+                }
+            ]).toArray();
+            const totalSize: number = (aggregationResult.length > 0) ? aggregationResult[0]['totalSize'] : 0;
             userRepoRemainingSpace = (fileConfig as IUserConfig).defaultMaximumFileRepoSize - totalSize;
-            fileSizeLimit = Math.min((fileConfig as IUserConfig).defaultMaximumFileSize, userRepoRemainingSpace);
+            fileSizeLimit = Math.max((fileConfig as IUserConfig).defaultMaximumFileSize, userRepoRemainingSpace);
             defaultFileBucketId = (fileConfig as IUserConfig).defaultFileBucketId;
         } else if (fileCategory === enumFileCategories.DOC_FILE) {
             const config = await this.db.collections.configs_collection.findOne({ type: enumConfigType.DOCCONFIG, key: null });
-            fileConfig = config ? config.properties as IDocConfig : defaultSettings.docConfig;
+            if (config) {
+                fileConfig = config.properties as IDocConfig;
+            } else {
+                fileConfig = defaultSettings.docConfig;
+            }
             fileSizeLimit = (fileConfig as IDocConfig).defaultMaximumFileSize;
             defaultFileBucketId = (fileConfig as IDocConfig).defaultFileBucketId;
         } else if (fileCategory === enumFileCategories.CACHE) {
             const config = await this.db.collections.configs_collection.findOne({ type: enumConfigType.CACHECONFIG, key: null });
-            fileConfig = config ? config.properties as ICacheConfig : defaultSettings.cacheConfig;
+            if (config) {
+                fileConfig = config.properties as ICacheConfig;
+            } else {
+                fileConfig = defaultSettings.cacheConfig;
+            }
             fileSizeLimit = (fileConfig as ICacheConfig).defaultMaximumFileSize;
             defaultFileBucketId = (fileConfig as ICacheConfig).defaultFileBucketId;
         } else if (fileCategory === enumFileCategories.PROFILE_FILE) {
             const config = await this.db.collections.configs_collection.findOne({ type: enumConfigType.SYSTEMCONFIG, key: null });
-            fileConfig = config ? config.properties as ISystemConfig : defaultSettings.systemConfig;
+            if (config) {
+                fileConfig = config.properties as ISystemConfig;
+            } else {
+                fileConfig = defaultSettings.systemConfig;
+            }
             fileSizeLimit = (fileConfig as ISystemConfig).defaultMaximumFileSize;
             defaultFileBucketId = (fileConfig as ISystemConfig).defaultProfileBucketId;
         } else {

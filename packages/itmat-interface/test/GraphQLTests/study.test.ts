@@ -2979,7 +2979,6 @@ if (global.hasMinio) {
                         metadata: {}
                     }
                 ];
-                await db.collections.field_dictionary_collection.insertMany(mockFields);
                 await db.collections.studies_collection.updateOne({ id: createdStudy.id }, {
                     $push: { dataVersions: mockDataVersion },
                     $inc: { currentDataVersion: 1 },
@@ -3326,6 +3325,10 @@ if (global.hasMinio) {
                 await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
             });
 
+            beforeEach(async () => {
+                await db.collections.field_dictionary_collection.insertMany(mockFields);
+            });
+
             afterEach(async () => {
                 await db.collections.data_collection.deleteMany({});
                 await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
@@ -3338,7 +3341,7 @@ if (global.hasMinio) {
                         }], currentDataVersion: 0
                     }
                 });
-                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $nin: ['31', '32'] }, dataVersion: null });
+                await db.collections.field_dictionary_collection.deleteMany({});
             });
 
             test('Upload a data record to study (authorised user)', async () => {
@@ -3398,7 +3401,7 @@ if (global.hasMinio) {
                     { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.', id: null, successful: false }
                 ]);
 
-                const dataInDb = await db.collections.data_collection.find({ deleted: null }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ 'life.deletedTime': null }).toArray();
                 expect(dataInDb).toHaveLength(3);
             });
 
@@ -3602,11 +3605,9 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-34 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }]);
             });
 
             test('Delete data records: visitId (admin)', async () => {
@@ -3627,11 +3628,9 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-34 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
                 ]);
             });
 
@@ -3660,21 +3659,17 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-34 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-34 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-34 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }]);
                 const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
-                expect(dataInDb).toHaveLength(22); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) + 6 (original records) = 22 records
+                expect(dataInDb).toHaveLength(18); // 2 visits * 2 subjects * 3 fields + 6 (original records) = 18 records
             });
 
             test('Delete data records: records not exist', async () => {
@@ -3702,13 +3697,11 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-34 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }]);
                 const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
-                expect(dataInDb).toHaveLength(14); // 8 deleted records and 6 original records
+                expect(dataInDb).toHaveLength(12); // 1 subject * 3 fields * 2visits +  6 original records
             });
 
             test('Get data records (user with study privilege)', async () => {
@@ -3733,7 +3726,7 @@ if (global.hasMinio) {
                         ]
                     }
                 });
-                const getRes = await authorisedUser.post('/graphql').send({
+                const getRes = await admin.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {
                         studyId: createdStudy.id,

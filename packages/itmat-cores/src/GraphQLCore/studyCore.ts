@@ -13,11 +13,22 @@ import { buildPipeline, dataStandardization, translateMetadata } from '../utils/
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 
+enum enumV2DataType {
+    'INT' = 'int',
+    'DEC' = 'dec',
+    'STR' = 'str',
+    'BOOL' = 'bool',
+    'DATE' = 'date',
+    'FILE' = 'file',
+    'JSON' = 'json',
+    'CAT' = 'cat'
+}
+
 export interface CreateFieldInput {
     fieldId: string;
     fieldName: string
     tableName?: string
-    dataType: string;
+    dataType: enumV2DataType;
     possibleValues?: ICategoricalOption[]
     unit?: string
     comments?: string
@@ -28,7 +39,7 @@ export interface EditFieldInput {
     fieldId: string;
     fieldName: string;
     tableName?: string;
-    dataType: string;
+    dataType: enumV2DataType;
     possibleValues?: ICategoricalOption[]
     unit?: string
     comments?: string
@@ -125,28 +136,35 @@ export class StudyCore {
                     return {
                         id: el.id,
                         code: el.code,
-                        description: el.description
+                        description: el.description,
+                        life: {
+                            createdTime: el.life.createdTime,
+                            createdUser: el.life.createdUser,
+                            deletedTime: el.life.deletedTime,
+                            deletedUser: el.life.deletedUser
+                        },
+                        metadata: {}
                     };
                 }) : [],
                 dataType: (() => {
                     if (field.dataType === enumDataTypes.INTEGER) {
-                        return 'int';
+                        return enumV2DataType.INT;
                     } else if (field.dataType === enumDataTypes.DECIMAL) {
-                        return 'dec';
+                        return enumV2DataType.DEC;
                     } else if (field.dataType === enumDataTypes.STRING) {
-                        return 'str';
+                        return enumV2DataType.STR;
                     } else if (field.dataType === enumDataTypes.BOOLEAN) {
-                        return 'bool';
+                        return enumV2DataType.BOOL;
                     } else if (field.dataType === enumDataTypes.DATETIME) {
-                        return 'date';
+                        return enumV2DataType.DATE;
                     } else if (field.dataType === enumDataTypes.FILE) {
-                        return 'file';
+                        return enumV2DataType.FILE;
                     } else if (field.dataType === enumDataTypes.JSON) {
-                        return 'json';
+                        return enumV2DataType.JSON;
                     } else if (field.dataType === enumDataTypes.CATEGORICAL) {
-                        return 'cat';
+                        return enumV2DataType.CAT;
                     } else {
-                        return 'str';
+                        return enumV2DataType.STR;
                     }
                 })(),
                 dateAdded: field.life.createdTime.toString(),
@@ -361,10 +379,10 @@ export class StudyCore {
                 }
             }
 
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+            fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
             }, {
-                $sort: { dateAdded: -1 }
+                $sort: { 'life.createdTime': -1 }
             }, {
                 $group: {
                     _id: '$fieldId',
@@ -376,7 +394,7 @@ export class StudyCore {
                 }
             }, {
                 $sort: { fieldId: 1 }
-            }]).toArray();
+            }]).toArray()).filter(el => el.life.deletedTime === null);
             if (queryString.data_requested && queryString.data_requested.length > 0) {
                 fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
             }
@@ -391,10 +409,10 @@ export class StudyCore {
             // unversioned data: metadatafilter for versioned data and all unversioned tags
             if (versionId === null && aggregatedPermissions.hasVersioned) {
                 availableDataVersions.push(null);
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
-                    $sort: { dateAdded: -1 }
+                    $sort: { 'life.createdTime': -1 }
                 }, {
                     $match: {
                         $or: [
@@ -413,7 +431,7 @@ export class StudyCore {
                     }
                 }, {
                     $sort: { fieldId: 1 }
-                }]).toArray();
+                }]).toArray()).filter(el => el.life.deletedTime === null);
                 if (queryString.data_requested && queryString.data_requested?.length > 0) {
                     fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
                 }
@@ -421,10 +439,10 @@ export class StudyCore {
                 if (versionId === '-1') {
                     availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
                 }
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
-                    $sort: { dateAdded: -1 }
+                    $sort: { 'life.createdTime': -1 }
                 }, {
                     $match: {
                         $or: [
@@ -442,7 +460,7 @@ export class StudyCore {
                     }
                 }, {
                     $sort: { fieldId: 1 }
-                }]).toArray();
+                }]).toArray()).filter(el => el.life.deletedTime === null);
                 if (queryString.data_requested && queryString.data_requested?.length > 0) {
                     fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
                 }
@@ -474,7 +492,7 @@ export class StudyCore {
                     fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
                 }
             }
-
+            console.log(fieldRecords);
             // TODO: placeholder for metadata filter
             // if (queryString.metadata) {
             //     metadataFilter = { $and: queryString.metadata.map((el) => translateMetadata(el)) };
@@ -1058,7 +1076,7 @@ export class StudyCore {
             error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'bool' for boolean, 'date' for datetime, 'file' for FILE, 'json' for json.`);
         }
         // check possiblevalues to be not-empty if datatype is categorical
-        if (fieldEntry.dataType === enumDataTypes.CATEGORICAL) {
+        if (fieldEntry.dataType === 'cat') {
             if (fieldEntry.possibleValues !== undefined && fieldEntry.possibleValues !== null) {
                 if (fieldEntry.possibleValues.length === 0) {
                     error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: possible values can't be empty if data type is categorical.`);
@@ -1076,7 +1094,7 @@ export class StudyCore {
             fieldName: fieldEntry.fieldName,
             tableName: null,
             dataType: fieldEntry.dataType,
-            possibleValues: fieldEntry.dataType === enumDataTypes.CATEGORICAL ? fieldEntry.possibleValues : null,
+            possibleValues: fieldEntry.dataType === 'cat' ? fieldEntry.possibleValues : null,
             unit: fieldEntry.unit,
             comments: fieldEntry.comments,
             metadata: {
@@ -1198,27 +1216,6 @@ export class StudyCore {
         }
         searchField.fieldId = fieldInput.fieldId;
         searchField.fieldName = fieldInput.fieldName;
-        searchField.dataType = (() => {
-            if (fieldInput.dataType === 'int') {
-                return enumDataTypes.INTEGER;
-            } else if (fieldInput.dataType === 'dec') {
-                return enumDataTypes.DECIMAL;
-            } else if (fieldInput.dataType === 'str') {
-                return enumDataTypes.STRING;
-            } else if (fieldInput.dataType === 'bool') {
-                return enumDataTypes.BOOLEAN;
-            } else if (fieldInput.dataType === 'date') {
-                return enumDataTypes.DATETIME;
-            } else if (fieldInput.dataType === 'file') {
-                return enumDataTypes.FILE;
-            } else if (fieldInput.dataType === 'json') {
-                return enumDataTypes.JSON;
-            } else if (fieldInput.dataType === 'cat') {
-                return enumDataTypes.CATEGORICAL;
-            } else {
-                return enumDataTypes.STRING;
-            }
-        })();
         if (fieldInput.tableName) {
             searchField.metadata['tableName'] = fieldInput.tableName;
         }
@@ -1235,7 +1232,7 @@ export class StudyCore {
             searchField.comments = fieldInput.comments;
         }
 
-        const { error } = await this.validateAndGenerateFieldEntry(searchField, requester);
+        const { error } = await this.validateAndGenerateFieldEntry({ ...this.fieldTypeConverter([searchField])[0], dataType: fieldInput.dataType }, requester);
         if (error.length !== 0) {
             throw new GraphQLError(JSON.stringify(error), { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
         }
