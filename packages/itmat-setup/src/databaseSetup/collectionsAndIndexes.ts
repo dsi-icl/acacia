@@ -2,6 +2,7 @@ import * as mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { seedUsers } from './seed/users';
 import { seedOrganisations } from './seed/organisations';
+import { seedConfigs } from './seed/config';
 const collections = {
     jobs_collection: {
         name: 'JOB_COLLECTION',
@@ -149,6 +150,9 @@ export async function setupDatabase(mongostr: string, databaseName: string): Pro
 
     /* insert seed organisations */
     await db.collection(collections.organisations_collection.name).insertMany(seedOrganisations);
+
+    /* Insert necessary configs */
+    await db.collection(collections.configs_collection.name).insertMany(seedConfigs);
 
     await conn.close();
 }

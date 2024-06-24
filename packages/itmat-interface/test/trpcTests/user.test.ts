@@ -100,6 +100,7 @@ if (global.hasMinio) {
             $set: userProfile
         });
         await db.collections.users_collection.deleteMany({ id: { $nin: [adminProfile.id, userProfile.id] } });
+        await db.collections.configs_collection.deleteMany({ key: { $nin: [adminProfile.id, userProfile.id] } });
     });
 
     describe('tRPC User APIs', () => {
@@ -119,6 +120,9 @@ if (global.hasMinio) {
             const user = await db.collections.users_collection.findOne({ username: 'test' });
             expect(user).toBeDefined();
             expect(userProfile.id).toBe(response.body.result.data.id);
+            // check config
+            const config = await db.collections.configs_collection.findOne({ type: 'USERCONFIG', key: response.body.result.data.id });
+            expect(config).toBeDefined();
         });
         test('Create a user (invalid email format)', async () => {
             const response = await admin.post('/trpc/user.createUser')
