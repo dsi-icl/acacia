@@ -132,6 +132,7 @@ export class Router {
                         };
                     },
                     async requestDidStart() {
+                        const startTime = Date.now();
                         return {
                             async executionDidStart(requestContext) {
                                 const operation = requestContext.operationName;
@@ -139,7 +140,8 @@ export class Router {
                                 requestContext.request.variables = operation ? spaceFixing(operation, actionData) : undefined;
                             },
                             async willSendResponse(requestContext) {
-                                await logPluginInstance.requestDidStartLogPlugin(requestContext);
+                                const executionTime = Date.now() - startTime;
+                                await logPluginInstance.requestDidStartLogPlugin(requestContext, startTime, executionTime);
                             }
                         };
                     }

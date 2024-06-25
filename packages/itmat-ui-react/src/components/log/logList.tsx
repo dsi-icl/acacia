@@ -1,11 +1,110 @@
 import { FunctionComponent, useState } from 'react';
 import { GET_LOGS } from '@itmat-broker/itmat-models';
-import { enumUserTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT, ILogEntry } from '@itmat-broker/itmat-types';
+import { enumUserTypes } from '@itmat-broker/itmat-types';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Checkbox, Descriptions, DatePicker, Modal, Row, Col } from 'antd';
 import Highlighter from 'react-highlight-words';
 import dayjs from 'dayjs';
+
+export enum USER_AGENT {
+    MOZILLA = 'MOZILLA',
+    OTHER = 'OTHER'
+}
+
+export enum LOG_TYPE {
+    SYSTEM_LOG = 'SYSTEM_LOG',
+    REQUEST_LOG = 'REQUEST_LOG'
+}
+
+export enum LOG_ACTION {
+    // SYSTEM
+    startSERVER = 'START_SERVER',
+    stopSERVER = 'STOP_SERVER',
+
+    // USER
+    getUsers = 'GET_USERS',
+    EditUser = 'EDIT_USER',
+    DeleteUser = 'DELETE_USER',
+    CreateUser = 'CREATE_USER',
+    login = 'LOGIN_USER',
+    whoAmI = 'WHO_AM_I',
+    logout = 'LOGOUT',
+    requestUsernameOrResetPassword = 'REQUEST_USERNAME_OR_RESET_PASSWORD',
+    resetPassword = 'RESET_PASSWORD',
+
+    // KEY
+    registerPubkey = 'REGISTER_PUBKEY',
+    issueAccessToken = 'ISSUE_ACCESS_TOKEN',
+    keyPairGenwSignature = 'KEYPAIRGEN_SIGNATURE',
+    rsaSigner = 'RSA_SIGNER',
+    linkUserPubkey = 'LINK_USER_PUBKEY',
+
+    // ORGANISATION
+    createOrganisation = 'CREATE_ORGANISATION',
+    deleteOrganisation = 'DELETE_ORGANISATION',
+
+    // PROJECT
+    getProject = 'GET_PROJECT',
+    // GET_PROJECT_PATIENT_MAPPING = 'GET_PROJECT_PATIENT_MAPPING',
+    createProject = 'CREATE_PROJECT',
+    deleteProject = 'DELETE_PROJECT',
+    setDataversionAsCurrent = 'SET_DATAVERSION_AS_CURRENT',
+    subscribeToJobStatusChange = 'SUBSCRIBE_TO_JOB_STATUS',
+
+    // STUDY | DATASET
+    deleteStudy = 'DELETE_STUDY',
+    getStudy = 'GET_STUDY',
+    getStudyFields = 'GET_STUDY_FIELDS',
+    createStudy = 'CREATE_STUDY',
+    editStudy = 'EDIT_STUDY',
+    getDataRecords = 'GET_DATA_RECORDS',
+    getOntologyTree = 'GET_ONTOLOGY_TREE',
+    checkDataComplete = 'CHECK_DATA_COMPLETE',
+    createNewDataVersion = 'CREATE_NEW_DATA_VERSION',
+    uploadDataInArray = 'UPLOAD_DATA_IN_ARRAY',
+    deleteDataRecords = 'DELETE_DATA_RECORDS',
+    createNewField = 'CREATE_NEW_FIELD',
+    editField = 'EDIT_FIELD',
+    deleteField = 'DELETE_FIELD',
+    addOntologyField = 'ADD_ONTOLOGY_FIELD',
+    deleteOntologyField = 'DELETE_ONTOLOGY_FIELD',
+
+    // STUDY & PROJECT
+    editRole = 'EDIT_ROLE',
+    addRole = 'ADD_NEW_ROLE',
+    removeRole = 'REMOVE_ROLE',
+
+    // FILE
+    uploadFile = 'UPLOAD_FILE',
+    DOWNLOAD_FILE = 'DOWNLOAD_FILE',
+    deleteFile = 'DELETE_FILE',
+
+    //QUERY
+    getQueries = 'GET_QUERY',
+    createQuery = 'CREATE_QUERY',
+    getQueryById = 'GET_QUERY_BY_ID',
+    createQueryCurationJob = 'CREATE_QUERY_CURATION_JOB'
+
+}
+
+export enum LOG_STATUS {
+    SUCCESS = 'SUCCESS',
+    FAIL = 'FAIL'
+}
+
+interface ILogEntry {
+    id: string,
+    requesterName: string,
+    requesterType: string,
+    userAgent: USER_AGENT,
+    logType: LOG_TYPE,
+    actionType: LOG_ACTION,
+    actionData: string,
+    time: number,
+    status: LOG_STATUS,
+    errors: string | null
+}
 
 export const LogListSection: FunctionComponent = () => {
 
@@ -96,7 +195,6 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
                 || logCopy.status.toUpperCase().search(searchTerm) > -1 || logCopy.userAgent.toUpperCase().search(searchTerm) > -1
                 || new Date(logCopy.time).toUTCString().toUpperCase().search(searchTerm) > -1 || logCopy.status.toUpperCase().search(searchTerm) > -1))
                 && (inputs.requesterName === '' || logCopy.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
-                && (inputs.requesterType.length === 0 || inputs.requesterType.includes(logCopy.requesterType))
                 && (inputs.userAgent.length === 0 || inputs.userAgent.includes(logCopy.userAgent))
                 && (inputs.logType.length === 0 || inputs.logType.includes(logCopy.logType))
                 && (inputs.actionType.length === 0 || inputs.actionType.includes(logCopy.actionType))
