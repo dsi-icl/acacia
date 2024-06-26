@@ -123,6 +123,13 @@ const collections = {
             { key: { id: 1 }, unique: true },
             { key: { 'keyHash': 1, 'type': 1, 'life.createdTime': 1 }, unique: true }
         ]
+    },
+    domains_collection: {
+        name: 'DOMAIN_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { domainPath: 1 }, unique: true }
+        ]
     }
 };
 

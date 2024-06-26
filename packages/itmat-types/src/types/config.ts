@@ -73,6 +73,7 @@ export interface IDocConfig extends IBase {
 }
 
 export interface IDomainConfig extends IBase {
+    defaultMaximumFileSize: number
     defaultFileBucketId: string
 }
 export interface IDefaultSettings extends IBase {
@@ -203,7 +204,8 @@ export class DefaultSettings implements IDefaultSettings {
             deletedUser: null
         },
         metadata: {},
-        defaultFileBucketId: 'domain'
+        defaultFileBucketId: 'domain',
+        defaultMaximumFileSize: 10 * 1024 * 1024 // 100 MB
     };
 }
 

@@ -20,7 +20,8 @@
             "configs_collection": "CONFIG_COLLECTION",
             "drives_collection": "DRIVE_COLLECTION",
             "colddata_collection": "COLDDATA_COLLECTION",
-            "cache_collection": "CACHE_COLLECTION"
+            "cache_collection": "CACHE_COLLECTION",
+            "domains_collection": "DOMAIN_COLLECTION"
         }
     },
     "server": {

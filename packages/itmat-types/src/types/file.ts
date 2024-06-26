@@ -42,7 +42,8 @@ export enum enumFileCategories {
     USER_DRIVE_FILE = 'USER_REPO_FILE',
     DOC_FILE = 'DOC_FILE',
     CACHE = 'CACHE',
-    PROFILE_FILE = 'DOMAIN_PROFILE_FILE'
+    PROFILE_FILE = 'DOMAIN_PROFILE_FILE',
+    DOMAIN_FILE = 'DOMAIN_FILE'
 }
 
 export interface FileUpload {

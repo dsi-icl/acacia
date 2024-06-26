@@ -78,7 +78,8 @@ const ZDocConfig = ZBase.extend({
 
 // ZDomainConfig schema
 const ZDomainConfig = ZBase.extend({
-    defaultFileBucketId: z.string()
+    defaultFileBucketId: z.string(),
+    defaultMaximumFileSize: z.number()
 });
 
 export const configRouter = router({
