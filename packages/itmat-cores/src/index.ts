@@ -25,3 +25,5 @@ export * from './authentication/pubkeyAuthentication';
 export * from './log/logPlugin';
 export * from './database/database';
 export * from './utils';
+// webdav
+export * from './webdav/dmpWebDAV';

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { IUser } from '@itmat-broker/itmat-types';
+import { IUserWithoutToken } from '@itmat-broker/itmat-types';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
@@ -21,7 +21,7 @@ export class FileDownloadController {
 
     public fileDownloadController = (req: Request, res: Response) => {
         (async () => {
-            const requester = req.user as IUser;
+            const requester = req.user as IUserWithoutToken;
             const requestedFile = req.params['fileId'];
             const token = req.headers.authorization || '';
             let associatedUser = requester;

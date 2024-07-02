@@ -6,7 +6,7 @@ import { objStore } from '../objStore/objStore';
 import { z } from 'zod';
 import { baseProcedure, router } from './trpc';
 
-const driveCore = new TRPCDriveCore(db, new TRPCFileCore(db, objStore));
+const driveCore = new TRPCDriveCore(db, new TRPCFileCore(db, objStore), objStore);
 
 
 export const ZDrivePermission = z.object({

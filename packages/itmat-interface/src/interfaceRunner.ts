@@ -6,6 +6,7 @@ import { Router } from './server/router';
 import { Runner } from './server/server';
 import { pubsub } from './graphql/pubsub';
 import { subscriptionEvents } from '@itmat-broker/itmat-cores';
+import { dmpWebDav } from './webdav/webdav';
 
 class ITMATInterfaceRunner extends Runner {
 
@@ -26,6 +27,7 @@ class ITMATInterfaceRunner extends Runner {
             // Operate database migration if necessary
             db.connect(this.config.database, MongoClient)
                 .then(async () => objStore.connect(this.config.objectStore))
+                .then(async () => this.config?.useWebdav && dmpWebDav.connect(this.config))
                 .then(async () => {
 
                     const jobChangestream = db.collections.jobs_collection.watch([

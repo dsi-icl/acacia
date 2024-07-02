@@ -1,22 +1,31 @@
-import { GraphQLError } from 'graphql';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { DBType } from '../database/database';
-import { IUser } from '@itmat-broker/itmat-types';
+import { CoreError, IUserWithoutToken, enumCoreErrors } from '@itmat-broker/itmat-types';
 
 
-export async function userRetrieval(db: DBType, pubkey: string): Promise<IUser> {
+export async function userRetrieval(db: DBType, pubkey: string): Promise<IUserWithoutToken> {
     // retrieve userId associated with the token
-    const pubkeyrec = await db.collections.pubkeys_collection.findOne({ jwtPubkey: pubkey, deleted: null });
+    const pubkeyrec = await db.collections.pubkeys_collection.findOne({ 'jwtPubkey': pubkey, 'life.deletedTime': null });
     if (pubkeyrec === null || pubkeyrec === undefined) {
-        throw new GraphQLError('The public-key embedded in the JWT is not valid!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+        throw new CoreError(
+            enumCoreErrors.AUTHENTICATION_ERROR,
+            'The public-key embedded in the JWT is not valid!'
+        );
     }
     if (!pubkeyrec.associatedUserId) {
-        throw new GraphQLError('The public-key embedded in the JWT is not associated with any user!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+        throw new CoreError(
+            enumCoreErrors.AUTHENTICATION_ERROR,
+            'The public-key embedded in the JWT is not associated with any user!'
+        );
     }
 
-    const associatedUser: IUser | null = await db.collections.users_collection.findOne({ 'life.deletedTime': null, 'id': pubkeyrec.associatedUserId }, { projection: { _id: 0 } });
+    const associatedUser: IUserWithoutToken | null = await db.collections.users_collection.findOne({ 'life.deletedTime': null, 'id': pubkeyrec.associatedUserId }, { projection: { _id: 0 } });
     if (!associatedUser) {
-        throw new GraphQLError('The user assciated with the public-key embedded in the JWT is not existed or already deleted!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+        throw new CoreError(
+            enumCoreErrors.AUTHENTICATION_ERROR,
+            'The user assciated with the public-key embedded in the JWT is not existed or already deleted!'
+        );
     }
+    delete associatedUser['password'];
+    delete associatedUser['otpSecret'];
     return associatedUser;
 }
