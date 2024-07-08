@@ -1,9 +1,10 @@
 import { enumConfigType, IFile, defaultSettings, enumFileTypes, enumFileCategories, IUserWithoutToken, IStudy, FileUpload, CoreError, enumCoreErrors, ISystemConfig, IStudyConfig, IUserConfig, IDocConfig, ICacheConfig, IDomainConfig, IGenericResponse } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
-import crypto, { BinaryLike } from 'crypto';
+import crypto from 'crypto';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 import { makeGenericReponse } from '../utils';
+import { PassThrough } from 'stream';
 
 /**
  * This class provides methods to interact with files.
@@ -102,23 +103,25 @@ export class TRPCFileCore {
 
         const fileUri = uuid();
         const hash = crypto.createHash('sha256');
-        const fileStream = fileUpload.createReadStream();
+        const stream = fileUpload.createReadStream();
+        const chunks: Buffer[] = [];
 
         return new Promise<IFile>((resolve, reject) => {
             let fileSize = 0;
 
-            fileStream.on('data', (chunk: BinaryLike) => {
+            stream.on('data', (chunk: Buffer) => {
                 hash.update(chunk);
-                fileSize += (chunk as Buffer).length; // Asserting the chunk as Buffer for length property
+                chunks.push(chunk);
+                fileSize += chunk.length;
             });
 
-            fileStream.on('end', () => {
-                this.handleFileUpload(fileSize, fileSizeLimit, hash, fileUpload, defaultFileBucketId, fileUri, requester, studyId, userId, fileType, fileCategory, description, properties)
+            stream.on('end', () => {
+                this.processFileChunks(chunks, hash, fileSize, fileSizeLimit, fileUpload, defaultFileBucketId, fileUri, requester, studyId, userId, fileType, fileCategory, description, properties)
                     .then(fileEntry => resolve(fileEntry))
                     .catch(error => reject(error));
             });
 
-            fileStream.on('error', (err) => {
+            stream.on('error', (err) => {
                 reject(new CoreError(
                     enumCoreErrors.FILE_STREAM_ERROR,
                     'Error reading file stream: ' + err.message
@@ -127,10 +130,34 @@ export class TRPCFileCore {
         });
     }
 
+    private async processFileChunks(
+        chunks: Buffer[],
+        hash: crypto.Hash,
+        fileSize: number,
+        fileSizeLimit: number,
+        fileUpload: FileUpload,
+        defaultFileBucketId: string,
+        fileUri: string,
+        requester: IUserWithoutToken,
+        studyId: string | null,
+        userId: string | null,
+        fileType: enumFileTypes,
+        fileCategory: enumFileCategories,
+        description?: string,
+        properties?: Record<string, unknown>
+    ): Promise<IFile> {
+        const buffer = Buffer.concat(chunks);
+        const hashString = hash.digest('hex');
+        const stream = new PassThrough();
+        stream.end(buffer);
+        return this.handleFileUpload(fileSize, fileSizeLimit, stream, hashString, fileUpload, defaultFileBucketId, fileUri, requester, studyId, userId, fileType, fileCategory, description, properties);
+    }
+
     private async handleFileUpload(
         fileSize: number,
         fileSizeLimit: number,
-        hash: ReturnType<typeof crypto.createHash>,
+        stream: PassThrough,
+        hashString: string,
         fileUpload: FileUpload,
         defaultFileBucketId: string,
         fileUri: string,
@@ -143,20 +170,20 @@ export class TRPCFileCore {
         properties?: Record<string, unknown>
     ): Promise<IFile> {
         if (fileSize > fileSizeLimit) {
-            throw new Error('File size exceeds the limit.');
+            throw new CoreError(
+                enumCoreErrors.UNQUALIFIED_ERROR,
+                'File size exceeds the limit.'
+            );
         }
 
-        const hashString = hash.digest('hex');
-        const uploadStream = fileUpload.createReadStream();
-
-        await this.objStore.uploadFile(uploadStream, defaultFileBucketId, fileUri);
+        await this.objStore.uploadFile(stream, defaultFileBucketId, fileUri);
 
         const fileEntry: IFile = {
             id: uuid(),
             studyId: studyId,
             userId: userId,
-            fileName: fileUpload.filename, // Access filename directly from the fileUpload object.
-            fileSize: fileSize, // Use buffer's length for file size.
+            fileName: fileUpload.filename,
+            fileSize: fileSize,
             description: description,
             uri: fileUri,
             hash: hashString,

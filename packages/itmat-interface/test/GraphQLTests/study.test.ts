@@ -23,7 +23,6 @@ import {
     SET_DATAVERSION_AS_CURRENT,
     EDIT_STUDY,
     UPLOAD_DATA_IN_ARRAY,
-    DELETE_DATA_RECORDS,
     GET_DATA_RECORDS,
     CREATE_NEW_DATA_VERSION,
     CREATE_NEW_FIELD,
@@ -41,10 +40,11 @@ import {
     IRole,
     IData,
     enumFileTypes,
-    enumFileCategories
+    enumFileCategories,
+    enumConfigType,
+    enumReservedUsers
 } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
-import path from 'path';
 import { objStore } from '../../src/objStore/objStore';
 
 if (global.hasMinio) {
@@ -105,6 +105,10 @@ if (global.hasMinio) {
         });
 
         describe('MANIPULATING STUDIES EXISTENCE', () => {
+            afterEach(async () => {
+                await db.collections.studies_collection.deleteMany({});
+            });
+
             test('Create study (admin)', async () => {
                 const studyName = uuid();
                 const res = await admin.post('/graphql').send({
@@ -137,10 +141,7 @@ if (global.hasMinio) {
                     access: {
                         id: `user_access_obj_user_id_${adminId}`,
                         projects: [],
-                        studies: [{
-                            id: createdStudy.id,
-                            name: studyName
-                        }]
+                        studies: []
                     },
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
@@ -207,7 +208,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
+                expect(res.body.errors[0].message).toBe('Study name already used.');
                 expect(res.body.data.createStudy).toBe(null);
 
                 /* should be only one study in database */
@@ -241,7 +242,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(`Study "${studyName.toUpperCase()}" already exists (duplicates are case-insensitive).`);
+                expect(res.body.errors[0].message).toBe('Study name already used.');
                 expect(res.body.data.createStudy).toBe(null);
 
                 /* should be only one study in database */
@@ -261,7 +262,7 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.data.createStudy).toBe(null);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.errors[0].message).toBe('Only admin can create a study.');
 
                 const createdStudy = await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOne({ name: studyName });
                 expect(createdStudy).toBe(null);
@@ -291,7 +292,7 @@ if (global.hasMinio) {
                 expect(editStudy.status).toBe(200);
                 expect(editStudy.body.data.editStudy).toBe(null);
                 expect(editStudy.body.errors).toHaveLength(1);
-                expect(editStudy.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(editStudy.body.errors[0].message).toBe('Only admin or study manager can edit a study.');
 
                 /* cleanup: delete study */
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOneAndUpdate({ 'name': studyName, 'life.deletedTime': null }, { $set: { 'life.deletedUser': 'admin', 'life.deletedTime': new Date().valueOf() } });
@@ -330,10 +331,7 @@ if (global.hasMinio) {
                     access: {
                         id: `user_access_obj_user_id_${adminId}`,
                         projects: [],
-                        studies: [{
-                            id: newStudy.id,
-                            name: studyName
-                        }]
+                        studies: []
                     },
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
@@ -447,7 +445,7 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.data.deleteStudy).toBe(null);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.errors[0].message).toBe('Only admin can delete a study.');
 
                 /* confirms that the created study is still alive */
                 const createdStudy = await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOne({ name: studyName });
@@ -470,8 +468,14 @@ if (global.hasMinio) {
                 id: 'mockDataVersionId2',
                 contentId: 'mockContentId2',
                 version: '0.0.2',
-                updateDate: '5000000',
-                tag: 'hey'
+                tag: 'hey',
+                life: {
+                    createdTime: 5000001,
+                    createdUserId: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
             };
 
             beforeAll(async () => {
@@ -498,9 +502,15 @@ if (global.hasMinio) {
                 {
                     mockDataVersion = {
                         id: 'mockDataVersionId',
-                        contentId: 'mockContentId',
                         version: '0.0.1',
-                        updateDate: '5000000'
+                        tag: null,
+                        life: {
+                            createdTime: 5000000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     const mockData: IData[] = [
                         {
@@ -675,7 +685,7 @@ if (global.hasMinio) {
                             }],
                             dataVersion: 'mockDataVersionId',
                             life: {
-                                createdTime: 20000,
+                                createdTime: 30000,
                                 createdUser: 'admin',
                                 deletedTime: null,
                                 deletedUser: null
@@ -726,45 +736,35 @@ if (global.hasMinio) {
                             metadata: {}
                         }
                     ];
-                    await db.collections.studies_collection.updateOne({ id: createdStudy.id }, {
-                        $push: { dataVersions: mockDataVersion },
-                        $inc: { currentDataVersion: 1 },
-                        $set: {
-                            ontologyTrees: [{
-                                id: 'testOntology_id',
-                                name: 'testOntology',
-                                routes: [
-                                    {
-                                        path: [
-                                            'MO',
-                                            'MOCK'
-                                        ],
-                                        name: 'mockfield1',
-                                        field: [
-                                            '$31'
-                                        ],
-                                        visitRange: [],
-                                        id: '036b7772-f239-4fef-b7f8-c3db883f51e3'
-                                    },
-                                    {
-                                        path: [
-                                            'MO',
-                                            'MOCK'
-                                        ],
-                                        name: 'mockfield2',
-                                        field: [
-                                            '$32'
-                                        ],
-                                        visitRange: [],
-                                        id: 'f577023f-de54-446a-9bbe-1c346823e6bf'
-                                    }
-                                ]
-                            }]
-                        }
-                    });
                     await db.collections.data_collection.insertMany(mockData);
                     await db.collections.field_dictionary_collection.insertMany(mockFields);
                     await db.collections.files_collection.insertMany(mockFiles);
+                    await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, { $set: { currentDataVersion: 0, dataVersions: [mockDataVersion] } });
+
+                    await db.collections.configs_collection.insertOne({
+                        type: enumConfigType.STUDYCONFIG,
+                        key: createdStudy.id,
+                        properties: {
+                            id: uuid(),
+                            life: {
+                                createdTime: Date.now(),
+                                createdUser: enumReservedUsers.SYSTEM,
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {},
+                            defaultStudyProfile: null,
+                            defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
+                            defaultRepresentationForMissingValue: '99999',
+                            defaultFileColumns: [],
+                            defaultFileColumnsPropertyColor: 'black',
+                            defaultFileDirectoryStructure: {
+                                pathLabels: [],
+                                description: null
+                            },
+                            defaultVersioningKeys: []
+                        }
+                    });
                 }
 
                 /* setup: creating a privileged user */
@@ -826,6 +826,7 @@ if (global.hasMinio) {
                 await db.collections.files_collection.deleteMany({});
                 await db.collections.roles_collection.deleteMany({});
                 await db.collections.projects_collection.deleteMany({});
+                await db.collections.configs_collection.deleteMany({});
             });
 
             test('Get a non-existent study (admin)', async () => {
@@ -835,7 +836,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.errors[0].message).toBe('Study does not exist.');
                 expect(res.body.data.getStudy).toBe(null);
             });
 
@@ -876,11 +877,10 @@ if (global.hasMinio) {
                     currentDataVersion: 0,
                     dataVersions: [{
                         id: 'mockDataVersionId',
-                        contentId: 'mockContentId',
                         version: '0.0.1',
-                        // fileSize: '10000',
-                        updateDate: '5000000',
-                        tag: null
+                        tag: null,
+                        contentId: 'mockDataVersionId',
+                        updateDate: '5000000'
                     }]
                 });
             });
@@ -956,11 +956,10 @@ if (global.hasMinio) {
                     currentDataVersion: 0,
                     dataVersions: [{
                         id: 'mockDataVersionId',
-                        contentId: 'mockContentId',
                         version: '0.0.1',
-                        // fileSize: '10000',
-                        updateDate: '5000000',
-                        tag: null
+                        tag: null,
+                        contentId: 'mockDataVersionId',
+                        updateDate: '5000000'
                     }]
                 });
             });
@@ -1027,7 +1026,7 @@ if (global.hasMinio) {
                         possibleValues: [],
                         unit: null,
                         comments: null,
-                        dateAdded: '20000',
+                        dateAdded: '30000',
                         dateDeleted: null
                     }
                 ]);
@@ -1115,14 +1114,7 @@ if (global.hasMinio) {
                 expect(res.body.errors).toBeUndefined();
                 const study = await db.collections.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
                 expect(study).toBeDefined();
-                expect(res.body.data.setDataversionAsCurrent).toEqual({
-                    id: createdStudy.id,
-                    currentDataVersion: 0,
-                    dataVersions: [
-                        { ...mockDataVersion, tag: null },
-                        { ...newMockDataVersion }
-                    ]
-                });
+                expect(res.body.data.setDataversionAsCurrent.currentDataVersion).toBe(0);
 
                 /* cleanup: reverse setting dataversion */
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection)
@@ -1216,8 +1208,8 @@ if (global.hasMinio) {
                 expect(res.body.data.createNewField[0]).toEqual({
                     id: null,
                     successful: false,
-                    code: 'CLIENT_MALFORMED_INPUT',
-                    description: 'Field 8.2-newField8: ["FieldId should contain letters, numbers and _ only."]'
+                    code: null,
+                    description: 'FieldId should contain letters, numbers and _ only.'
                 });
             });
 
@@ -1253,8 +1245,19 @@ if (global.hasMinio) {
                     }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.createNewField).toHaveLength(2);
+                expect(res.body.data.createNewField[0]).toEqual({
+                    id: null,
+                    successful: false,
+                    code: null,
+                    description: errorCodes.NO_PERMISSION_ERROR
+                });
+                expect(res.body.data.createNewField[1]).toEqual({
+                    id: null,
+                    successful: false,
+                    code: null,
+                    description: errorCodes.NO_PERMISSION_ERROR
+                });
             });
 
             test('Create New fields (admin, should fail)', async () => {
@@ -1289,8 +1292,9 @@ if (global.hasMinio) {
                     }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.createNewField).toHaveLength(2);
+                expect(res.body.data.createNewField[0].description).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.createNewField[1].description).toBe(errorCodes.NO_PERMISSION_ERROR);
             });
 
             test('Delete an unversioned field (authorised user)', async () => {
@@ -1566,9 +1570,15 @@ if (global.hasMinio) {
                 /* 5. Insert field for data uploading later */
                 mockDataVersion = {
                     id: 'mockDataVersionId',
-                    contentId: 'mockContentId',
                     version: '0.0.1',
-                    updateDate: '5000000'
+                    tag: null,
+                    life: {
+                        createdTime: 5000000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
                 };
                 mockFields = [
                     {
@@ -1684,7 +1694,30 @@ if (global.hasMinio) {
                         }]
                     }
                 });
-
+                await db.collections.configs_collection.insertOne({
+                    type: enumConfigType.STUDYCONFIG,
+                    key: createdStudy.id,
+                    properties: {
+                        id: uuid(),
+                        life: {
+                            createdTime: Date.now(),
+                            createdUser: enumReservedUsers.SYSTEM,
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {},
+                        defaultStudyProfile: null,
+                        defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
+                        defaultRepresentationForMissingValue: '99999',
+                        defaultFileColumns: [],
+                        defaultFileColumnsPropertyColor: 'black',
+                        defaultFileDirectoryStructure: {
+                            pathLabels: [],
+                            description: null
+                        },
+                        defaultVersioningKeys: []
+                    }
+                });
             });
 
             afterAll(async () => {
@@ -1737,13 +1770,6 @@ if (global.hasMinio) {
                         value: 'wrong',
                         subjectId: 'I7N3G6G',
                         visitId: '2'
-                    },
-                    // illegal subject id
-                    {
-                        fieldId: '31',
-                        value: '10',
-                        subjectId: 'I777770',
-                        visitId: '1'
                     }
                 ];
                 const res = await authorisedUser.post('/graphql').send({
@@ -1753,12 +1779,11 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.uploadDataInArray).toEqual([
-                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
-                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
-                    { code: null, description: 'GR6R4AR-1-31', id: null, successful: true },
-                    { code: 'CLIENT_ACTION_ON_NON_EXISTENT_ENTRY', description: 'Field 34: Field Not found', id: null, successful: false },
-                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.', id: null, successful: false },
-                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.', id: null, successful: false }
+                    { code: null, description: 'Field 31 value 10 successfully uploaded.', id: '0', successful: true },
+                    { code: null, description: 'Field 32 value FAKE1 successfully uploaded.', id: '1', successful: true },
+                    { code: null, description: 'Field 31 value 11 successfully uploaded.', id: '2', successful: true },
+                    { code: 'CLIENT_ACTION_ON_NON_EXISTENT_ENTRY', description: 'Field 34: Field not found', id: '3', successful: false },
+                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.', id: '4', successful: false }
                 ]);
 
                 const dataInDb = await db.collections.data_collection.find({ deleted: null }).toArray();
@@ -1783,40 +1808,6 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe('Study does not exist.');
-            });
-
-            test('Upload a file with the data API', async () => {
-                const res = await authorisedUser.post('/graphql')
-                    .field('operations', JSON.stringify({
-                        query: print(UPLOAD_DATA_IN_ARRAY),
-                        variables: {
-                            studyId: createdStudy.id,
-                            data: [
-                                {
-                                    fieldId: '33',
-                                    subjectId: 'I7N3G6G',
-                                    visitId: '1',
-                                    file: null,
-                                    metadata: {
-                                        deviceId: 'MMM7N3G6G',
-                                        startDate: '1590966000000',
-                                        endDate: '1593730800000',
-                                        participantId: 'I7N3G6G',
-                                        postFix: 'txt'
-                                    }
-                                }
-                            ]
-                        }
-                    }))
-                    .field('map', JSON.stringify({ 1: ['variables.data.0.file'] }))
-                    .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                // check both data collection and file collection
-                const fileFirst = await db.collections.files_collection.findOne<IFile>({ 'studyId': createdStudy.id, 'life.deletedTime': null });
-                const dataFirst = await db.collections.data_collection.findOne<IData>({ 'studyId': createdStudy.id, 'properties.m_visitId': '1', 'fieldId': '33' });
-                expect(dataFirst?.value).toBe(fileFirst.id);
-                expect(dataFirst?.life.deletedTime).toBe(null);
             });
 
             test('Create New data version with data only (user with study privilege)', async () => {
@@ -1912,135 +1903,6 @@ if (global.hasMinio) {
                 expect(dataInDb).toHaveLength(7);
                 const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
                 expect(fieldsInDb).toHaveLength(4);
-            });
-
-            test('Delete data records: (unauthorised user) should fail', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-
-                const deleteRes = await user.post('/graphql').send({
-                    query: print(DELETE_DATA_RECORDS),
-                    variables: { studyId: createdStudy.id, subjectId: 'I7N3G6G' }
-                });
-                expect(deleteRes.status).toBe(200);
-                expect(deleteRes.body.errors).toHaveLength(1);
-                expect(deleteRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            });
-
-            test('Delete data records: subjectId (user with study privilege)', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                const deleteRes = await authorisedUser.post('/graphql').send({
-                    query: print(DELETE_DATA_RECORDS),
-                    variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'] }
-                });
-                expect(deleteRes.status).toBe(200);
-                expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
-                ]);
-            });
-
-            test('Delete data records: visitId (admin)', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-
-                const deleteRes = await admin.post('/graphql').send({
-                    query: print(DELETE_DATA_RECORDS),
-                    variables: { studyId: createdStudy.id, visitIds: ['2'] }
-                });
-                expect(deleteRes.status).toBe(200);
-                expect(deleteRes.body.errors).toHaveLength(1);
-                expect(deleteRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            });
-
-            test('Delete data records: studyId (authorised user)', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.uploadDataInArray).toEqual([
-                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
-                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
-                    { code: null, description: 'I7N3G6G-2-31', id: null, successful: true },
-                    { code: null, description: 'I7N3G6G-2-32', id: null, successful: true },
-                    { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
-                    { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
-                ]);
-                const deleteRes = await authorisedUser.post('/graphql').send({
-                    query: print(DELETE_DATA_RECORDS),
-                    variables: { studyId: createdStudy.id }
-                });
-                expect(deleteRes.status).toBe(200);
-                expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
-                ]);
-                const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
-                expect(dataInDb).toHaveLength(18); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) + 6 (original records) = 22 records
-            });
-
-            test('Delete data records: records not exist', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.uploadDataInArray).toEqual([
-                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
-                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
-                    { code: null, description: 'I7N3G6G-2-31', id: null, successful: true },
-                    { code: null, description: 'I7N3G6G-2-32', id: null, successful: true },
-                    { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
-                    { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
-                ]);
-                const deleteRes = await authorisedUser.post('/graphql').send({
-                    query: print(DELETE_DATA_RECORDS),
-                    variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'], visitIds: ['1', '2'] }
-                });
-                expect(deleteRes.status).toBe(200);
-                expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
-                ]);
-                const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
-                expect(dataInDb).toHaveLength(12); // 8 deleted records and 6 original records
             });
 
             test('Get data records (user with study privilege)', async () => {

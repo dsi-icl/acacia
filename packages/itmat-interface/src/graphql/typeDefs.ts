@@ -522,7 +522,6 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createQueryCurationJob(queryId: [String], studyId: String, projectId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
 
 }

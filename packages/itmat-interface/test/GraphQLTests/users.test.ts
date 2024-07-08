@@ -25,6 +25,7 @@ import {
 } from '@itmat-broker/itmat-models';
 import { IResetPasswordRequest, IUser, enumUserTypes } from '@itmat-broker/itmat-types';
 import type { Express } from 'express';
+import { seedOrganisations } from 'packages/itmat-setup/src/databaseSetup/seed/organisations';
 
 let app: Express;
 let mongodb: MongoMemoryServer;
@@ -121,7 +122,7 @@ describe('USERS API', () => {
                         username: 'Idontexist'
                     }
                 });
-            expect(res.status).toBe(200); // even though user doesnt exist. This should pass so people dont know the registered users
+            expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
         }, 6050);
@@ -156,7 +157,7 @@ describe('USERS API', () => {
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+            expect(res.body.errors[0].message).toBe('Inputs are invalid.');
             expect(res.body.data.requestUsernameOrResetPassword).toBe(null);
         });
 
@@ -172,7 +173,7 @@ describe('USERS API', () => {
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+            expect(res.body.errors[0].message).toBe('Inputs are invalid.');
         });
 
         test('Request reset password and username but provide username (should fail)', async () => {
@@ -189,7 +190,7 @@ describe('USERS API', () => {
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+            expect(res.body.errors[0].message).toBe('Inputs are invalid.');
         });
 
         test('Request reset password with existing user providing email', async () => {
@@ -305,7 +306,7 @@ describe('USERS API', () => {
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Token is not valid.');
+            expect(res.body.errors[0].message).toBe('Token is invalid.');
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
@@ -344,7 +345,7 @@ describe('USERS API', () => {
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+            expect(res.body.errors[0].message).toBe('Token is invalid.');
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
@@ -381,7 +382,7 @@ describe('USERS API', () => {
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.errors[0].message).toBe('User does not exist.');
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
@@ -426,7 +427,7 @@ describe('USERS API', () => {
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.errors[0].message).toBe('User does not exist.');
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
@@ -573,7 +574,7 @@ describe('USERS API', () => {
                 });
             expect(resAgain.status).toBe(200);
             expect(resAgain.body.errors).toHaveLength(1);
-            expect(resAgain.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(resAgain.body.errors[0].message).toBe('User does not exist.');
             expect(resAgain.body.data.resetPassword).toEqual(null);
 
             /* cleanup */
@@ -877,13 +878,10 @@ describe('USERS API', () => {
             ]);
         });
 
-        test('Get all users list with detail (no access info) (user) (should fail)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: false } });
-            expect(res.status).toBe(200); //graphql returns 200 for application layer errors
-            expect(res.body.errors).toHaveLength(3);
-            expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.data.getUsers).toEqual([   // user still has permission to his own data
-                null,
+        test('Get user list with detail (no access info) (user) (should fail)', async () => {
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId: userId, fetchDetailsAdminOnly: true, fetchAccessPrivileges: false } });
+            expect(res.status).toBe(200);
+            expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser',
                     type: enumUserTypes.STANDARD,
@@ -902,16 +900,10 @@ describe('USERS API', () => {
             ]);
         });
 
-        test('Get all users list with detail (w/ access info) (user) (should fail)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
-            expect(res.status).toBe(200); // graphql returns 200 for application layer errors
-            expect(res.body.errors).toHaveLength(4);
-            expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.errors[1].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.errors[2].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.errors[3].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.data.getUsers).toEqual([   // user still has permission to his own data
-                null,
+        test('Get user list with detail (w/ access info) (user) (should fail)', async () => {
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId, userId, fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
+            expect(res.status).toBe(200);
+            expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser',
                     type: enumUserTypes.STANDARD,
@@ -958,17 +950,10 @@ describe('USERS API', () => {
         });
 
         test('Get all users without details (user)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId: userId, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
             expect(res.status).toBe(200);
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
-                {
-                    type: enumUserTypes.ADMIN,
-                    firstname: 'Fadmin',
-                    lastname: 'Ladmin',
-                    organisation: 'organisation_system',
-                    id: adminId
-                },
                 {
                     type: enumUserTypes.STANDARD,
                     firstname: 'Tai Man',
@@ -1010,29 +995,15 @@ describe('USERS API', () => {
         test('Get a specific non-self user with details (user) (should fail)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId: adminId, fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(4);
-            expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.errors[1].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.errors[2].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.errors[3].message).toBe('NO_PERMISSION_ERROR');
-            expect(res.body.data.getUsers).toEqual([
-                null
-            ]);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         });
 
         test('Get a specific non-self user without details (user) (should fail)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId: adminId, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getUsers).toEqual([
-                {
-                    type: enumUserTypes.ADMIN,
-                    firstname: 'Fadmin',
-                    lastname: 'Ladmin',
-                    organisation: 'organisation_system',
-                    id: adminId
-                }
-            ]);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         });
 
         test('Get a specific self user with details (user)', async () => {
@@ -1085,6 +1056,9 @@ describe('USERS API', () => {
     });
 
     describe('APP USER MUTATION API', () => {
+        afterEach(async () => {
+            await db.collections.users_collection.deleteMany({ username: { $nin: ['admin', 'standardUser'] } });
+        });
 
         test('log in with incorrect totp (user)', async () => {
             await admin.post('/graphql').send({
@@ -1095,13 +1069,12 @@ describe('USERS API', () => {
                     firstname: 'FUser Testing',
                     lastname: 'LUser Testing',
                     description: 'I am fake!',
-                    organisation: 'DSI-ICL',
+                    organisation: seedOrganisations[0].id,
                     emailNotificationsActivated: false,
                     email: 'user0email@email.io',
                     type: enumUserTypes.STANDARD
                 }
             });
-
             /* getting the created user from mongo */
             const createdUser = (await mongoClient
                 .collection<IUser>(config.database.collections.users_collection)
@@ -1129,13 +1102,12 @@ describe('USERS API', () => {
                     firstname: 'FUser Testing',
                     lastname: 'LUser Testing',
                     description: 'I am fake!',
-                    organisation: 'DSI-ICL',
+                    organisation: seedOrganisations[0].id,
                     emailNotificationsActivated: false,
                     email: 'fake@email.io',
                     type: enumUserTypes.STANDARD
                 }
             });
-
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.createUser).toStrictEqual(
@@ -1154,7 +1126,7 @@ describe('USERS API', () => {
                     firstname: 'FUser Testing2',
                     lastname: 'LUser Testing2',
                     description: 'I am fake!',
-                    organisation: 'DSI-ICL',
+                    organisation: seedOrganisations[0].id,
                     emailNotificationsActivated: false,
                     email: 'fak@e@semail.io',
                     type: enumUserTypes.STANDARD
@@ -1175,7 +1147,7 @@ describe('USERS API', () => {
                     firstname: 'FUser Testing',
                     lastname: 'LUser Testing',
                     description: 'I am fake!',
-                    organisation: 'DSI-ICL',
+                    organisation: seedOrganisations[0].id,
                     emailNotificationsActivated: false,
                     email: 'fake@email.io',
                     type: enumUserTypes.STANDARD
@@ -1218,7 +1190,7 @@ describe('USERS API', () => {
                     firstname: 'FUser Testing',
                     lastname: 'LUser Testing',
                     description: 'I am fake!',
-                    organisation: 'DSI-ICL',
+                    organisation: seedOrganisations[0].id,
                     emailNotificationsActivated: false,
                     email: 'fake@email.io',
                     type: enumUserTypes.STANDARD
@@ -1226,29 +1198,35 @@ describe('USERS API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('User already exists.');
+            expect(res.body.errors[0].message).toBe('Username or email already exists.');
             expect(res.body.data.createUser).toBe(null);
         });
 
         test('edit user password (admin) (should fail)', async () => {
-            /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
                 username: 'new_user_333333',
-                type: enumUserTypes.STANDARD,
+                type: 'STANDARD',
                 firstname: 'FChan Ming Ming',
                 lastname: 'LChan Ming Ming',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                organisation: 'organisation_system',
                 email: 'new3333@example.com',
                 resetPasswordRequests: [],
                 description: 'I am a new user 33333.',
                 emailNotificationsActivated: true,
-                organisation: 'organisation_system',
-                deleted: null,
+                emailNotificationsStatus: { expiringNotification: false },
                 id: 'fakeid2',
-                createdAt: 1591134065000,
-                expiredAt: 1991134065000
+                expiredAt: 1991134065000,
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
             };
+
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
             /* assertion */
@@ -1267,34 +1245,37 @@ describe('USERS API', () => {
             expect(result.password).toBe('fakepassword');
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.errors[0].message).toBe('User can only edit his/her own account.');
             expect(res.body.data.editUser).toEqual(null);
-
         });
 
 
         test('edit user without password (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username: 'new_user_3',
-                type: enumUserTypes.STANDARD,
-                firstname: 'FChan Ming Man',
-                lastname: 'LChan Ming Man',
+                username: 'new_user_333333',
+                type: 'STANDARD',
+                firstname: 'FChan Ming Ming',
+                lastname: 'LChan Ming Ming',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                email: 'new3@example.com',
+                organisation: 'organisation_system',
+                email: 'new3333@example.com',
                 resetPasswordRequests: [],
-                description: 'I am a new user 3.',
+                description: 'I am a new user 33333.',
                 emailNotificationsActivated: true,
                 emailNotificationsStatus: { expiringNotification: false },
-                organisation: 'organisation_system',
-                deleted: null,
                 id: 'fakeid2222',
-                createdAt: 1591134065000,
-                expiredAt: 1991134065000
+                expiredAt: 1991134065000,
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-
             /* assertion */
             const res = await admin.post('/graphql').send(
                 {
@@ -1307,7 +1288,7 @@ describe('USERS API', () => {
                         lastname: 'LMan',
                         email: 'hey@uk.io',
                         description: 'DSI director',
-                        organisation: 'DSI-ICL'
+                        organisation: seedOrganisations[0].id
                     }
                 }
             );
@@ -1319,10 +1300,10 @@ describe('USERS API', () => {
             expect(res.body.data.editUser).toEqual(
                 {
                     username: 'fakeusername',
-                    type: enumUserTypes.ADMIN,
+                    type: enumUserTypes.STANDARD,
                     firstname: 'FMan',
                     lastname: 'LMan',
-                    organisation: 'DSI-ICL',
+                    organisation: seedOrganisations[0].id,
                     email: 'hey@uk.io',
                     description: 'DSI director',
                     id: 'fakeid2222',
@@ -1500,7 +1481,7 @@ describe('USERS API', () => {
             );
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('User not updated: Non-admin users are only authorised to change their password, email or email notification.');
+            expect(res.body.errors[0].message).toBe('Standard user can not change their type, expiration time and organisation. Please contact admins for help.');
             expect(res.body.data.editUser).toEqual(null);
         });
 
@@ -1546,7 +1527,7 @@ describe('USERS API', () => {
             );
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('User not updated: Email is not the right format.');
+            expect(res.body.errors[0].message).toBe('Email is not the right format.');
             expect(res.body.data.editUser).toBe(null);
         });
 
@@ -1590,7 +1571,7 @@ describe('USERS API', () => {
             );
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.errors[0].message).toBe('User can only edit his/her own account.');
             expect(res.body.data.editUser).toEqual(null);
         });
 
@@ -1656,8 +1637,8 @@ describe('USERS API', () => {
                 query: print(GET_USERS),
                 variables: { userId: newUser.id, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }
             });
-
-            expect(getUserResAfter.body.data.getUsers).toEqual([]);
+            expect(getUserResAfter.body.errors).toHaveLength(1);
+            expect(getUserResAfter.body.errors[0].message).toBe('User does not exist.');
         });
 
         test('delete user that has been deleted (admin)', async () => {
@@ -1715,11 +1696,8 @@ describe('USERS API', () => {
                 }
             );
             expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.deleteUser).toEqual({
-                successful: true,
-                id: 'I never existed'
-            });
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('User does not exist.');
         });
 
         test('delete user (user)', async () => {
@@ -1751,7 +1729,7 @@ describe('USERS API', () => {
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
             /* assertion */
-            const getUserRes = await user.post('/graphql').send({
+            const getUserRes = await admin.post('/graphql').send({
                 query: print(GET_USERS),
                 variables: { userId: newUser.id, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }
             });
@@ -1775,10 +1753,10 @@ describe('USERS API', () => {
             );
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.errors[0].message).toBe('User can only delete his/her own account.');
             expect(res.body.data.deleteUser).toEqual(null);
 
-            const getUserResAfter = await user.post('/graphql').send({
+            const getUserResAfter = await admin.post('/graphql').send({
                 query: print(GET_USERS),
                 variables: { userId: newUser.id, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }
             });

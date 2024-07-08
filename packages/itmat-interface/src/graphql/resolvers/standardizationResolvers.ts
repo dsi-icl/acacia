@@ -1,9 +1,11 @@
 import { DMPResolversMap } from './context';
 import { db } from '../../database/database';
-import { StandarizationCore } from '@itmat-broker/itmat-cores';
 import { objStore } from '../../objStore/objStore';
+import { TRPCFileCore, TRPCPermissionCore, TRPCStandarizationCore, TRPCStudyCore } from '@itmat-broker/itmat-cores';
 
-const standardizationCore = Object.freeze(new StandarizationCore(db, objStore));
+const permissionCore = new TRPCPermissionCore(db);
+const studyCore = new TRPCStudyCore(db, objStore, permissionCore, new TRPCFileCore(db, objStore));
+const standardizationCore = new TRPCStandarizationCore(db, objStore, permissionCore, studyCore);
 
 export const standardizationResolvers: DMPResolversMap = {
     Query: {

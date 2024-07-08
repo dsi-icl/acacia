@@ -230,7 +230,6 @@ if (global.hasMinio) {
                     firstname: 'edit_firstname',
                     lastname: 'edit_lastname',
                     email: 'edit_email@test.com',
-                    password: 'edit_password',
                     description: 'edit_description',
                     type: enumUserTypes.MANAGER
                 });
@@ -348,7 +347,6 @@ if (global.hasMinio) {
                     firstname: 'edit_firstname',
                     lastname: 'edit_lastname',
                     email: 'edit_email@test.com',
-                    password: 'edit_password',
                     description: 'edit_description',
                     organisation: 'random'
                 });
@@ -356,17 +354,12 @@ if (global.hasMinio) {
             expect(response.body.error.message).toBe('Organisation does not exist.');
         });
         test('Edit a user (old password)', async () => {
-            await admin.post('/trpc/user.editUser')
+            await user.post('/trpc/user.editUser')
                 .send({
                     userId: userProfile.id,
-                    username: 'edit_username',
-                    firstname: 'edit_firstname',
-                    lastname: 'edit_lastname',
-                    email: 'edit_email@test.com',
-                    password: 'edit_password',
-                    description: 'edit_description'
+                    password: 'edit_password'
                 });
-            const response = await admin.post('/trpc/user.editUser')
+            const response = await user.post('/trpc/user.editUser')
                 .send({
                     userId: userProfile.id,
                     password: 'edit_password'
@@ -382,7 +375,6 @@ if (global.hasMinio) {
                     firstname: 'edit_firstname',
                     lastname: 'edit_lastname',
                     email: 'edit_email@test.com',
-                    password: 'edit_password',
                     description: 'edit_description',
                     expiredAt: Date.now() - 1000
                 });

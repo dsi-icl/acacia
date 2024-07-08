@@ -1,19 +1,19 @@
 import { DMPResolversMap } from './context';
 import { db } from '../../database/database';
-import { OrganisationCore } from '@itmat-broker/itmat-cores';
+import { TRPCFileCore, TRPCOrganisationCore } from '@itmat-broker/itmat-cores';
+import { objStore } from '../../objStore/objStore';
 
-const organisationCore = Object.freeze(new OrganisationCore(db));
+const organisationCore = new TRPCOrganisationCore(db, new TRPCFileCore(db, objStore));
 
 export const organisationResolvers: DMPResolversMap = {
     Query: {
         getOrganisations: async (_parent, args: { organisationId?: string }) => {
-            // everyone is allowed to see all organisations in the app.
-            return await organisationCore.getOrganisations(args.organisationId);
+            return await organisationCore.getOrganisations(undefined, args.organisationId);
         }
     },
     Mutation: {
-        createOrganisation: async (parent, { name, shortname, containOrg, metadata }: { name: string, shortname: string, containOrg: string, metadata: unknown }, context) => {
-            return await organisationCore.createOrganisation(context.req.user, { name, shortname, containOrg, metadata });
+        createOrganisation: async (parent, { name, shortname }: { name: string, shortname: string, containOrg: string, metadata: unknown }, context) => {
+            return await organisationCore.createOrganisation(context.req.user, name, shortname);
         },
         deleteOrganisation: async (parent, { id }: { id: string }, context) => {
             return await organisationCore.deleteOrganisation(context.req.user, id);

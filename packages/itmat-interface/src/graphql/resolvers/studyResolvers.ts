@@ -1,129 +1,279 @@
 import {
-    IProject,
     IStudy,
     studyType,
     IDataClip,
-    IOntologyTree
+    IQueryString,
+    IGenericResponse,
+    CoreError,
+    IGroupedData
 } from '@itmat-broker/itmat-types';
-import { CreateFieldInput, EditFieldInput, StudyCore } from '@itmat-broker/itmat-cores';
+import { GraphQLErrorDecroator, TRPCDataCore, TRPCDataTransformationCore, TRPCFileCore, TRPCPermissionCore, TRPCStudyCore, V2CreateFieldInput, V2EditFieldInput, convertV2CreateFieldInputToV3, convertV2DataClipInputToV3, convertV2EditFieldInputToV3, convertV3FieldToV2Field } from '@itmat-broker/itmat-cores';
 import { DMPResolversMap } from './context';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
+import { TRPCUtilsCore } from 'packages/itmat-cores/src/trpcCore/utilsCore';
 
-const studyCore = Object.freeze(new StudyCore(db, objStore));
+const fileCore = new TRPCFileCore(db, objStore);
+const permissionCore = new TRPCPermissionCore(db);
+const utilsCore = new TRPCUtilsCore();
+const studyCore = new TRPCStudyCore(db, objStore, permissionCore, fileCore);
+const dataCore = new TRPCDataCore(db, fileCore, permissionCore, utilsCore, new TRPCDataTransformationCore(utilsCore));
 
 export const studyResolvers: DMPResolversMap = {
     Query: {
         getStudy: async (_parent, args: { studyId: string }, context) => {
-            return studyCore.getStudy(context.req.user, args.studyId);
+            try {
+                const study = (await studyCore.getStudies(context.req.user, args.studyId))[0];
+                return {
+                    ...study,
+                    createdBy: study.life.createdUser,
+                    deleted: study.life.deletedTime,
+                    dataVersions: study.dataVersions.map(el => {
+                        return {
+                            ...el,
+                            updateDate: el.life.createdTime.toString(),
+                            contentId: el.id
+                        };
+                    })
+                };
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
-        getProject: async (_parent, args: { projectId: string }, context) => {
-            return await studyCore.getProject(context.req.user, args.projectId);
+        getProject: async () => {
+            // TO BE REMOVED
+            return null;
         },
         getStudyFields: async (_parent, { studyId, versionId }: { studyId: string, versionId?: string | null }, context) => {
-            return await studyCore.getStudyFields(context.req.user, studyId, versionId);
+            try {
+                // V3 and V2 parse version id as different logic; for compatibility, we need to convert the version id to V3 version id
+                let dataVersion: string | Array<string | null> | null | undefined = versionId;
+                if (versionId === null) {
+                    const study = (await studyCore.getStudies(context.req.user, studyId))[0];
+                    dataVersion = study.dataVersions.map(el => el.id);
+                    dataVersion.push(null);
+                }
+                const fields = await dataCore.getStudyFields(context.req.user, studyId, dataVersion);
+                return convertV3FieldToV2Field(fields).sort((a, b) => a.fieldId.localeCompare(b.fieldId));
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
-        getOntologyTree: async (_parent, { studyId, treeName, versionId }: { studyId: string, treeName?: string, versionId?: string }, context) => {
-            return await studyCore.getOntologyTree(context.req.user, studyId, treeName, versionId);
+        getOntologyTree: async () => {
+            // TO BE REIMPLEMENTED
+            return null;
         },
-        getDataRecords: async (_parent, { studyId, queryString, versionId }: { queryString, studyId: string, versionId: string | null | undefined }, context) => {
-            return await studyCore.getDataRecords(context.req.user, queryString, studyId, versionId);
+        getDataRecords: async (_parent, { studyId, queryString, versionId }: { queryString: IQueryString, studyId: string, versionId: string | null | undefined }, context) => {
+            try {
+                const result = (await dataCore.getData(context.req.user, studyId, queryString.data_requested, versionId))['raw'];
+                const groupedResult: IGroupedData = {};
+                for (let i = 0; i < result.length; i++) {
+                    const { m_subjectId, m_visitId } = result[i].properties;
+                    const m_fieldId = result[i].fieldId;
+                    const value = result[i].value;
+                    if (!groupedResult[m_subjectId]) {
+                        groupedResult[m_subjectId] = {};
+                    }
+                    if (!groupedResult[m_subjectId][m_visitId]) {
+                        groupedResult[m_subjectId][m_visitId] = {};
+                    }
+                    groupedResult[m_subjectId][m_visitId][m_fieldId] = value;
+                }
+                return {
+                    data: groupedResult
+                };
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         }
     },
     Study: {
-        projects: async (study: IStudy) => {
-            return await studyCore.getStudyProjects(study);
+        projects: async () => {
+            // TO BE REMOVED
+            return [];
         },
-        jobs: async (study: IStudy) => {
-            return await studyCore.getStudyJobs(study);
+        jobs: async () => {
+            // TO BE REIMPLEMENTED
+            return [];
         },
-        roles: async (study: IStudy) => {
-            return await studyCore.getStudyRoles(study);
+        roles: async (study: IStudy, _args: never, context) => {
+            try {
+                return await permissionCore.getRolesOfStudy(context.req.user, study.id);
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
         files: async (study: IStudy, _args: never, context) => {
-            return await studyCore.getStudyFiles(context.req.user, study);
+            try {
+                const files = await dataCore.getStudyFiles(context.req.user, study.id);
+                return files.map(el => {
+                    return {
+                        ...el,
+                        fileSize: el.fileSize.toString(),
+                        uploadTime: el.life.createdTime.toString(),
+                        uploadedBy: el.life.createdUser
+                    };
+                });
+            } catch (e) {
+                return [];
+            }
         },
-        subjects: async (study: IStudy, _args: never, context) => {
-            return await studyCore.getStudySubjects(context.req.user, study);
+        subjects: async () => {
+            // TO BE REMOVED
+            return [[], []];
         },
-        visits: async (study: IStudy, _args: never, context) => {
-            return await studyCore.getStudyVisits(context.req.user, study);
+        visits: async () => {
+            // TO BE REMOVED
+            return [[], []];
         },
-        numOfRecords: async (study: IStudy, _args: never, context) => {
-            return await studyCore.getStudyNumOfRecords(context.req.user, study);
+        numOfRecords: async () => {
+            // TO_BE_REMOVED
+            return [0, 0];
         },
         currentDataVersion: async (study: IStudy) => {
-            return studyCore.getStudyCurrentDataVersion(study);
+            return study.currentDataVersion;
         }
     },
+    // TO_BE_REMOVED
     Project: {
-        fields: async (project: Omit<IProject, 'patientMapping'>, _args: never, context) => {
-            return await studyCore.getProjectFields(context.req.user, project);
+        fields: async () => {
+            return [];
         },
-        jobs: async (project: Omit<IProject, 'patientMapping'>) => {
-            return await studyCore.getProjectJobs(project);
+        jobs: async () => {
+            return [];
         },
-        files: async (project: Omit<IProject, 'patientMapping'>, _args: never, context) => {
-            return await studyCore.getProjectFiles(context.req.user, project);
+        files: async () => {
+            return [];
         },
-        dataVersion: async (project: IProject) => {
-            return await studyCore.getProjectDataVersion(project);
+        dataVersion: async () => {
+            return null;
         },
-        summary: async (project: IProject, _args: never, context) => {
-            return await studyCore.getProjectSummary(context.req.user, project);
+        summary: async () => {
+            return {};
         },
-        patientMapping: async (project: IProject, _args: never, context) => {
-            return await studyCore.getProjectPatientMapping(context.req.user, project);
+        patientMapping: async () => {
+            return {};
         },
-        roles: async (project: IProject) => {
-            return await studyCore.getProjectRoles(project);
+        roles: async () => {
+            return [];
         },
         iCanEdit: async () => { // TO_DO
             return true;
         }
     },
     Mutation: {
-        createStudy: async (_parent, { name, description, type }: { name: string, description: string, type: studyType }, context) => {
-            return await studyCore.createNewStudy(context.req.user, name, description, type);
+        createStudy: async (_parent, { name, description }: { name: string, description: string, type?: studyType }, context) => {
+            try {
+                const res = await studyCore.createStudy(context.req.user, name, description);
+                return {
+                    ...res,
+                    type: studyType.SENSOR
+                };
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
         editStudy: async (_parent, { studyId, description }: { studyId: string, description: string }, context) => {
-            return await studyCore.editStudy(context.req.user, studyId, description);
+            try {
+                return await studyCore.editStudy(context.req.user, studyId, undefined, description);
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
-        createNewField: async (_parent, { studyId, fieldInput }: { studyId: string, fieldInput: CreateFieldInput[] }, context) => {
-            return await studyCore.createNewField(context.req.user, studyId, fieldInput);
+        createNewField: async (_parent, { studyId, fieldInput }: { studyId: string, fieldInput: V2CreateFieldInput[] }, context) => {
+            try {
+                const responses: IGenericResponse[] = [];
+                const converted = convertV2CreateFieldInputToV3(studyId, fieldInput);
+                for (let i = 0; i < converted.length; i++) {
+                    try {
+                        const res = await dataCore.createField(context.req.user, converted[i]);
+                        responses.push({ id: undefined, successful: true, description: `Field ${res.fieldId}-${res.fieldName} is created successfully.` });
+                    } catch (e) {
+                        responses.push({ id: undefined, successful: false, description: (e as CoreError).message });
+                    }
+                }
+                return responses;
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
-        editField: async (_parent, { studyId, fieldInput }: { studyId: string, fieldInput: EditFieldInput }, context) => {
-            return await studyCore.editField(context.req.user, studyId, fieldInput);
+        editField: async (_parent, { studyId, fieldInput }: { studyId: string, fieldInput: V2EditFieldInput }, context) => {
+            try {
+                return await dataCore.editField(context.req.user, convertV2EditFieldInputToV3(studyId, [fieldInput])[0]);
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
         deleteField: async (_parent, { studyId, fieldId }: { studyId: string, fieldId: string }, context) => {
-            return await studyCore.deleteField(context.req.user, studyId, fieldId);
+            try {
+                await dataCore.deleteField(context.req.user, studyId, fieldId);
+                const fields = await db.collections.field_dictionary_collection.find({ 'studyId': studyId, 'fieldId': fieldId, 'life.deletedTime': { $exists: true } }).toArray();
+                const lastField = fields[fields.length - 1];
+                return convertV3FieldToV2Field([lastField])[0];
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
         uploadDataInArray: async (_parent, { studyId, data }: { studyId: string, data: IDataClip[] }, context) => {
-            return await studyCore.uploadDataInArray(context.req.user, studyId, data);
-        },
-        deleteDataRecords: async (_parent, { studyId, subjectIds, visitIds, fieldIds }: { studyId: string, subjectIds: string[], visitIds: string[], fieldIds: string[] }, context) => {
-            return await studyCore.deleteDataRecords(context.req.user, studyId, subjectIds, visitIds, fieldIds);
+            try {
+                return await dataCore.uploadData(context.req.user, studyId, convertV2DataClipInputToV3(data));
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
         createNewDataVersion: async (_parent, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context) => {
-            return await studyCore.createNewDataVersion(context.req.user, studyId, dataVersion, tag);
+            try {
+                const version = await studyCore.createDataVersion(context.req.user, studyId, tag, dataVersion);
+                return {
+                    ...version,
+                    updateDate: version.life.createdTime.toString(),
+                    contentId: version.id
+                };
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
-        createOntologyTree: async (_parent, { studyId, ontologyTree }: { studyId: string, ontologyTree: Pick<IOntologyTree, 'name' | 'routes'> }, context) => {
-            return await studyCore.createOntologyTree(context.req.user, studyId, ontologyTree);
+        createOntologyTree: async () => {
+            // TO BE REIMPLEMENTED
+            return null;
         },
-        deleteOntologyTree: async (_parent, { studyId, treeName }: { studyId: string, treeName: string }, context) => {
-            return await studyCore.deleteOntologyTree(context.req.user, studyId, treeName);
+        deleteOntologyTree: async () => {
+            // TO BE REIMPLEMENTED
+            return null;
         },
-        createProject: async (_parent, { studyId, projectName }: { studyId: string, projectName: string }, context) => {
-            return await studyCore.createProjectForStudy(context.req.user, studyId, projectName);
+        createProject: async () => {
+            // TO BE REMOVED
+            return null;
         },
-        deleteProject: async (_parent, { projectId }: { projectId: string }, context) => {
-            return await studyCore.deleteProject(context.req.user, projectId);
+        deleteProject: async () => {
+            // TO BE REMOVED
+            return null;
         },
         deleteStudy: async (_parent, { studyId }: { studyId: string }, context) => {
-            return await studyCore.deleteStudy(context.req.user, studyId);
+            try {
+                return await studyCore.deleteStudy(context.req.user, studyId);
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         },
         setDataversionAsCurrent: async (_parent, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context) => {
-            return await studyCore.setDataversionAsCurrent(context.req.user, studyId, dataVersionId);
+            try {
+                await studyCore.setDataversionAsCurrent(context.req.user, studyId, dataVersionId);
+                const study = (await studyCore.getStudies(context.req.user, studyId))[0];
+                return {
+                    id: studyId,
+                    currentDataVersion: study.currentDataVersion,
+                    dataVersions: study.dataVersions.map(el => {
+                        return {
+                            ...el,
+                            updateDate: el.life.createdTime.toString(),
+                            contentId: el.id
+                        };
+                    })
+                };
+            } catch (e) {
+                return GraphQLErrorDecroator(e as CoreError);
+            }
         }
     },
     Subscription: {}

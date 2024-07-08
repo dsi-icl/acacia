@@ -32,20 +32,21 @@ export class TRPCStudyCore {
                 enumCoreErrors.NOT_LOGGED_IN
             );
         }
-
-        if (requester.type === 'ADMIN') {
-            return studyId ? await this.db.collections.studies_collection.find({ 'id': studyId, 'life.deletedTime': null }).toArray() :
+        let studies: IStudy[] = [];
+        if (requester.type === enumUserTypes.ADMIN) {
+            studies = studyId ? await this.db.collections.studies_collection.find({ 'id': studyId, 'life.deletedTime': null }).toArray() :
                 await this.db.collections.studies_collection.find({ 'life.deletedTime': null }).toArray();
-        }
-        const roleStudyIds = (await this.permissionCore.getRolesOfUser(requester, requester.id)).map(role => role.studyId);
-
-        const query: Filter<IStudy> = { 'life.deletedTime': null };
-        if (studyId) {
-            query.id = studyId;
         } else {
-            query.id = { $in: roleStudyIds };
+            const roleStudyIds = (await this.permissionCore.getRolesOfUser(requester, requester.id)).map(role => role.studyId);
+
+            const query: Filter<IStudy> = { 'life.deletedTime': null };
+            if (studyId) {
+                query.id = studyId;
+            } else {
+                query.id = { $in: roleStudyIds };
+            }
+            studies = await this.db.collections.studies_collection.find(query).toArray();
         }
-        const studies = await this.db.collections.studies_collection.find(query).toArray();
         if (studies.length === 0 && studyId) {
             throw new CoreError(
                 enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
@@ -72,7 +73,7 @@ export class TRPCStudyCore {
             );
         }
 
-        if (requester.type !== 'ADMIN') {
+        if (requester.type !== enumUserTypes.ADMIN) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
                 'Only admin can create a study.'
@@ -80,7 +81,10 @@ export class TRPCStudyCore {
         }
 
         const studyId = uuid();
-        const existing = await this.db.collections.studies_collection.findOne({ 'name': studyName, 'life.deletedTime': null });
+        const existing = await this.db.collections.studies_collection.findOne({
+            'name': { $regex: new RegExp('^' + studyName + '$', 'i') },
+            'life.deletedTime': null
+        });
         if (existing) {
             throw new CoreError(
                 enumCoreErrors.CLIENT_MALFORMED_INPUT,

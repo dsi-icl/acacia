@@ -66,14 +66,15 @@ export const userRouter = router({
     /**
      * Ask for a request to extend account expiration time. Send notifications to user and admin.
      *
-     * @param userId - The id of the user.
+     * @param email - The email of the user.
      *
      * @return IGenericResponse - The object of IGenericResponse
      */
     requestExpiryDate: baseProcedure.input(z.object({
-        userId: z.string()
+        username: z.optional(z.string()),
+        email: z.optional(z.string())
     })).mutation(async (opts) => {
-        return await userCore.requestExpiryDate(opts.ctx.user, opts.input.userId);
+        return await userCore.requestExpiryDate(opts.input.username, opts.input.email);
     }),
     /**
      * Request for resetting password.

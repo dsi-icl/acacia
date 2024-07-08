@@ -60,7 +60,7 @@ export class TRPCLogCore {
                 $lte: timeRange[1]
             };
         }
-        let logs;
+        let logs: ILog[];
         if (indexRange) {
             logs = await this.db.collections.log_collection.find(filters).skip(indexRange[0]).limit(indexRange[1] - indexRange[0]).toArray();
         } else {

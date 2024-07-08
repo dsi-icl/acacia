@@ -1,4 +1,4 @@
-import { IField, enumDataTypes, ICategoricalOption, IValueVerifier, IGenericResponse, enumConfigType, defaultSettings, IAST, enumConditionOps, enumFileTypes, enumFileCategories, IFieldProperty, IFile, IData, enumASTNodeTypes, IRole, IStudyConfig, enumUserTypes, enumCoreErrors, IUserWithoutToken, CoreError, enumDataAtomicPermissions, enumDataTransformationOperation, enumCacheStatus, enumCacheType, FileUpload } from '@itmat-broker/itmat-types';
+import { IField, enumDataTypes, ICategoricalOption, IValueVerifier, IGenericResponse, enumConfigType, defaultSettings, IAST, enumConditionOps, enumFileTypes, enumFileCategories, IFieldProperty, IFile, IData, enumASTNodeTypes, IRole, IStudyConfig, enumUserTypes, enumCoreErrors, IUserWithoutToken, CoreError, enumDataAtomicPermissions, enumDataTransformationOperation, enumCacheStatus, enumCacheType, FileUpload, enumStudyRoles } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
 import { TRPCFileCore } from './fileCore';
@@ -113,7 +113,6 @@ export class TRPCDataCore {
         } else {
             availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
         }
-
         const fields = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
             $match: {
                 $and: [
@@ -980,7 +979,6 @@ export class TRPCDataCore {
                 'Study config not found.'
             );
         }
-
         let fieldIds: string[] | undefined = selectedFieldIds;
         let availableDataVersions: Array<string | null> = [];
         if (dataVersion === null) {
@@ -998,15 +996,14 @@ export class TRPCDataCore {
             const fields = await this.db.collections.field_dictionary_collection.find({ studyId: studyId, fieldId: { $in: fieldIds } }).toArray();
             fieldIds = fields.filter(el => el.dataType === enumDataTypes.FILE).map(el => el.fieldId);
         }
-
-        const fileDataRecords = await this.getData(
+        const fileDataRecords = (await this.getData(
             requester,
             studyId,
             fieldIds,
             availableDataVersions,
             undefined,
             false
-        );
+        ))['raw'];
         if (!Array.isArray(fileDataRecords)) {
             return [];
         }
@@ -1082,26 +1079,28 @@ export class TRPCDataCore {
                 }
             });
         }
-        aggregation.push({ operationName: enumDataTransformationOperation.GROUP, params: { keys: keys, skipUnmatch: false } });
-        aggregation.push({ operationName: enumDataTransformationOperation.LEAVEONE, params: { scoreFormula: { type: enumASTNodeTypes.VARIABLE, operator: null, value: 'life.createdTime', parameters: {}, children: null }, isDescend: true } });
-        aggregation.push({
-            operationName: enumDataTransformationOperation.FILTER, params: {
-                filters: {
-                    deleted: [{
-                        formula: {
-                            type: enumASTNodeTypes.VARIABLE,
-                            operation: null,
-                            value: 'life.deletedTime',
-                            parameter: {},
-                            children: null
-                        },
-                        condition: enumConditionOps.GENERALISNULL,
-                        value: '',
-                        parameters: {}
-                    }]
+        if (keys.length > 0) {
+            aggregation.push({ operationName: enumDataTransformationOperation.GROUP, params: { keys: keys, skipUnmatch: false } });
+            aggregation.push({ operationName: enumDataTransformationOperation.LEAVEONE, params: { scoreFormula: { type: enumASTNodeTypes.VARIABLE, operator: null, value: 'life.createdTime', parameters: {}, children: null }, isDescend: true } });
+            aggregation.push({
+                operationName: enumDataTransformationOperation.FILTER, params: {
+                    filters: {
+                        deleted: [{
+                            formula: {
+                                type: enumASTNodeTypes.VARIABLE,
+                                operation: null,
+                                value: 'life.deletedTime',
+                                parameter: {},
+                                children: null
+                            },
+                            condition: enumConditionOps.GENERALISNULL,
+                            value: '',
+                            parameters: {}
+                        }]
+                    }
                 }
-            }
-        });
+            });
+        }
         return aggregation;
     }
 
@@ -1120,6 +1119,14 @@ export class TRPCDataCore {
             throw new CoreError(
                 enumCoreErrors.NOT_LOGGED_IN,
                 enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, studyId);
+        if (roles.length === 0 || roles.every(el => el.studyRole !== enumStudyRoles.STUDY_MANAGER)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
             );
         }
 
@@ -1142,8 +1149,8 @@ export class TRPCDataCore {
             life: {
                 createdTime: Date.now(),
                 createdUser: requester.id,
-                deletedTime: null,
-                deletedUser: null
+                deletedTime: Date.now(),
+                deletedUser: requester.id
             },
             metadata: {}
         });

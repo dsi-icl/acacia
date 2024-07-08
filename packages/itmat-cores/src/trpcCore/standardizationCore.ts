@@ -1,50 +1,49 @@
-import { IProject, IStandardization, IUserWithoutToken } from '@itmat-broker/itmat-types';
+import { CoreError, IStandardization, IUserWithoutToken, enumCoreErrors, enumStudyRoles } from '@itmat-broker/itmat-types';
 import { GraphQLError } from 'graphql';
 import { errorCodes } from '../utils/errors';
 import { v4 as uuid } from 'uuid';
 import { makeGenericReponse } from '../utils/responses';
 import { DBType } from '../database/database';
-import { PermissionCore } from './permissionCore';
-import { StudyCore } from './studyCore';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
+import { TRPCPermissionCore } from './permissionCore';
+import { TRPCStudyCore } from './studyCore';
 
 
 /**
  * TODO: This file is not yet implemented. It is a placeholder for the standardization core.
  */
 
-export class StandarizationCore {
+export class TRPCStandarizationCore {
     db: DBType;
-    permissionCore: PermissionCore;
-    studyCore: StudyCore;
-    constructor(db: DBType, objStore: ObjectStore) {
+    permissionCore: TRPCPermissionCore;
+    studyCore: TRPCStudyCore;
+    constructor(db: DBType, objStore: ObjectStore, permissionCore: TRPCPermissionCore, studyCore: TRPCStudyCore) {
         this.db = db;
-        this.permissionCore = new PermissionCore(db);
-        this.studyCore = new StudyCore(db, objStore);
+        this.permissionCore = permissionCore;
+        this.studyCore = studyCore;
     }
 
     public async getStandardization(requester: IUserWithoutToken | undefined, versionId: string | null, studyId: string, projectId?: string, type?: string) {
         if (!requester) {
-            throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
         }
-        let modifiedStudyId = studyId;
         /* check study exists */
         if (!studyId && !projectId) {
-            throw new GraphQLError('Either studyId or projectId should be provided.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
-        }
-        if (studyId) {
-            await this.studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-        }
-        if (projectId) {
-            const project: IProject = await this.studyCore.findOneProject_throwErrorIfNotExist(projectId);
-            modifiedStudyId = project.studyId;
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Either studyId or projectId should be provided.'
+            );
         }
 
         /* check permission */
         const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
         if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
-        const study = await this.studyCore.findOneStudy_throwErrorIfNotExist(modifiedStudyId);
+        const study = (await this.studyCore.getStudies(requester, studyId))[0];
+
         // get all dataVersions that are valid (before/equal the current version)
         const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
         if (versionId === null) {
@@ -75,11 +74,19 @@ export class StandarizationCore {
 
     public async createStandardization(requester: IUserWithoutToken | undefined, studyId, standardization) {
         if (!requester) {
-            throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
         }
         /* check permission */
         const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
-        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        if (!roles.length || roles.every(el => el.studyRole !== enumStudyRoles.STUDY_MANAGER)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
 
         /* check study exists */
         const studySearchResult = await this.db.collections.studies_collection.findOne({ id: studyId, deleted: null });

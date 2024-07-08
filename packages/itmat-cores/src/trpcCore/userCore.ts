@@ -10,7 +10,8 @@ import * as mfa from '../utils/mfa';
 import QRCode from 'qrcode';
 import tmp from 'tmp';
 import { UpdateFilter } from 'mongodb';
-import { decryptEmail, encryptEmail, makeAESIv, makeAESKeySalt } from '..';
+import * as pubkeycrypto from '../utils/pubkeycrypto';
+import crypto from 'crypto';
 
 export class TRPCUserCore {
     db: DBType;
@@ -367,6 +368,13 @@ export class TRPCUserCore {
             );
         }
 
+        if ((password || otpSecret) && requester.id !== userId) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'User can only edit his/her own account.'
+            );
+        }
+
         if (password && !passwordIsGoodEnough(password)) {
             throw new CoreError(
                 enumCoreErrors.CLIENT_MALFORMED_INPUT,
@@ -426,6 +434,22 @@ export class TRPCUserCore {
                 );
             }
             setObj['email'] = email;
+        }
+
+        if (firstname) {
+            setObj['firstname'] = firstname;
+        }
+
+        if (lastname) {
+            setObj['lastname'] = lastname;
+        }
+
+        if (description) {
+            setObj['description'] = description;
+        }
+
+        if (emailNotificationsActivated) {
+            setObj['emailNotificationsActivated'] = emailNotificationsActivated;
         }
 
         if (organisation) {
@@ -540,7 +564,7 @@ export class TRPCUserCore {
         session.startTransaction();
         try {
             /* delete the user */
-            await this.db.collections.users_collection.findOneAndUpdate({ 'id': userId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': Date.now(), 'life.deletedUser': requester, 'password': 'DeletedUserDummyPassword', 'otpSecret': 'DeletedUserDummpOtpSecret' } }, { returnDocument: 'after' });
+            await this.db.collections.users_collection.findOneAndUpdate({ 'id': userId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': Date.now(), 'life.deletedUser': requester.id, 'password': 'DeletedUserDummyPassword', 'otpSecret': 'DeletedUserDummpOtpSecret' } }, { returnDocument: 'after' });
 
             /* delete all user records in roles related to the study */
             await this.db.collections.roles_collection.updateMany({
@@ -586,6 +610,52 @@ export class TRPCUserCore {
         }
         return await this.db.collections.pubkeys_collection.find({ 'associatedUserId': userId, 'life.deletedTime': null }).toArray();
     }
+
+    /**
+     * Generate a key pair for a user.
+     *
+     * @returns - The key pair.
+     */
+    public async keyPairGenwSignature() {
+        // Generate RSA key-pair with Signature for robot user
+        const keyPair = pubkeycrypto.rsakeygen();
+        //default message = hash of the public key (SHA256)
+        const messageToBeSigned = pubkeycrypto.hashdigest(keyPair.publicKey);
+        const signature = pubkeycrypto.rsasigner(keyPair.privateKey, messageToBeSigned);
+
+        return { privateKey: keyPair.privateKey, publicKey: keyPair.publicKey, signature: signature };
+    }
+
+    /**
+     * Sign a message with a private key.
+     *
+     * @param privateKey - The private key.
+     * @param message - The message to be signed.
+     *
+     * @returns - The signature.
+     */
+    public async rsaSigner(privateKey, message) {
+        let messageToBeSigned;
+        privateKey = privateKey.replace(/\\n/g, '\n');
+        if (message === undefined) {
+            //default message = hash of the public key (SHA256)
+            try {
+                const reGenPubkey = pubkeycrypto.reGenPkfromSk(privateKey);
+                messageToBeSigned = pubkeycrypto.hashdigest(reGenPubkey);
+            } catch (error) {
+                throw new CoreError(
+                    enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                    'Error: private-key incorrect!'
+                );
+            }
+
+        } else {
+            messageToBeSigned = message;
+        }
+        const signature = pubkeycrypto.rsasigner(privateKey, messageToBeSigned);
+        return { signature: signature };
+    }
+
     /**
      * Register a pubkey to a user.
      *
@@ -885,28 +955,23 @@ export class TRPCUserCore {
     /**
      * Ask for a request to extend account expiration time. Send notifications to user and admin.
      *
-     * @param userId - The id of the user.
+     * @param email - The email of the user.
      *
      * @return IGenericResponse
      */
-    public async requestExpiryDate(requester: IUserWithoutToken | undefined, userId: string) {
-        if (!requester) {
+    public async requestExpiryDate(username?: string, email?: string) {
+        if ((!username && !email) || (username && email)) {
             throw new CoreError(
-                enumCoreErrors.NOT_LOGGED_IN,
-                enumCoreErrors.NOT_LOGGED_IN
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'Either username or email should be provided.'
             );
         }
-        if (requester.type !== enumUserTypes.ADMIN && requester.id !== userId) {
-            throw new CoreError(
-                enumCoreErrors.NO_PERMISSION_ERROR,
-                'User can only request for his/her own account.'
-            );
-        }
-        const user = await this.db.collections.users_collection.findOne({ 'id': userId, 'life.deletedTime': null });
+
+        const user = username ? await this.db.collections.users_collection.findOne({ username }) : await this.db.collections.users_collection.findOne({ email });
         if (!user || !user.email || !user.username) {
             /* even user is null. send successful response: they should know that a user doesn't exist */
             await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
-            return makeGenericReponse(userId, false, undefined, 'User information is not correct.');
+            return makeGenericReponse(email, false, undefined, 'User information is not correct.');
         }
         /* send email to the DMP admin mailing-list */
         await this.mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
@@ -922,7 +987,7 @@ export class TRPCUserCore {
             username: user.username
         }));
 
-        return makeGenericReponse(userId, true, undefined, 'Request successfully sent.');
+        return makeGenericReponse(email, true, undefined, 'Request successfully sent.');
     }
 
     /**
@@ -956,7 +1021,7 @@ export class TRPCUserCore {
         if (!user) {
             /* even user is null. send successful response: they should know that a user doesn't exist */
             await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
-            return makeGenericReponse(undefined, false, undefined, 'User does not exist.');
+            return makeGenericReponse(undefined, true, undefined, enumCoreErrors.UNQUALIFIED_ERROR);
         }
 
         if (forgotPassword) {
@@ -1068,7 +1133,7 @@ export class TRPCUserCore {
                         'Cannot log in. Please try again later.'
                     );
                 }
-                resolve(filteredUser);
+                resolve(filteredUser as IUserWithoutToken);
             });
         });
     }
@@ -1182,6 +1247,17 @@ export class TRPCUserCore {
         tmpobj.removeCallback();
         return makeGenericReponse();
     }
+
+    /**
+     * Ping the server. This will refresh the session expire time.
+     *
+     * @returns - IGenericResponse
+     */
+    public async recoverSessionExpireTime() {
+        return makeGenericReponse();
+    }
+
+
 }
 
 function passwordIsGoodEnough(pw: string): boolean {
@@ -1300,5 +1376,45 @@ function formatEmailRequestExpiryDateNotification({ config, username, to }: { co
                 The ${config.appName} Team.
             </p>
         `
+    });
+}
+
+export function makeAESKeySalt(str: string): string {
+    return str;
+}
+
+export function makeAESIv(str: string): string {
+    if (str.length < 16) { throw new Error('IV cannot be less than 16 bytes long.'); }
+    return str.slice(0, 16);
+}
+
+export async function encryptEmail(aesSecret: string, email: string, keySalt: string, iv: string) {
+    const algorithm = 'aes-256-cbc';
+    return new Promise((resolve, reject) => {
+        crypto.scrypt(aesSecret, keySalt, 32, (err, derivedKey) => {
+            if (err) reject(err);
+            const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
+            let encoded = cipher.update(email, 'utf8', 'hex');
+            encoded += cipher.final('hex');
+            resolve(encoded);
+        });
+    });
+
+}
+
+export async function decryptEmail(aesSecret: string, encryptedEmail: string, keySalt: string, iv: string) {
+    const algorithm = 'aes-256-cbc';
+    return new Promise((resolve, reject) => {
+        crypto.scrypt(aesSecret, keySalt, 32, (err, derivedKey) => {
+            if (err) reject(err);
+            try {
+                const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
+                let decoded = decipher.update(encryptedEmail, 'hex', 'utf8');
+                decoded += decipher.final('utf-8');
+                resolve(decoded);
+            } catch (e) {
+                reject(e);
+            }
+        });
     });
 }

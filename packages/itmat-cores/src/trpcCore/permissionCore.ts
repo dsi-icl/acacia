@@ -12,6 +12,24 @@ export class TRPCPermissionCore {
     /**
      * Get the roles of a user.
      *
+     * @param roleId - The id of the role.
+     *
+     * @returns - IRole
+     */
+    public async getUsersOfRole(roleId: string) {
+        const role = await this.db.collections.roles_collection.findOne({ 'id': roleId, 'life.deletedTime': null });
+        if (!role) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+        return await this.db.collections.users_collection.find({ id: { $in: role.users } }, { projection: { _id: 0, password: 0, otpSecret: 0 } }).toArray();
+    }
+
+    /**
+     * Get the roles of a user.
+     *
      * @param user
      * @param studyId
      *

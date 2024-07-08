@@ -1,7 +1,6 @@
 import { fileResolvers } from './fileResolvers';
 import { jobResolvers } from './jobResolvers';
 import { permissionResolvers } from './permissionResolvers';
-import { queryResolvers } from './queryResolvers';
 import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
 import { organisationResolvers } from './organisationResolvers';
@@ -16,7 +15,6 @@ import { errorCodes } from '@itmat-broker/itmat-cores';
 const modules = [
     studyResolvers,
     userResolvers,
-    queryResolvers,
     permissionResolvers,
     jobResolvers,
     fileResolvers,
@@ -28,7 +26,7 @@ const modules = [
 
 const bounceNotLoggedInDecorator = (funcName: string, reducerFunction: DMPResolver): DMPResolver => {
     return (parent, args, context, info) => {
-        const uncheckedFunctionWhitelist = ['login', 'rsaSigner', 'keyPairGenwSignature', 'issueAccessToken', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'validateResetPassword'];
+        const uncheckedFunctionWhitelist = ['login', 'rsaSigner', 'keyPairGenwSignature', 'issueAccessToken', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'validateResetPassword', 'whoAmI'];
         const requester = context.req.user;
 
         if (!requester && !uncheckedFunctionWhitelist.includes(funcName)) {
