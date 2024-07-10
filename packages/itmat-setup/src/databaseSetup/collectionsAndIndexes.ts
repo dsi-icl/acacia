@@ -60,7 +60,8 @@ const collections = {
     field_dictionary_collection: {
         name: 'FIELD_COLLECTION',
         indexes: [
-            { key: { id: 1 }, unique: true }
+            { key: { id: 1 }, unique: true },
+            { key: { 'studyId': 1, 'fieldId': 1, 'life.createdTime': 1, 'life.deletedTime': 1 }, unique: true }
         ]
     },
     files_collection: {
@@ -100,6 +101,12 @@ const collections = {
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { type: 1, key: 1 }, unique: true }
+        ]
+    },
+    drives_collection: {
+        name: 'DRIVE_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true }
         ]
     }
 };

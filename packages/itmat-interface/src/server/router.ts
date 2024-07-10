@@ -21,7 +21,7 @@ import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
-import { IUser } from '@itmat-broker/itmat-types';
+import { FileUploadSchema, IUser } from '@itmat-broker/itmat-types';
 import { ApolloServerContext } from '../graphql/ApolloServerContext';
 import { DMPContext } from '../graphql/resolvers/context';
 import { logPluginInstance } from '../log/logPlugin';
@@ -31,6 +31,9 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { tokenAuthentication } from './commonMiddleware';
 import { tRPCRouter } from '../trpc/tRPCRouter';
 import { createtRPCContext } from '../trpc/trpc';
+import multer from 'multer';
+import { PassThrough } from 'stream';
+import { z } from 'zod';
 
 export class Router {
     private readonly app: Express;
@@ -250,24 +253,45 @@ export class Router {
         // });
 
         // trpc
-        this.app.use('/trpc', (req, _res, next) => {
-            (async () => {
-                try {
-                    // in further merge the token authentication of graphql, trpc and file together
-                    const token: string = req.headers.authorization || '';
-                    const associatedUser = await tokenAuthentication(token);
-                    if (associatedUser) {
-                        req.user = associatedUser;
+        const upload = multer();
+        this.app.use(
+            '/trpc',
+            upload.any(), // Accept any field name for file uploads
+            (req, _res, next) => {
+                (async () => {
+                    try {
+                        const token: string = req.headers.authorization || '';
+                        const associatedUser = await tokenAuthentication(token);
+                        if (associatedUser) {
+                            req.user = associatedUser;
+                        }
+                        const files = req.files || [];
+                        const transformedFiles: Record<string, z.infer<typeof FileUploadSchema>[]> = {};
+
+                        for (const file of files) {
+                            if (!transformedFiles[file.fieldname]) {
+                                transformedFiles[file.fieldname] = [];
+                            }
+                            const fileStream = new PassThrough();
+                            fileStream.end(file.buffer);
+
+                            transformedFiles[file.fieldname].push({
+                                createReadStream: () => fileStream,
+                                filename: file.originalname,
+                                mimetype: file.mimetype,
+                                encoding: file.encoding
+                            });
+                        }
+                        req.body.files = transformedFiles; // Attach the transformed files to the request body for later use
+                        next();
+                    } catch (error) {
+                        next(error);
                     }
-                    next();
-                } catch (error) {
-                    next(error);
-                }
-            })().catch(next);
-        }, trpcExpress.createExpressMiddleware({
-            router: tRPCRouter,
-            createContext: createtRPCContext
-        }));
+                })().catch(next);
+            }, trpcExpress.createExpressMiddleware({
+                router: tRPCRouter,
+                createContext: createtRPCContext
+            }));
 
         this.app.get('/file/:fileId', fileDownloadControllerInstance.fileDownloadController);
 

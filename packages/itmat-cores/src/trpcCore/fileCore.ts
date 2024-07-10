@@ -3,7 +3,6 @@ import { v4 as uuid } from 'uuid';
 import crypto, { BinaryLike } from 'crypto';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
-import { TRPCStudyCore } from './studyCore';
 import { makeGenericReponse } from '../utils';
 
 /**
@@ -14,11 +13,9 @@ import { makeGenericReponse } from '../utils';
 export class TRPCFileCore {
     db: DBType;
     objStore: ObjectStore;
-    studyCore: TRPCStudyCore;
-    constructor(db: DBType, objStore: ObjectStore, studyCore: TRPCStudyCore) {
+    constructor(db: DBType, objStore: ObjectStore) {
         this.db = db;
         this.objStore = objStore;
-        this.studyCore = studyCore;
     }
     /**
      * Upload a file to storage.
@@ -35,10 +32,19 @@ export class TRPCFileCore {
      *
      * @return IFile - The object of IFile.
      */
-    public async uploadFile(requester: IUserWithoutToken, studyId: string | null, userId: string | null, fileUpload: FileUpload, fileType: enumFileTypes, fileCategory: enumFileCategories, description?: string, properties?: Record<string, unknown>): Promise<IFile> {
+    public async uploadFile(
+        requester: IUserWithoutToken,
+        studyId: string | null,
+        userId: string | null,
+        fileUpload: FileUpload,
+        fileType: enumFileTypes,
+        fileCategory: enumFileCategories,
+        description?: string,
+        properties?: Record<string, unknown>
+    ): Promise<IFile> {
         let study: IStudy | null = null;
         if (studyId) {
-            study = (await this.studyCore.getStudies(studyId))[0];
+            study = await this.db.collections.studies_collection.findOne({ 'id': studyId, 'life.deletedTime': null });
             if (!study) {
                 throw new CoreError(
                     enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
@@ -46,7 +52,6 @@ export class TRPCFileCore {
                 );
             }
         }
-        // fetch the config file. study file or user file or system file
         let fileConfig: ISystemConfig | IStudyConfig | IUserConfig | IDocConfig | ICacheConfig | IDomainConfig | null = null;
         let userRepoRemainingSpace = 0;
         let fileSizeLimit: number;
@@ -69,11 +74,15 @@ export class TRPCFileCore {
             } else {
                 fileConfig = defaultSettings.userConfig;
             }
-            const totalSize: number = (await this.db.collections.files_collection.aggregate([{
-                $match: { 'userId': requester.id, 'life.deletedTime': null }
-            }, {
-                $group: { _id: '$userId', totalSize: { $sum: '$fileSize' } }
-            }]))[0].totalSize;
+            const aggregationResult = await this.db.collections.files_collection.aggregate([
+                {
+                    $match: { 'userId': requester.id, 'life.deletedTime': null }
+                },
+                {
+                    $group: { _id: '$userId', totalSize: { $sum: '$fileSize' } }
+                }
+            ]).toArray();
+            const totalSize: number = (aggregationResult.length > 0) ? aggregationResult[0]['totalSize'] : 0;
             userRepoRemainingSpace = (fileConfig as IUserConfig).defaultMaximumFileRepoSize - totalSize;
             fileSizeLimit = Math.max((fileConfig as IUserConfig).defaultMaximumFileSize, userRepoRemainingSpace);
             defaultFileBucketId = (fileConfig as IUserConfig).defaultFileBucketId;
@@ -113,88 +122,86 @@ export class TRPCFileCore {
 
         const fileUri = uuid();
         const hash = crypto.createHash('sha256');
-
-        // Create a read stream for the file
         const fileStream = fileUpload.createReadStream();
 
         return new Promise<IFile>((resolve, reject) => {
-            (async () => {
-                try {
-                    let fileSize = 0;
+            let fileSize = 0;
 
-                    fileStream.on('data', (chunk: BinaryLike) => {
-                        hash.update(chunk);
-                        fileSize += (chunk as Buffer).length; // Asserting the chunk as Buffer for length property
-                    });
+            fileStream.on('data', (chunk: BinaryLike) => {
+                hash.update(chunk);
+                fileSize += (chunk as Buffer).length; // Asserting the chunk as Buffer for length property
+            });
 
+            fileStream.on('end', () => {
+                this.handleFileUpload(fileSize, fileSizeLimit, hash, fileUpload, defaultFileBucketId, fileUri, requester, studyId, userId, fileType, fileCategory, description, properties)
+                    .then(fileEntry => resolve(fileEntry))
+                    .catch(error => reject(error));
+            });
 
-                    try {
-                        // Check file size limit
-                        if (fileSize > fileSizeLimit) {
-                            throw new Error('File size exceeds the limit.');
-                        }
-
-                        const hashString = hash.digest('hex');
-
-                        // Create a new read stream for the file upload
-                        const uploadStream = fileUpload.createReadStream();
-
-                        // Upload the file to the storage
-                        await this.objStore.uploadFile(uploadStream, defaultFileBucketId, fileUri);
-
-                        const fileEntry: IFile = {
-                            id: uuid(),
-                            studyId: studyId,
-                            userId: userId,
-                            fileName: fileUpload.filename, // Access filename directly from the fileUpload object.
-                            fileSize: fileSize, // Use buffer's length for file size.
-                            description: description,
-                            uri: fileUri,
-                            hash: hashString,
-                            fileType: fileType,
-                            fileCategory: fileCategory,
-                            properties: properties ? properties : {},
-                            sharedUsers: [],
-                            life: {
-                                createdTime: Date.now(),
-                                createdUser: requester.id,
-                                deletedTime: null,
-                                deletedUser: null
-                            },
-                            metadata: {}
-                        };
-                        const insertResult = await this.db.collections.files_collection.insertOne(fileEntry as IFile);
-                        if (insertResult.acknowledged) {
-                            resolve(fileEntry as IFile);
-                        } else {
-                            throw new CoreError(
-                                enumCoreErrors.DATABASE_ERROR,
-                                enumCoreErrors.DATABASE_ERROR
-                            );
-                        }
-
-                    } catch (error) {
-                        reject(new CoreError(
-                            enumCoreErrors.FILE_STREAM_ERROR,
-                            'Error during file upload.'
-                        ));
-                    }
-
-
-                    fileStream.on('error', (err) => {
-                        reject(new CoreError(
-                            enumCoreErrors.FILE_STREAM_ERROR,
-                            'Error reading file stream.' + String(err.message)
-                        ));
-                    });
-                } catch (error) {
-                    reject(new CoreError(
-                        enumCoreErrors.FILE_STREAM_ERROR,
-                        enumCoreErrors.FILE_STREAM_ERROR
-                    ));
-                }
-            })().catch((e) => reject(e));
+            fileStream.on('error', (err) => {
+                reject(new CoreError(
+                    enumCoreErrors.FILE_STREAM_ERROR,
+                    'Error reading file stream: ' + err.message
+                ));
+            });
         });
+    }
+
+    private async handleFileUpload(
+        fileSize: number,
+        fileSizeLimit: number,
+        hash: ReturnType<typeof crypto.createHash>,
+        fileUpload: FileUpload,
+        defaultFileBucketId: string,
+        fileUri: string,
+        requester: IUserWithoutToken,
+        studyId: string | null,
+        userId: string | null,
+        fileType: enumFileTypes,
+        fileCategory: enumFileCategories,
+        description?: string,
+        properties?: Record<string, unknown>
+    ): Promise<IFile> {
+        if (fileSize > fileSizeLimit) {
+            throw new Error('File size exceeds the limit.');
+        }
+
+        const hashString = hash.digest('hex');
+        const uploadStream = fileUpload.createReadStream();
+
+        await this.objStore.uploadFile(uploadStream, defaultFileBucketId, fileUri);
+
+        const fileEntry: IFile = {
+            id: uuid(),
+            studyId: studyId,
+            userId: userId,
+            fileName: fileUpload.filename, // Access filename directly from the fileUpload object.
+            fileSize: fileSize, // Use buffer's length for file size.
+            description: description,
+            uri: fileUri,
+            hash: hashString,
+            fileType: fileType,
+            fileCategory: fileCategory,
+            properties: properties ? properties : {},
+            sharedUsers: [],
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {}
+        };
+
+        const insertResult = await this.db.collections.files_collection.insertOne(fileEntry as IFile);
+        if (!insertResult.acknowledged) {
+            throw new CoreError(
+                enumCoreErrors.DATABASE_ERROR,
+                enumCoreErrors.DATABASE_ERROR
+            );
+        }
+
+        return fileEntry;
     }
 
     /**

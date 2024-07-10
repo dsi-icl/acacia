@@ -379,10 +379,10 @@ export class StudyCore {
                 }
             }
 
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+            fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
             }, {
-                $sort: { dateAdded: -1 }
+                $sort: { 'life.createdTime': -1 }
             }, {
                 $group: {
                     _id: '$fieldId',
@@ -394,7 +394,7 @@ export class StudyCore {
                 }
             }, {
                 $sort: { fieldId: 1 }
-            }]).toArray();
+            }]).toArray()).filter(el => el.life.deletedTime === null);
             if (queryString.data_requested && queryString.data_requested.length > 0) {
                 fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
             }
@@ -409,10 +409,10 @@ export class StudyCore {
             // unversioned data: metadatafilter for versioned data and all unversioned tags
             if (versionId === null && aggregatedPermissions.hasVersioned) {
                 availableDataVersions.push(null);
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
-                    $sort: { dateAdded: -1 }
+                    $sort: { 'life.createdTime': -1 }
                 }, {
                     $match: {
                         $or: [
@@ -431,7 +431,7 @@ export class StudyCore {
                     }
                 }, {
                     $sort: { fieldId: 1 }
-                }]).toArray();
+                }]).toArray()).filter(el => el.life.deletedTime === null);
                 if (queryString.data_requested && queryString.data_requested?.length > 0) {
                     fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
                 }
@@ -439,10 +439,10 @@ export class StudyCore {
                 if (versionId === '-1') {
                     availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
                 }
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
-                    $sort: { dateAdded: -1 }
+                    $sort: { 'life.createdTime': -1 }
                 }, {
                     $match: {
                         $or: [
@@ -460,7 +460,7 @@ export class StudyCore {
                     }
                 }, {
                     $sort: { fieldId: 1 }
-                }]).toArray();
+                }]).toArray()).filter(el => el.life.deletedTime === null);
                 if (queryString.data_requested && queryString.data_requested?.length > 0) {
                     fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
                 }
@@ -492,7 +492,7 @@ export class StudyCore {
                     fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
                 }
             }
-
+            console.log(fieldRecords);
             // TODO: placeholder for metadata filter
             // if (queryString.metadata) {
             //     metadataFilter = { $and: queryString.metadata.map((el) => translateMetadata(el)) };
