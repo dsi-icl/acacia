@@ -1213,7 +1213,7 @@ export class TRPCDataCore {
                 res[0].description ?? 'Failed to upload file.'
             );
         }
-        return makeGenericReponse(fileEntry.id, true, undefined, 'File uploaded.');
+        return fileEntry;
     }
 
     /**
@@ -1315,5 +1315,24 @@ export class TRPCDataCore {
             enumFileCategories.CACHE,
             undefined // description
         );
+    }
+
+    /**
+     * Delete a file from Id. Note this is a function used for GraphQL
+     *
+     * @param requester - The requester.
+     * @param fileId - The id of the file.
+     *
+     * @returns - The object of IGenericResponse.
+     */
+    public async deleteFile(requester: IUserWithoutToken | undefined, fileId: string) {
+        const data = await this.db.collections.data_collection.findOne({ value: fileId });
+        if (!data) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Data entry not found.'
+            );
+        }
+        return await this.deleteData(requester, data.studyId, data.fieldId, data.properties);
     }
 }

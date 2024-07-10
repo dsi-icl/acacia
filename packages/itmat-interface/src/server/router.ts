@@ -15,25 +15,21 @@ import rateLimit from 'express-rate-limit';
 import http from 'node:http';
 import passport from 'passport';
 import { db } from '../database/database';
-import { resolvers } from '../graphql/resolvers';
-import { typeDefs } from '../graphql/typeDefs';
 import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
 import { FileUploadSchema, IUser } from '@itmat-broker/itmat-types';
-import { ApolloServerContext } from '../graphql/ApolloServerContext';
-import { DMPContext } from '../graphql/resolvers/context';
 import { logPluginInstance } from '../log/logPlugin';
 import { IConfiguration, spaceFixing } from '@itmat-broker/itmat-cores';
 import { userLoginUtils } from '../utils/userLoginUtils';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { tokenAuthentication } from './commonMiddleware';
-import { tRPCRouter } from '../trpc/tRPCRouter';
-import { createtRPCContext } from '../trpc/trpc';
 import multer from 'multer';
 import { PassThrough } from 'stream';
 import { z } from 'zod';
+import { ApolloServerContext, DMPContext, createtRPCContext, typeDefs } from '@itmat-broker/itmat-apis';
+import { APICalls } from './helper';
 
 export class Router {
     private readonly app: Express;
@@ -104,11 +100,13 @@ export class Router {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const _this = this;
 
+        const apiCalls = new APICalls();
+
         /* putting schema together */
         const schema = makeExecutableSchema({
             typeDefs,
             resolvers: {
-                ...resolvers,
+                ...apiCalls._listOfGraphqlResolvers(),
                 BigInt: scalarResolvers,
                 // This maps the `Upload` scalar to the implementation provided
                 // by the `graphql-upload` package.
@@ -292,7 +290,7 @@ export class Router {
                     }
                 })().catch(next);
             }, trpcExpress.createExpressMiddleware({
-                router: tRPCRouter,
+                router: apiCalls._listOfTRPCRouters(),
                 createContext: createtRPCContext
             }));
 

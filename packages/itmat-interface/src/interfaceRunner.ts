@@ -4,7 +4,7 @@ import { objStore } from './objStore/objStore';
 import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
 import { Runner } from './server/server';
-import { pubsub } from './graphql/pubsub';
+import { pubsub } from '@itmat-broker/itmat-apis';
 import { subscriptionEvents } from '@itmat-broker/itmat-cores';
 import { dmpWebDav } from './webdav/webdav';
 

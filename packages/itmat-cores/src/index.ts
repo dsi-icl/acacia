@@ -14,6 +14,7 @@ export * from './trpcCore/domainCore';
 export * from './trpcCore/organisationCore';
 export * from './trpcCore/jobCore';
 export * from './trpcCore/standardizationCore';
+export * from './trpcCore/utilsCore';
 export * from './rest/fileDownload';
 export * from './authentication/pubkeyAuthentication';
 export * from './log/logPlugin';

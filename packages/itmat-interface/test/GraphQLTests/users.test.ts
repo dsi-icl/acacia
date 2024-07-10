@@ -610,8 +610,7 @@ describe('USERS API', () => {
             const client_not_logged_in = request.agent(app);
             const res = await client_not_logged_in.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.NOT_LOGGED_IN);
+            expect(res.body.data.whoAmI).toBe(null);
         });
 
         test('Who am I (admin)', async () => {
