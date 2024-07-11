@@ -52,7 +52,6 @@ export class TRPCFileCore {
                 );
             }
         }
-
         let fileConfig: ISystemConfig | IStudyConfig | IUserConfig | IDocConfig | ICacheConfig | IDomainConfig | null = null;
         let userRepoRemainingSpace = 0;
         let fileSizeLimit: number;
