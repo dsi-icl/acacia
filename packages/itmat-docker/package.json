@@ -1,6 +1,6 @@
 {
     "name": "@itmat-broker/itmat-setup",
-    "version": "2.5.1",
+    "version": "2.6.0",
     "description": "ITMAT Broker",
     "keywords": [
         "itmat",
@@ -17,7 +17,7 @@
     "dependencies": {
         "bcrypt": "5.1.1",
         "compression": "1.7.4",
-        "express": "4.18.2",
+        "express": "4.19.2",
         "express-rate-limit": "7.1.2",
         "isobject": "4.0.0",
         "minio": "7.1.3",

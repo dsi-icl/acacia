@@ -71,6 +71,25 @@ export class ObjectStore {
         return result.etag;
     }
 
+    public async copyObject(sourceBucket: string, sourceUri: string, targetBucket: string, targetUri: string) {
+        if (!this.client) {
+            throw new Error('Connection failed.');
+        }
+
+        const lowerSourceBucket = sourceBucket.toLowerCase();
+        const lowerTargetBucket = targetBucket.toLowerCase();
+
+        // Ensure target bucket exists
+        const bucketExists = await this.client.bucketExists(lowerTargetBucket);
+        if (!bucketExists) {
+            await this.client.makeBucket(lowerTargetBucket, this.config?.bucketRegion ?? '');
+        }
+        // Copy the object
+        const conds = new Minio.CopyConditions();
+        const result = await this.client.copyObject(lowerTargetBucket, targetUri, `/${lowerSourceBucket}/${sourceUri}`, conds);
+        return result.etag;
+    }
+
     public async downloadFile(studyId: string, uri: string): Promise<Readable> {
         if (!this.client) {
             throw new Error('Connection failed.');
