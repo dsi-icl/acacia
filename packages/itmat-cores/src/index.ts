@@ -15,6 +15,7 @@ export * from './trpcCore/driveCore';
 export * from './trpcCore/fileCore';
 export * from './trpcCore/studyCore';
 export * from './trpcCore/userCore';
+export * from './trpcCore/permissionCore';
 export * from './rest/fileDownload';
 export * from './authentication/pubkeyAuthentication';
 export * from './log/logPlugin';

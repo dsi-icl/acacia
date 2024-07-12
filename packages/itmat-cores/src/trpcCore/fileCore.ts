@@ -25,9 +25,9 @@ export class TRPCFileCore {
      * @param studyId - The id of the study. Could be null for non-study files.
      * @param userId - The id of the user.
      * @param fileUpload - The file to upload.
-     * @param description - The description of the file.
      * @param fileType - The type of the file.
      * @param fileCategory - The category of the file.
+     * @param description - The description of the file.
      * @param properties - The properties of the file. Note if the data is attached to a field, the fieldproperties will be used.
      *
      * @return IFile - The object of IFile.

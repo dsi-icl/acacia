@@ -66,6 +66,9 @@ if (global.hasMinio) {
     }, 10000);
 
     describe('FILE API', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        let adminId: string;
+
         beforeAll(async () => {
             /* setup: first retrieve the generated user id */
             const result = await mongoClient.collection<IUser>(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
