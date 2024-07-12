@@ -1,4 +1,4 @@
-import { CoreError, FileUpload, IFile, IPubkey, IResetPasswordRequest, IUser, IUserWithoutToken, defaultSettings, enumConfigType, enumCoreErrors, enumDriveNodeTypes, enumFileCategories, enumFileTypes, enumUserTypes } from '@itmat-broker/itmat-types';
+import { CoreError, FileUpload, IFile, IPubkey, IResetPasswordRequest, IUser, IUserWithoutToken, defaultSettings, enumCoreErrors, enumDriveNodeTypes, enumFileCategories, enumFileTypes, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
 import { Logger, Mailer, ObjectStore } from '@itmat-broker/itmat-commons';
 import { IConfiguration, makeGenericReponse, rsakeygen, rsaverifier, tokengen } from '../utils';
@@ -264,23 +264,6 @@ export class TRPCUserCore {
             },
             metadata: {},
             managerId: userId
-        });
-
-        // add a user config
-        await this.db.collections.configs_collection.insertOne({
-            id: uuid(),
-            type: enumConfigType.USERCONFIG,
-            key: userId,
-            properties: {
-                ...userConfig
-            },
-            life: {
-                createdTime: Date.now(),
-                createdUser: userId,
-                deletedTime: null,
-                deletedUser: null
-            },
-            metadata: {}
         });
 
         /* send email to the registered user */

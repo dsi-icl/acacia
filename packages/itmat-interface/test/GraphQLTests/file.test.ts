@@ -14,7 +14,7 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '@itmat-broker/itmat-cores';
 import { Db, MongoClient } from 'mongodb';
-import { studyType, IStudy, IUser, IRole, IFile, IField, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { studyType, IStudy, IUser, IRole, IFile, IField, IData, enumDataTypes } from '@itmat-broker/itmat-types';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -27,6 +27,8 @@ if (global.hasMinio) {
     let user: request.SuperTest<request.Test>;
     let mongoConnection: MongoClient;
     let mongoClient: Db;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    let adminId: string;
 
     afterAll(async () => {
         await db.closeConnection();
@@ -64,8 +66,6 @@ if (global.hasMinio) {
     }, 10000);
 
     describe('FILE API', () => {
-        let adminId: any;
-
         beforeAll(async () => {
             /* setup: first retrieve the generated user id */
             const result = await mongoClient.collection<IUser>(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
@@ -76,8 +76,6 @@ if (global.hasMinio) {
             describe('UPLOAD FILE', () => {
                 /* note: a new study is created and a special authorised user for study permissions */
                 let createdStudy: { id: any; };
-                let createdStudyClinical;
-                let createdStudyAny: { id: any; };
                 let authorisedUser: request.SuperTest<request.Test>;
                 let authorisedUserProfile: IUser;
                 beforeEach(async () => {
@@ -116,80 +114,35 @@ if (global.hasMinio) {
                         type: studyType.SENSOR
                     });
 
-                    createdStudyClinical = await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOne({ name: studynameCLINICAL });
-                    expect(createCLINICALStudyRes.body.data.createStudy).toEqual({
-                        id: createdStudyClinical.id,
-                        name: studynameCLINICAL,
-                        description: 'test description',
-                        type: studyType.CLINICAL
-                    });
-
-                    createdStudyAny = await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOne({ name: studynameANY });
-                    expect(createANYStudyRes.body.data.createStudy).toEqual({
-                        id: createdStudyAny.id,
-                        name: studynameANY,
-                        description: 'test description',
-                        type: studyType.ANY
-                    });
-
                     // create field for both studies
                     await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
-                        fieldId: 'Device_McRoberts',
-                        fieldName: 'Device_McRoberts',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid MMM',
-                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
+                        id: uuid(),
                         studyId: createdStudy.id,
-                        dateAdded: 1679419198219.61,
-                        dateDeleted: null,
-                        dataVersion: null,
-                        metadata: {
-                        }
-                    }, {
-                        fieldId: 'Device_Axivity',
-                        fieldName: 'Device_Axivity',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid AX6',
-                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
-                        studyId: createdStudy.id,
-                        dateAdded: 1679419198219.57,
-                        dateDeleted: null,
-                        dataVersion: null,
-                        metadata: {
-                        }
-                    }]);
-                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
-                        fieldId: 'Device_McRoberts',
                         fieldName: 'Device_McRoberts',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid MMM',
-                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5525',
-                        studyId: createANYStudyRes.id,
-                        dateAdded: 1679419198219.61,
-                        dateDeleted: null,
+                        fieldId: 'Device_McRoberts',
+                        dataType: enumDataTypes.FILE,
                         dataVersion: null,
-                        metadata: {
-                        }
+                        life: {
+                            createdTime: 1679419198219,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     }, {
-                        fieldId: 'Device_Axivity',
+                        id: uuid(),
+                        studyId: createdStudy.id,
                         fieldName: 'Device_Axivity',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid AX6',
-                        id: 'ff0c2e60-5086-4111-91ca-475168977ae5',
-                        studyId: createANYStudyRes.id,
-                        dateAdded: 1679419198219.57,
-                        dateDeleted: null,
+                        fieldId: 'Device_Axivity',
+                        dataType: enumDataTypes.FILE,
                         dataVersion: null,
-                        metadata: {
-                        }
+                        life: {
+                            createdTime: 1679419198219,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     }]);
                     /* setup: creating a privileged user */
                     const username = uuid();
@@ -216,30 +169,25 @@ if (global.hasMinio) {
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                     const roleId = uuid();
-                    const newRole = {
+                    const newRole: IRole = {
                         id: roleId,
-                        projectId: null,
                         studyId: createdStudy.id,
                         name: `${roleId}_rolename`,
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: true,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ, atomicOperation.WRITE],
-                                subjectIds: ['^.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
+                        dataPermissions: [{
+                            fields: ['^.*$'],
+                            dataProperties: {},
+                            includeUnVersioned: true,
+                            permission: 7
+                        }],
+                        studyRole: 'STUDY_MANAGER',
                         users: [authorisedUserProfile.id],
-                        deleted: null
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertOne(newRole);
 
@@ -253,105 +201,7 @@ if (global.hasMinio) {
                     await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
-                test('Upload file to SENSOR study (admin)', async () => {
-                    /* test: upload file */
-                    const res = await admin.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudy.id,
-                                file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
-                                fileLength: 21,
-                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-                    /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
-                    expect(uri).toBeDefined();
-                    expect(uploadTime).toBeDefined();
-                    expect(uploadFile).toEqual({
-                        id: createdFile.id,
-                        fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt',
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        fileSize: '21',
-                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
-                        uploadedBy: adminId,
-                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
-                        metadata: {
-                            deviceId: 'MMM7N3G6G',
-                            endDate: 1595296000000,
-                            participantId: 'I7N3G6G',
-                            startDate: 1593827200000
-                        }
-                    });
-                });
-
-                test('Upload file to study ANY (admin)', async () => {
-                    /* test: upload file */
-                    const res = await admin.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudyAny.id,
-                                file: null,
-                                description: JSON.stringify({}),
-                                fileLength: 20,
-                                hash: 'f98cfd74547ce10259e94fe12e20168f9c3b59864db6097d95be25dcdf6012c8'
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/RandomFile.txt'));
-
-                    /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'RandomFile.txt', studyId: createdStudyAny.id });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
-                    expect(uri).toBeDefined();
-                    expect(uploadTime).toBeDefined();
-                    expect(uploadFile).toEqual({
-                        id: createdFile.id,
-                        fileName: 'RandomFile.txt',
-                        studyId: createdStudyAny.id,
-                        projectId: null,
-                        fileSize: '20',
-                        description: JSON.stringify({}),
-                        uploadedBy: adminId,
-                        hash: 'f98cfd74547ce10259e94fe12e20168f9c3b59864db6097d95be25dcdf6012c8',
-                        metadata: {}
-                    });
-                });
-
-                test('Upload file to study (user with no privilege) (should fail)', async () => {
-                    /* test: upload file */
-                    const res = await user.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudy.id,
-                                file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
-                                fileLength: 21,
-                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                    expect(res.body.data.uploadFile).toEqual(null);
-                });
-
-                test('Upload file to study (user with privilege)', async () => {
+                test('Upload file to study (Authorised user)', async () => {
                     /* test: upload file */
                     const res = await authorisedUser.post('/graphql')
                         .field('operations', JSON.stringify({
@@ -366,7 +216,6 @@ if (global.hasMinio) {
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-
                     /* setup: geting the created file Id */
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
@@ -392,9 +241,54 @@ if (global.hasMinio) {
                     });
                 });
 
-                test('Upload a empty file (admin)', async () => {
+                test('Upload file to study (user with no privilege) (should fail)', async () => {
+                    /* test: upload file */
+                    const res = await user.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
+                                fileLength: 21,
+                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                    expect(res.body.data.uploadFile).toEqual(null);
+                });
+
+                // we forbid admin users to interact with the data directly
+                test('Upload file to study (admin) (should fail)', async () => {
                     /* test: upload file */
                     const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
+                                fileLength: 21,
+                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                    expect(res.body.data.uploadFile).toEqual(null);
+                });
+
+                test('Upload a empty file (admin)', async () => {
+                    /* test: upload file */
+                    const res = await authorisedUser.post('/graphql')
                         .field('operations', JSON.stringify({
                             query: print(UPLOAD_FILE),
                             variables: {
@@ -422,7 +316,7 @@ if (global.hasMinio) {
                         projectId: null,
                         fileSize: '0',
                         description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
-                        uploadedBy: adminId,
+                        uploadedBy: authorisedUserProfile.id,
                         hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
                         metadata: {
                             deviceId: 'AX6VJH6F6',
@@ -435,7 +329,7 @@ if (global.hasMinio) {
 
                 test('Upload a file with incorrect hash', async () => {
                     /* test: upload file */
-                    const res = await admin.post('/graphql')
+                    const res = await authorisedUser.post('/graphql')
                         .field('operations', JSON.stringify({
                             query: print(UPLOAD_FILE),
                             variables: {
@@ -459,7 +353,7 @@ if (global.hasMinio) {
 
                 test('File size mismatch with actual read bytes', async () => {
                     /* test: upload file */
-                    const res = await admin.post('/graphql')
+                    const res = await authorisedUser.post('/graphql')
                         .field('operations', JSON.stringify({
                             query: print(UPLOAD_FILE),
                             variables: {
@@ -505,53 +399,34 @@ if (global.hasMinio) {
                         type: studyType.SENSOR
                     });
                     await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
-                        fieldId: 'Device_McRoberts',
+                        id: uuid(),
+                        studyId: createdStudy.id,
                         fieldName: 'Device_McRoberts',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid MMM',
-                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
-                        studyId: createdStudy.id,
-                        dateAdded: 1679419198219.61,
-                        dateDeleted: null,
+                        fieldId: 'Device_McRoberts',
+                        dataType: enumDataTypes.FILE,
                         dataVersion: null,
-                        metadata: {
-                        }
+                        life: {
+                            createdTime: 1679419198219,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     }, {
-                        fieldId: 'Device_Axivity',
-                        fieldName: 'Device_Axivity',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid AX6',
-                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        id: uuid(),
                         studyId: createdStudy.id,
-                        dateAdded: 1679419198219.57,
-                        dateDeleted: null,
+                        fieldName: 'Device_Axivity',
+                        fieldId: 'Device_Axivity',
+                        dataType: enumDataTypes.FILE,
                         dataVersion: null,
-                        metadata: {
-                        }
+                        life: {
+                            createdTime: 1679419198219,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     }]);
-                    /* setup: upload file (would be better to upload not via app api but will do for now) */
-                    const res = await admin.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudy.id,
-                                file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
-                                fileLength: 21,
-                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-
-                    /* setup: geting the created file Id */
-                    createdFile = res.body.data.uploadFile;
-                    if (!createdFile)
-                        throw 'Test file could not be retreived.';
 
                     /* setup: creating a privileged user */
                     const username = uuid();
@@ -578,49 +453,55 @@ if (global.hasMinio) {
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                     const roleId = uuid();
-                    const newRole = {
+                    const newRole: IRole = {
                         id: roleId,
-                        projectId: null,
                         studyId: createdStudy.id,
                         name: `${roleId}_rolename`,
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ],
-                                subjectIds: ['^.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
+                        dataPermissions: [{
+                            fields: ['^.*$'],
+                            dataProperties: {},
+                            includeUnVersioned: true,
+                            permission: 7
+                        }],
+                        studyRole: 'STUDY_MANAGER',
                         users: [authorisedUserProfile.id],
-                        deleted: null
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertOne(newRole);
-
                     authorisedUser = request.agent(app);
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+
+                    /* setup: upload file (would be better to upload not via app api but will do for now) */
+                    const res = await authorisedUser.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
+                                fileLength: 21,
+                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    /* setup: geting the created file Id */
+                    createdFile = res.body.data.uploadFile;
+                    if (!createdFile)
+                        throw 'Test file could not be retreived.';
                 });
 
                 afterEach(async () => {
                     await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
                     await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).deleteMany({});
                     await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
-                });
-
-                test('Download file from study (admin)', async () => {
-                    const res = await admin.get(`/file/${createdFile.id}`);
-                    expect(res.status).toBe(200);
-                    expect(res.headers['content-type']).toBe('application/download');
-                    expect(res.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
-                    expect(res.text).toBe('just testing I7N3G6G.');
                 });
 
                 test('Download file from study (user with privilege)', async () => {
@@ -638,6 +519,12 @@ if (global.hasMinio) {
                     expect(res.body).toEqual({ error: 'Please log in.' });
                 });
 
+                test('Download file from study (admin) (should fail)', async () => {
+                    const res = await admin.get(`/file/${createdFile.id}`);
+                    expect(res.status).toBe(404);
+                    expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+                });
+
                 test('Download file from study (user with no privilege) (should fail)', async () => {
                     const res = await user.get(`/file/${createdFile.id}`);
                     expect(res.status).toBe(404);
@@ -645,7 +532,7 @@ if (global.hasMinio) {
                 });
 
                 test('Download an non-existent file from study (admin) (should fail)', async () => {
-                    const res = await admin.get('/file/fakefileid');
+                    const res = await authorisedUser.get('/file/fakefileid');
                     expect(res.status).toBe(404);
                     expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
                 });
@@ -675,6 +562,13 @@ if (global.hasMinio) {
                 let createdFile: { id: any; };
                 let authorisedUser: request.SuperTest<request.Test>;
                 let authorisedUserProfile: IUser;
+                beforeAll(async () => {
+                    await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
+                    await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
+                    await mongoClient.collection<IData>(config.database.collections.data_collection).deleteMany({});
+                });
+
                 beforeEach(async () => {
                     /* Clear old values */
                     await db.collections.roles_collection.deleteMany({});
@@ -696,58 +590,35 @@ if (global.hasMinio) {
                         type: studyType.SENSOR
                     });
                     await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).insertMany([{
-                        fieldId: 'Device_McRoberts',
+                        id: uuid(),
+                        studyId: createdStudy.id,
                         fieldName: 'Device_McRoberts',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid MMM',
-                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
-                        studyId: createdStudy.id,
-                        dateAdded: 1679419198219.61,
-                        dateDeleted: null,
+                        fieldId: 'Device_McRoberts',
+                        dataType: enumDataTypes.FILE,
                         dataVersion: null,
-                        metadata: {
-                        }
+                        life: {
+                            createdTime: 1679419198219,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     }, {
-                        fieldId: 'Device_Axivity',
-                        fieldName: 'Device_Axivity',
-                        dataType: 'file',
-                        possibleValues: null,
-                        unit: '',
-                        comments: 'Field for deviceid AX6',
-                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        id: uuid(),
                         studyId: createdStudy.id,
-                        dateAdded: 1679419198219.57,
-                        dateDeleted: null,
+                        fieldName: 'Device_Axivity',
+                        fieldId: 'Device_Axivity',
+                        dataType: enumDataTypes.FILE,
                         dataVersion: null,
-                        metadata: {
-                        }
+                        life: {
+                            createdTime: 1679419198219,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     }]);
-                    /* setup: upload file (would be better to upload not via app api but will do for now) */
-                    await admin.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudy.id,
-                                file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
-                                fileLength: 21,
-                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
-                    /* setup: geting the created file Id */
-                    createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id, deleted: null });
-
-                    /* before test: can download file */
-                    const res = await admin.get(`/file/${createdFile.id}`);
-                    expect(res.status).toBe(200);
-                    expect(res.headers['content-type']).toBe('application/download');
-                    expect(res.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
-                    expect(res.text).toBe('just testing I7N3G6G.');
 
                     /* setup: creating a privileged user */
                     const username = uuid();
@@ -774,55 +645,73 @@ if (global.hasMinio) {
                     await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                     const roleId = uuid();
-                    const newRole = {
+                    const newRole: IRole = {
                         id: roleId,
-                        projectId: null,
                         studyId: createdStudy.id,
                         name: `${roleId}_rolename`,
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: true,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ, atomicOperation.WRITE],
-                                subjectIds: ['^.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
+                        dataPermissions: [{
+                            fields: ['^.*$'],
+                            dataProperties: {},
+                            includeUnVersioned: true,
+                            permission: 7
+                        }],
+                        studyRole: 'STUDY_MANAGER',
                         users: [authorisedUserProfile.id],
-                        deleted: null
+                        life: {
+                            createdTime: 1591134065000,
+                            createdUserId: 'admin',
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
                     };
                     await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertOne(newRole);
 
                     authorisedUser = request.agent(app);
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+
+                    /* setup: upload file (would be better to upload not via app api but will do for now) */
+                    await authorisedUser.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
+                                fileLength: 21,
+                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    /* setup: geting the created file Id */
+                    createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id, deleted: null });
+                    /* before test: can download file */
+                    const res = await authorisedUser.get(`/file/${createdFile.id}`);
+                    expect(res.status).toBe(200);
+                    expect(res.headers['content-type']).toBe('application/download');
+                    expect(res.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
+                    expect(res.text).toBe('just testing I7N3G6G.');
+
                 });
 
                 afterEach(async () => {
                     await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
                     await mongoClient.collection<IField>(config.database.collections.field_dictionary_collection).deleteMany({});
                     await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
+                    await mongoClient.collection<IData>(config.database.collections.data_collection).deleteMany({});
                 });
 
-                test('Delete file from study (admin)', async () => {
+                test('Delete file from study (admin) should fail', async () => {
                     const res = await admin.post('/graphql').send({
                         query: print(DELETE_FILE),
                         variables: { fileId: createdFile.id }
                     });
                     expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.deleteFile).toEqual({ successful: true });
-
-                    // const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
-                    // expect(downloadFileRes.status).toBe(404);
-                    // expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                    expect(res.body.data.deleteFile).toBe(null);
                 });
 
                 test('Delete file from study (user with privilege)', async () => {
@@ -833,10 +722,6 @@ if (global.hasMinio) {
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.deleteFile).toEqual({ successful: true });
-
-                    // const downloadFileRes = await authorisedUser.get(`/file/${createdFile.id}`);
-                    // expect(downloadFileRes.status).toBe(404);
-                    // expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
                 });
 
                 test('Delete file from study (user with no privilege) (should fail)', async () => {
@@ -848,23 +733,6 @@ if (global.hasMinio) {
                     expect(res.body.errors).toHaveLength(1);
                     expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                     expect(res.body.data.deleteFile).toBe(null);
-
-                    const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
-                    expect(downloadFileRes.status).toBe(200);
-                    expect(downloadFileRes.headers['content-type']).toBe('application/download');
-                    expect(downloadFileRes.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
-                    expect(downloadFileRes.text).toBe('just testing I7N3G6G.');
-                });
-
-                test('Delete an non-existent file from study (admin)', async () => {
-                    const res = await admin.post('/graphql').send({
-                        query: print(DELETE_FILE),
-                        variables: { fileId: 'nosuchfile' }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                    expect(res.body.data.deleteFile).toBe(null);
                 });
 
                 test('Delete an non-existent file from study (user with privilege)', async () => {
@@ -874,7 +742,7 @@ if (global.hasMinio) {
                     });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                     expect(res.body.data.deleteFile).toBe(null);
                 });
 
@@ -885,7 +753,7 @@ if (global.hasMinio) {
                     });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                     expect(res.body.data.deleteFile).toBe(null);
                 });
             });

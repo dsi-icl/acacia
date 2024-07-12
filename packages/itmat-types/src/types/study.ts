@@ -1,5 +1,4 @@
 import { IBase } from './base';
-import { IUser } from './user';
 import { FileUpload } from 'graphql-upload-minimal';
 
 export enum studyType {
@@ -21,66 +20,6 @@ export interface IStudyDataVersion extends IBase {
     id: string;
     version: string;
     tag?: string;
-}
-
-export enum atomicOperation {
-    READ = 'READ',
-    WRITE = 'WRITE'
-}
-
-export enum IPermissionManagementOptions {
-    own = 'own',
-    role = 'role',
-    job = 'job',
-    query = 'query',
-    ontologyTrees = 'ontologyTrees'
-}
-
-type RoleBaseFilter = {
-    field: string;
-    op: string;
-    value: string | number;
-};
-
-export interface IDataPermission {
-    subjectIds?: string[];
-    visitIds?: string[];
-    fieldIds?: string[];
-    uploaders?: string[]; // only works for downloading data; for file data, it will check IFile instead of data clip
-    hasVersioned?: boolean;
-    operations?: atomicOperation[];
-    filters?: RoleBaseFilter[]
-}
-
-export interface IManagementPermission {
-    [IPermissionManagementOptions.own]?: atomicOperation[];
-    [IPermissionManagementOptions.role]?: atomicOperation[];
-    [IPermissionManagementOptions.job]?: atomicOperation[];
-    [IPermissionManagementOptions.query]?: atomicOperation[];
-    [IPermissionManagementOptions.ontologyTrees]: atomicOperation[];
-}
-
-interface IRoleBase {
-    id: string;
-    projectId?: string;
-    studyId: string;
-    name: string;
-    permissions: {
-        data?: IDataPermission,
-        manage?: IManagementPermission
-    };
-    description: string;
-    createdBy: string;
-    deleted: number | null;
-    metadata: Record<string, unknown>
-}
-
-export interface IRole extends IRoleBase {
-    users: string[];
-}
-
-export interface IRoleQL extends IRoleBase {
-    users: IUser[];
 }
 
 export interface IProject {

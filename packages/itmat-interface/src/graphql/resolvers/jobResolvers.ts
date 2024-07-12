@@ -10,8 +10,8 @@ const jobCore = Object.freeze(new JobCore(db, objStore));
 export const jobResolvers: DMPResolversMap = {
     Query: {},
     Mutation: {
-        createQueryCurationJob: async (_parent, { queryId, studyId, projectId }: { queryId: string[], studyId: string, projectId: string }, context) => {
-            return await jobCore.createQueryCurationJob(context.req.user, queryId, studyId, projectId);
+        createQueryCurationJob: async (_parent, { queryId, studyId }: { queryId: string[], studyId: string }, context) => {
+            return await jobCore.createQueryCurationJob(context.req.user, queryId, studyId);
         }
     },
     Subscription: {

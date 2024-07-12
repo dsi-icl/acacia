@@ -1,6 +1,5 @@
-import { IStudy, IField, IStandardization, ICohortSelection, IQueryString, IGroupedData, StandardizationFilterOptionParameters, StandardizationFilterOptions } from '@itmat-broker/itmat-types';
+import { IStudy, IField, IStandardization, IQueryString, IGroupedData, StandardizationFilterOptionParameters, StandardizationFilterOptions, IRole } from '@itmat-broker/itmat-types';
 import { Filter } from 'mongodb';
-import { QueryMatcher } from '../GraphQLCore/permissionCore';
 /*
     queryString:
         format: string                  # returned foramt: raw, standardized, grouped, summary
@@ -11,184 +10,81 @@ import { QueryMatcher } from '../GraphQLCore/permissionCore';
 */
 // if has study-level permission, non versioned data will also be returned
 
+export function buildPipeline(studyId: string, roles: IRole[], fieldRecords: IField[], dataVersions: Array<string | null>, fieldsRequested?: string[]) {
+    let fieldIds: string[] = fieldsRequested ? fieldsRequested : fieldRecords.map(el => el.fieldId);
+    fieldIds = fieldIds.filter(el => fieldRecords.map(el => el.fieldId).includes(el));
 
-export function buildPipeline(query: IQueryString, studyId: string, permittedVersions: Array<string | null>, permittedFields: IField[], metadataFilter, isAdmin: boolean, includeUnversioned: boolean) {
-    let fieldIds: string[] = permittedFields.map(el => el.fieldId);
-    const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
-    // We send back the requested fields, by default send all fields
-    if (query.data_requested) {
-        const data_requested = query.data_requested;
-        fieldIds = permittedFields.filter(el => data_requested.includes(el.fieldId)).map(el => el.fieldId);
-        query.data_requested.forEach((field: string) => {
-            if (fieldIds.includes(field)) {
-                fields[field] = 1;
+    const facetFilters = {};
+    for (const field of fieldRecords) {
+        facetFilters[field.fieldId] = [{ $match: { '_id.fieldId': field.fieldId } }];
+        facetFilters[field.fieldId].push({ $unwind: '$docs' });
+        facetFilters[field.fieldId].push({
+            $group: {
+                _id: {
+                    ...(field.properties ?? []).reduce((acc, curr) => {
+                        acc[curr.name] = `$docs.properties.${curr.name}`;
+                        return acc;
+                    }, {})
+                },
+                doc: { $first: '$docs' }
             }
         });
-    } else if (query['table_requested'] !== undefined && query['table_requested'] !== undefined) {
-        fieldIds = permittedFields.filter(el => el.metadata['tableName'] === query['table_requested']).map(el => el.fieldId);
-        fieldIds.forEach((field: string) => {
-            fields[field] = 1;
+        facetFilters[field.fieldId].push({
+            $group: {
+                _id: '$_id',
+                doc: { $first: '$doc' }
+            }
         });
-    } else {
-        fieldIds.forEach((field: string) => {
-            fields[field] = 1;
-        });
-    }
-    let match = {};
-    // We send back the filtered fields values
-    if (query['cohort'] !== undefined && query['cohort'] !== null) {
-        if (query.cohort.length > 1) {
-            const subqueries: Filter<{ [key: string]: unknown }>[] = [];
-            query.cohort.forEach((subcohort) => {
-                subqueries.push(translateCohort(subcohort));
-            });
-            match = { $or: subqueries };
-        } else {
-            match = translateCohort(query.cohort[0]);
-        }
     }
 
-    const groupFilter = [{
-        $match: { fieldId: { $in: fieldIds } }
+    const userPermissionFilters: Filter<IField>[] = [];
+    for (const role of roles) {
+        for (const dataPermission of role.dataPermissions) {
+            const obj: Filter<IField> = {};
+
+            // Combine regexes using $or
+            obj.$or = dataPermission.fields.map(regex => ({ fieldId: { $regex: regex } }));
+
+            for (const property of Object.keys(dataPermission.dataProperties)) {
+                obj[`properties.${property}`] = { $in: dataPermission.dataProperties[property] };
+            }
+
+            obj.dataVersion = { $in: dataPermission.includeUnVersioned ? dataVersions : dataVersions.filter(el => el !== null) };
+            userPermissionFilters.push(obj);
+        }
+    }
+    const pipeline = [{
+        $match: { studyId: studyId, fieldId: { $in: fieldIds }, dataVersion: { $in: dataVersions } }
     }, {
         $sort: { 'life.createdTime': -1 }
     }, {
         $group: {
-            _id: { m_subjectId: '$properties.m_subjectId', m_visitId: '$properties.m_visitId', m_fieldId: '$fieldId' },
-            doc: { $first: '$$ROOT' }
+            _id: { fieldId: '$fieldId' },
+            docs: { $push: '$$ROOT' }
+        }
+    }, {
+        $facet: {
+            ...facetFilters
         }
     }, {
         $project: {
-            m_subjectId: '$_id.m_subjectId',
-            m_visitId: '$_id.m_visitId',
-            m_fieldId: '$_id.m_fieldId',
-            value: '$doc.value',
-            _id: 0
-        }
-    }
-    ];
-    if (isAdmin) {
-        return [
-            { $match: { fieldId: { $regex: /^(?!Device)\w+$/ }, dataVersion: { $in: permittedVersions }, studyId: studyId } },
-            ...groupFilter,
-            { $match: match }
-            // { $project: fields }
-        ];
-    } else {
-        if (includeUnversioned) {
-            return [
-                { $match: { fieldId: { $regex: /^(?!Device)\w+$/ }, dataVersion: { $in: permittedVersions }, studyId: studyId } },
-                { $match: { $or: [metadataFilter, { m_versionId: null }] } },
-                ...groupFilter,
-                { $match: match }
-                // { $project: fields }
-            ];
-        } else {
-            return [
-                { $match: { fieldId: { $regex: /^(?!Device)\w+$/ }, dataVersion: { $in: permittedVersions }, studyId: studyId } },
-                { $match: metadataFilter },
-                ...groupFilter,
-                { $match: match }
-                // { $project: fields }
-            ];
-        }
-    }
-}
-
-function translateCohort(cohort: ICohortSelection[]) {
-    const match: Record<string, unknown> = {};
-    cohort.forEach(function (select) {
-
-        switch (select.op) {
-            case '=':
-                // select.value must be an array
-                match[select.field] = { $in: [select.value] };
-                break;
-            case '!=':
-                // select.value must be an array
-                match[select.field] = { $ne: [select.value] };
-                break;
-            case '<':
-                // select.value must be a float
-                match[select.field] = { $lt: parseFloat(select.value) };
-                break;
-            case '>':
-                // select.value must be a float
-                match[select.field] = { $gt: parseFloat(select.value) };
-                break;
-            case 'derived': {
-                // equation must only have + - * /
-                const derivedOperation = select.value.split(' ');
-                if (derivedOperation[0] === '=') {
-                    match[select.field] = { $eq: parseFloat(select.value) };
-                }
-                if (derivedOperation[0] === '>') {
-                    match[select.field] = { $gt: parseFloat(select.value) };
-                }
-                if (derivedOperation[0] === '<') {
-                    match[select.field] = { $lt: parseFloat(select.value) };
-                }
-                break;
+            docs: {
+                $setUnion: fieldIds.map(el => ({
+                    $ifNull: [`$${el}.doc`, []]
+                }))
             }
-            case 'exists':
-                // We check if the field exists. This is to be used for checking if a patient
-                // has an image
-                match[select.field] = { $exists: true };
-                break;
-            case 'count': {
-                // counts can only be positive. NB: > and < are inclusive e.g. < is <=
-                const countOperation = select.value.split(' ');
-                const countfield = select.field + '.count';
-                if (countOperation[0] === '=') {
-                    match[countfield] = { $eq: parseInt(countOperation[1], 10) };
-                }
-                if (countOperation[0] === '>') {
-                    match[countfield] = { $gt: parseInt(countOperation[1], 10) };
-                }
-                if (countOperation[0] === '<') {
-                    match[countfield] = { $lt: parseInt(countOperation[1], 10) };
-                }
-                break;
-            }
-            default:
-                break;
         }
-    }
-    );
-    return match;
-}
+    }, {
+        $unwind: '$docs'
+    }, {
+        $replaceRoot: { newRoot: '$docs' }
+    }, {
+        $match: { 'life.deletedTime': { $eq: null } }
+    }, {
+        $match: { $or: userPermissionFilters }
+    }];
 
-export function translateMetadata(metadata: QueryMatcher[]) {
-    const match: Filter<{ [key: string]: string | number | boolean }> = {};
-    metadata.forEach(function (select) {
-        switch (select.op) {
-            case '=':
-                // select.parameter must be an array
-                match['metadata.'.concat(select.key)] = { $in: [select.parameter] };
-                break;
-            case '!=':
-                // select.parameter must be an array
-                match['metadata.'.concat(select.key)] = { $ne: [select.parameter] };
-                break;
-            case '<':
-                // select.parameter must be a float
-                match['metadata.'.concat(select.key)] = { $lt: parseFloat(select.parameter.toString()) };
-                break;
-            case '>':
-                // select.parameter must be a float
-                match['metadata.'.concat(select.key)] = { $gt: parseFloat(select.parameter.toString()) };
-                break;
-            case 'exists':
-                // We check if the field exists. This is to be used for checking if a patient
-                // has an image
-                match['metadata.'.concat(select.key)] = { $exists: true };
-                break;
-            default:
-                break;
-        }
-    }
-    );
-    return match;
+    return pipeline;
 }
 
 export function dataStandardization(study: IStudy, fields: IField[], data: IGroupedData, queryString: IQueryString, standardizations: IStandardization[] | null) {
@@ -210,6 +106,8 @@ export function standardize(study: IStudy, fields: IField[], data: IGroupedData,
     const records = {};
     const mergedFields: IField[] = [...fields];
     const seqNumMap: Map<string, number> = new Map();
+    console.log(mergedFields);
+    console.log(standardizations);
     for (const field of mergedFields) {
         let fieldDef = {};
         for (let i = 0; i < mergedFields.length; i++) {

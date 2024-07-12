@@ -1,34 +1,23 @@
 import { GraphQLError } from 'graphql';
-import { IFile, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IField, deviceTypes, IUserWithoutToken, IPermissionManagementOptions, atomicOperation, enumUserTypes, IOntologyTree, IQueryString, IGroupedData, enumFileTypes, enumFileCategories, enumDataTypes, ICategoricalOption } from '@itmat-broker/itmat-types';
+import { IFile, IProject, IStudy, studyType, IStudyDataVersion, IDataClip, IRole, IField, deviceTypes, IUserWithoutToken, enumUserTypes, IOntologyTree, IQueryString, IGroupedData, enumFileTypes, enumFileCategories, enumDataTypes, ICategoricalOption, permissionString, enumDataAtomicPermissions, IData, enumStudyRoles } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../utils/errors';
-import { ICombinedPermissions, PermissionCore, translateCohort } from './permissionCore';
+import { PermissionCore } from './permissionCore';
 import { validate } from '@ideafast/idgen';
 import type { Filter } from 'mongodb';
 import { FileUpload } from 'graphql-upload-minimal';
 import crypto from 'crypto';
 import { fileSizeLimit } from '../utils/definition';
 import { IGenericResponse, makeGenericReponse } from '../utils/responses';
-import { buildPipeline, dataStandardization, translateMetadata } from '../utils/query';
+import { buildPipeline, dataStandardization } from '../utils/query';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
-
-enum enumV2DataType {
-    'INT' = 'int',
-    'DEC' = 'dec',
-    'STR' = 'str',
-    'BOOL' = 'bool',
-    'DATE' = 'date',
-    'FILE' = 'file',
-    'JSON' = 'json',
-    'CAT' = 'cat'
-}
 
 export interface CreateFieldInput {
     fieldId: string;
     fieldName: string
     tableName?: string
-    dataType: enumV2DataType;
+    dataType: string;
     possibleValues?: ICategoricalOption[]
     unit?: string
     comments?: string
@@ -39,7 +28,7 @@ export interface EditFieldInput {
     fieldId: string;
     fieldName: string;
     tableName?: string;
-    dataType: enumV2DataType;
+    dataType: string;
     possibleValues?: ICategoricalOption[]
     unit?: string
     comments?: string
@@ -76,13 +65,8 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* user can get study if he has readonly permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.own,
-            atomicOperation.READ,
-            requester,
-            studyId
-        );
-        if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (requester.type !== enumUserTypes.ADMIN && !roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         const study = await this.db.collections.studies_collection.findOne({ 'id': studyId, 'life.deletedTime': null });
         if (study === null || study === undefined) {
@@ -106,21 +90,8 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
 
         /* check if user has permission */
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.own,
-            atomicOperation.READ,
-            requester,
-            project.studyId,
-            projectId
-        );
-
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.own,
-            atomicOperation.READ,
-            requester,
-            project.studyId
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, project.studyId);
+        if (requester.type !== enumUserTypes.ADMIN && !roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         return project;
     }
@@ -136,35 +107,28 @@ export class StudyCore {
                     return {
                         id: el.id,
                         code: el.code,
-                        description: el.description,
-                        life: {
-                            createdTime: el.life.createdTime,
-                            createdUser: el.life.createdUser,
-                            deletedTime: el.life.deletedTime,
-                            deletedUser: el.life.deletedUser
-                        },
-                        metadata: {}
+                        description: el.description
                     };
                 }) : [],
                 dataType: (() => {
                     if (field.dataType === enumDataTypes.INTEGER) {
-                        return enumV2DataType.INT;
+                        return 'int';
                     } else if (field.dataType === enumDataTypes.DECIMAL) {
-                        return enumV2DataType.DEC;
+                        return 'dec';
                     } else if (field.dataType === enumDataTypes.STRING) {
-                        return enumV2DataType.STR;
+                        return 'str';
                     } else if (field.dataType === enumDataTypes.BOOLEAN) {
-                        return enumV2DataType.BOOL;
+                        return 'bool';
                     } else if (field.dataType === enumDataTypes.DATETIME) {
-                        return enumV2DataType.DATE;
+                        return 'date';
                     } else if (field.dataType === enumDataTypes.FILE) {
-                        return enumV2DataType.FILE;
+                        return 'file';
                     } else if (field.dataType === enumDataTypes.JSON) {
-                        return enumV2DataType.JSON;
+                        return 'json';
                     } else if (field.dataType === enumDataTypes.CATEGORICAL) {
-                        return enumV2DataType.CAT;
+                        return 'cat';
                     } else {
-                        return enumV2DataType.STR;
+                        return 'str';
                     }
                 })(),
                 dateAdded: field.life.createdTime.toString(),
@@ -173,101 +137,48 @@ export class StudyCore {
         });
     }
 
-    public async getStudyFields(requester: IUserWithoutToken | undefined, studyId: string, projectId?: string, versionId?: string | null) {
+    public async getStudyFields(requester: IUserWithoutToken | undefined, studyId: string, versionId?: string | null) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* user can get study if he has readonly permission */
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            studyId
-        );
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            studyId,
-            projectId
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
         const study = await this.findOneStudy_throwErrorIfNotExist(studyId);
-        const aggregatedPermissions = this.permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
         // the processes of requiring versioned data and unversioned data are different
         // check the metadata:role:**** for versioned data directly
         const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        // check the regular expressions for unversioned data
-        if (requester.type === enumUserTypes.ADMIN) {
-            if (versionId === null) {
-                availableDataVersions.push(null);
-            }
-            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
-            }, {
-                $sort: { 'life.createdTime': -1 }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }]).toArray();
-            return this.fieldTypeConverter(fieldRecords.filter(el => el.life.deletedTime === null));
-        }
-        // unversioned data could not be returned by metadata filters
-        if (versionId === null && aggregatedPermissions.hasVersioned) {
+        if (versionId === null) {
             availableDataVersions.push(null);
-            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
-            }, {
-                $sort: { 'life.createdTime': -1 }
-            }, {
-                $match: {
-                    fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) }
-                }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }]).toArray();
-            return this.fieldTypeConverter(fieldRecords.filter(el => el.life.deletedTime === null));
-        } else {
-            // metadata filter
-            const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
-            aggregatedPermissions.matchObj.forEach((subMetadata) => {
-                subqueries.push(translateMetadata(subMetadata));
-            });
-            const metadataFilter = { $or: subqueries };
-            const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
-            }, {
-                $sort: { 'life.createdTime': -1 }
-            }, { $match: metadataFilter }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }]).toArray();
-            return this.fieldTypeConverter(fieldRecords.filter(el => el.life.deletedTime === null));
         }
+        const matchFilter: Filter<IField>[] = [];
+        for (const role of roles) {
+            for (const dataPermission of role.dataPermissions) {
+                if (permissionString[enumDataAtomicPermissions.READ].includes(dataPermission.permission)) {
+                    for (const re of dataPermission.fields) {
+                        matchFilter.push({ fieldId: { $regex: re }, dataVersion: { $in: availableDataVersions } });
+                    }
+                }
+            }
+        }
+        const fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+            $match: { $or: matchFilter }
+        }, {
+            $sort: { 'life.createdTime': -1 }
+        }, {
+            $group: {
+                _id: '$fieldId',
+                doc: { $first: '$$ROOT' }
+            }
+        }, {
+            $replaceRoot: {
+                newRoot: '$doc'
+            }
+        }, {
+            $sort: { fieldId: 1 }
+        }]).toArray();
+        return this.fieldTypeConverter(fieldRecords.filter(el => el.life.deletedTime === null));
         return [];
     }
 
@@ -283,21 +194,8 @@ export class StudyCore {
         }
 
         // we dont filters fields of an ontology tree by fieldIds
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.ontologyTrees,
-            atomicOperation.READ,
-            requester,
-            studyId,
-            projectId
-        );
-
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.ontologyTrees,
-            atomicOperation.READ,
-            requester,
-            studyId
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (requester.type !== enumUserTypes.ADMIN && !roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
         // if versionId is null, we will only return trees whose data version is null
@@ -306,7 +204,7 @@ export class StudyCore {
             return [];
         } else {
             const trees: IOntologyTree[] = study.ontologyTrees;
-            if (hasStudyLevelPermission && versionId === null) {
+            if (versionId === null) {
                 const availableTrees: IOntologyTree[] = [];
                 for (let i = trees.length - 1; i >= 0; i--) {
                     if (trees[i].dataVersion === null
@@ -340,46 +238,33 @@ export class StudyCore {
         }
     }
 
-    public async getDataRecords(requester: IUserWithoutToken | undefined, queryString: IQueryString, studyId: string, versionId: string | null | undefined, projectId?: string) {
+    public async getDataRecords(requester: IUserWithoutToken | undefined, queryString: IQueryString, studyId: string, versionId: string | null | undefined) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
 
         /* user can get study if he has readonly permission */
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            studyId
-        );
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            studyId,
-            projectId
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (requester.type !== enumUserTypes.ADMIN && !roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         const study = await this.findOneStudy_throwErrorIfNotExist(studyId);
-        const aggregatedPermissions = this.permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
         let availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
         let fieldRecords: IField[] = [];
         let result;
-        let metadataFilter;
         // we obtain the data by different requests
         // admin used will not filtered by metadata filters
-        if (requester.type === enumUserTypes.ADMIN) {
-            if (versionId !== undefined) {
-                if (versionId === null) {
-                    availableDataVersions.push(null);
-                } else if (versionId === '-1') {
-                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
-                } else {
-                    availableDataVersions = [versionId];
-                }
+        if (versionId !== undefined) {
+            if (versionId === null) {
+                availableDataVersions.push(null);
+            } else if (versionId === '-1') {
+                availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+            } else {
+                availableDataVersions = [versionId];
             }
-
-            fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+        }
+        if (requester.type === enumUserTypes.ADMIN) {
+            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
                 $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
             }, {
                 $sort: { 'life.createdTime': -1 }
@@ -394,129 +279,59 @@ export class StudyCore {
                 }
             }, {
                 $sort: { fieldId: 1 }
-            }]).toArray()).filter(el => el.life.deletedTime === null);
+            }]).toArray();
             if (queryString.data_requested && queryString.data_requested.length > 0) {
                 fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
             }
-            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, true, versionId === null);
+            const pipeline = buildPipeline(studyId, roles, fieldRecords, availableDataVersions, queryString.data_requested ?? []);
             result = await this.db.collections.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
         } else {
-            const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
-            aggregatedPermissions.matchObj.forEach((subMetadata) => {
-                subqueries.push(translateMetadata(subMetadata));
-            });
-            metadataFilter = { $or: subqueries };
-            // unversioned data: metadatafilter for versioned data and all unversioned tags
-            if (versionId === null && aggregatedPermissions.hasVersioned) {
-                availableDataVersions.push(null);
-                fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
-                }, {
-                    $sort: { 'life.createdTime': -1 }
-                }, {
-                    $match: {
-                        $or: [
-                            metadataFilter,
-                            { m_versionId: null }
-                        ]
+            const matchFilter: Filter<IField>[] = [];
+            for (const role of roles) {
+                for (const dataPermission of role.dataPermissions) {
+                    if (permissionString[enumDataAtomicPermissions.READ].includes(dataPermission.permission)) {
+                        for (const re of dataPermission.fields) {
+                            matchFilter.push({ fieldId: { $regex: re }, dataVersion: { $in: availableDataVersions } });
+                        }
                     }
-                }, {
-                    $group: {
-                        _id: '$fieldId',
-                        doc: { $first: '$$ROOT' }
-                    }
-                }, {
-                    $replaceRoot: {
-                        newRoot: '$doc'
-                    }
-                }, {
-                    $sort: { fieldId: 1 }
-                }]).toArray()).filter(el => el.life.deletedTime === null);
-                if (queryString.data_requested && queryString.data_requested?.length > 0) {
-                    fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
-                }
-            } else if (versionId === undefined || versionId === '-1') {
-                if (versionId === '-1') {
-                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
-                }
-                fieldRecords = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
-                }, {
-                    $sort: { 'life.createdTime': -1 }
-                }, {
-                    $match: {
-                        $or: [
-                            metadataFilter
-                        ]
-                    }
-                }, {
-                    $group: {
-                        _id: '$fieldId',
-                        doc: { $first: '$$ROOT' }
-                    }
-                }, {
-                    $replaceRoot: {
-                        newRoot: '$doc'
-                    }
-                }, {
-                    $sort: { fieldId: 1 }
-                }]).toArray()).filter(el => el.life.deletedTime === null);
-                if (queryString.data_requested && queryString.data_requested?.length > 0) {
-                    fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
-                }
-            } else if (versionId !== undefined) {
-                availableDataVersions = [versionId];
-                fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
-                }, {
-                    $sort: { dateAdded: -1 }
-                }, {
-                    $match: {
-                        $or: [
-                            metadataFilter
-                        ]
-                    }
-                }, {
-                    $group: {
-                        _id: '$fieldId',
-                        doc: { $first: '$$ROOT' }
-                    }
-                }, {
-                    $replaceRoot: {
-                        newRoot: '$doc'
-                    }
-                }, {
-                    $sort: { fieldId: 1 }
-                }]).toArray();
-                if (queryString.data_requested && queryString.data_requested?.length > 0) {
-                    fieldRecords = fieldRecords.filter(el => (queryString.data_requested || []).includes(el.fieldId));
                 }
             }
-            console.log(fieldRecords);
-            // TODO: placeholder for metadata filter
-            // if (queryString.metadata) {
-            //     metadataFilter = { $and: queryString.metadata.map((el) => translateMetadata(el)) };
-            // }
-            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false, versionId === null && aggregatedPermissions.hasVersioned);
+            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                $match: { $or: matchFilter }
+            }, {
+                $sort: { 'life.createdTime': -1 }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }, {
+                $sort: { fieldId: 1 }
+            }]).toArray();
+            const pipeline = buildPipeline(studyId, roles, fieldRecords, availableDataVersions, queryString.data_requested ?? []);
             result = await this.db.collections.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
         }
         // post processing the data
-        // 2. update to the latest data; start from first record
+        // The following code is used for IDEAFAST data type only, use trpc APIs for other datasets
         const groupedResult: IGroupedData = {};
         for (let i = 0; i < result.length; i++) {
-            const { m_subjectId, m_visitId, m_fieldId, value } = result[i];
+            const { m_subjectId, m_visitId } = result[i].properties;
+            const { fieldId, value } = result[i];
             if (!groupedResult[m_subjectId]) {
                 groupedResult[m_subjectId] = {};
             }
             if (!groupedResult[m_subjectId][m_visitId]) {
                 groupedResult[m_subjectId][m_visitId] = {};
             }
-            groupedResult[m_subjectId][m_visitId][m_fieldId] = value;
+            groupedResult[m_subjectId][m_visitId][fieldId] = value;
         }
-
         // 2. adjust format: 1) original(exists) 2) standardized - $name 3) grouped
         // when standardized data, versionId should not be specified
-        const standardizations = versionId === null ? null : await this.db.collections.standardizations_collection.find({ studyId: studyId, type: queryString['format'].split('-')[1], delete: null, dataVersion: { $in: availableDataVersions } }).toArray();
+        const standardizations = versionId === null ? null : await this.db.collections.standardizations_collection.find({ 'studyId': studyId, 'type': queryString['format'].split('-')[1], 'life.deletedTime': null, 'dataVersion': { $in: availableDataVersions } }).toArray();
         const formattedData = dataStandardization(study, fieldRecords,
             groupedResult, queryString, standardizations);
         return { data: formattedData };
@@ -538,20 +353,29 @@ export class StudyCore {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            study.id
-        );
+        const roles = await this.permissionCore.getRolesOfUser(requester, study.id);
 
-        if (!hasPermission) {
-            return [];
-        }
+        if (!roles.length) { return []; }
+
         const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const fileFieldIds: string[] = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-            $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumDataTypes.FILE }
-        }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
-            $sort: { dateAdded: -1 }
+        availableDataVersions.push(null);
+        let fieldRecords: IField[] = [];
+        let dataRecords: IData[] = [];
+
+        const matchFilter: Filter<IField>[] = [];
+        for (const role of roles) {
+            for (const dataPermission of role.dataPermissions) {
+                if (permissionString[enumDataAtomicPermissions.READ].includes(dataPermission.permission)) {
+                    for (const re of dataPermission.fields) {
+                        matchFilter.push({ fieldId: { $regex: re }, dataVersion: { $in: availableDataVersions } });
+                    }
+                }
+            }
+        }
+        fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+            $match: { $or: matchFilter, dataType: enumDataTypes.FILE }
+        }, {
+            $sort: { 'life.createdTime': -1 }
         }, {
             $group: {
                 _id: '$fieldId',
@@ -563,156 +387,50 @@ export class StudyCore {
             }
         }, {
             $sort: { fieldId: 1 }
-        }]).toArray()).map(el => el.fieldId);
-        let adds: string[] = [];
-        let removes: string[] = [];
-        // versioned data
-        if (requester.type === enumUserTypes.ADMIN) {
-            const fileRecords = await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { studyId: study.id, fieldId: { $in: fileFieldIds } }
-            }]).toArray();
-            adds = fileRecords.map(el => el.metadata?.add || []).flat();
-            removes = fileRecords.map(el => el.metadata?.remove || []).flat();
-        } else {
-            const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
-            hasPermission.matchObj.forEach((subMetadata) => {
-                subqueries.push(translateMetadata(subMetadata));
-            });
-            const metadataFilter = { $or: subqueries };
-            const versionedFileRecors = await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { studyId: study.id, dataVersion: { $in: availableDataVersions }, fieldId: { $in: fileFieldIds } }
-            }, {
-                $match: metadataFilter
-            }]).toArray();
-
-            const filters: Filter<IDataEntry>[] = [];
-            for (const role of hasPermission.roleraw) {
-                if (!(role.hasVersioned)) {
-                    continue;
-                }
-                filters.push({
-                    'properties.m_subjectId': { $in: role.subjectIds.map((el: string) => new RegExp(el)) },
-                    'properties.m_visitId': { $in: role.visitIds.map((el: string) => new RegExp(el)) },
-                    'fieldId': { $in: role.fieldIds.map((el: string) => new RegExp(el)) },
-                    'dataVersion': null
-                });
-            }
-            let unversionedFileRecords: IDataEntry[] = [];
-            if (filters.length !== 0) {
-                unversionedFileRecords = await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                    $match: { studyId: study.id, dataVersion: null, fieldId: { $in: fileFieldIds } }
-                }, {
-                    $match: { $or: filters }
-                }]).toArray();
-            }
-            adds = versionedFileRecors.map(el => el.metadata?.add || []).flat();
-            removes = versionedFileRecors.map(el => el.metadata?.remove || []).flat();
-            adds = adds.concat(unversionedFileRecords.map(el => el.metadata?.add || []).flat());
-            removes = removes.concat(unversionedFileRecords.map(el => el.metadata?.remove || []).flat());
-        }
-        return await this.db.collections.files_collection.find({ studyId: study.id, deleted: null, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).sort({ uploadTime: -1 }).toArray();
+        }]).toArray();
+        const pipeline = buildPipeline(study.id, roles, fieldRecords, availableDataVersions);
+        dataRecords = await this.db.collections.data_collection.aggregate<IData>(pipeline, { allowDiskUse: true }).toArray();
+        const files = await this.db.collections.files_collection.find({ id: { $in: dataRecords.map(el => String(el.value)) } }).toArray();
+        return files.map(el => {
+            return {
+                ...el,
+                uploadTime: el.life.createdTime,
+                uploadedBy: el.life.createdUser
+            };
+        });
     }
 
     public async getStudySubjects(requester: IUserWithoutToken | undefined, study: IStudy) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            study.id
-        );
-        if (!hasPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, study.id);
+        if (!roles.length) {
             return [[], []];
         }
-        const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const versionedSubjects = (await this.db.collections.data_collection.distinct('properties.m_subjectId', {
-            'studyId': study.id,
-            'dataVersion': availableDataVersions[availableDataVersions.length - 1],
-            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            'value': { $ne: null }
-        })).sort() || [];
-        const unVersionedSubjects = hasPermission.hasVersioned ? (await this.db.collections.data_collection.distinct('properties.m_subjectId', {
-            'studyId': study.id,
-            'dataVersion': null,
-            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            'value': { $ne: null }
-        })).sort() || [] : [];
-        return [versionedSubjects, unVersionedSubjects];
+        return [[], []];
     }
 
     public async getStudyVisits(requester: IUserWithoutToken | undefined, study: IStudy) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            study.id
-        );
-        if (!hasPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, study.id);
+        if (!roles.length) {
             return [[], []];
         }
-        const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const versionedVisits = (await this.db.collections.data_collection.distinct('properties.m_visitId', {
-            'studyId': study.id,
-            'dataVersion': availableDataVersions[availableDataVersions.length - 1],
-            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            'value': { $ne: null }
-        })).sort((a, b) => parseFloat(a) - parseFloat(b));
-        const unVersionedVisits = hasPermission.hasVersioned ? (await this.db.collections.data_collection.distinct('properties.m_visitId', {
-            'studyId': study.id,
-            'dataVersion': null,
-            'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-            'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-            'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-            'value': { $ne: null }
-        })).sort((a, b) => parseFloat(a) - parseFloat(b)) : [];
-        return [versionedVisits, unVersionedVisits];
+        return [[], []];
     }
 
     public async getStudyNumOfRecords(requester: IUserWithoutToken | undefined, study: IStudy) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            study.id
-        );
-        if (!hasPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, study.id);
+        if (!roles.length) {
             return [0, 0];
         }
-        const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const numberOfVersioned: number = (await this.db.collections.data_collection.aggregate([{
-            $match: { studyId: study.id, dataVersion: availableDataVersions[availableDataVersions.length - 1], value: { $ne: null } }
-        }, {
-            $match: {
-                'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
-            }
-        }, {
-            $count: 'count'
-        }]).toArray())[0]?.['count'] || 0;
-        const numberOfUnVersioned: number = hasPermission.hasVersioned ? (await this.db.collections.data_collection.aggregate([{
-            $match: { studyId: study.id, dataVersion: null, value: { $ne: null } }
-        }, {
-            $match: {
-                'properties.m_subjectId': { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                'properties.m_visitId': { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                'fieldId': { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
-            }
-        }, {
-            $count: 'count'
-        }]).toArray())[0]?.['count'] || 0 : 0;
-        return [numberOfVersioned, numberOfUnVersioned];
+        return [0, 0];
     }
 
     public async getStudyCurrentDataVersion(study: IStudy) {
@@ -723,77 +441,11 @@ export class StudyCore {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            project.studyId,
-            project.id
-        );
-        if (!hasProjectLevelPermission) { return []; }
-        // get all dataVersions that are valid (before the current version)
-        const study = await this.findOneStudy_throwErrorIfNotExist(project.studyId);
-
-        // the processes of requiring versioned data and unversioned data are different
-        // check the metadata:role:**** for versioned data directly
-        // check the regular expressions for unversioned data
-        const availableDataVersions: string[] = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const availableTrees: IOntologyTree[] = [];
-        const trees: IOntologyTree[] = study.ontologyTrees || [];
-        for (let i = trees.length - 1; i >= 0; i--) {
-            if (availableDataVersions.includes(trees[i].dataVersion || '')
-                && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
-                availableTrees.push(trees[i]);
-            } else {
-                continue;
-            }
-        }
-        if (availableTrees.length === 0) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, project.studyId);
+        if (!roles.length) {
             return [];
         }
-        const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
-        let fieldRecords: IField[] = [];
-        if (requester.type === enumUserTypes.ADMIN) {
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }, {
-                $set: { metadata: null }
-            }]).toArray();
-        } else {
-            // metadata filter
-            const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
-            hasProjectLevelPermission.matchObj.forEach((subMetadata) => {
-                subqueries.push(translateMetadata(subMetadata));
-            });
-            const metadataFilter = { $or: subqueries };
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-                $match: { 'studyId': project.studyId, 'life.deletedTime': null, 'dataVersion': { $in: availableDataVersions }, 'fieldId': { $in: ontologyTreeFieldIds } }
-            }, { $match: metadataFilter }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }, {
-                $set: { metadata: null }
-            }]).toArray();
-        }
-        return fieldRecords;
+        return [];
     }
 
     public async getProjectJobs(project: Omit<IProject, 'patientMapping'>) {
@@ -804,70 +456,69 @@ export class StudyCore {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            project.studyId,
-            project.id
-        );
-        if (!hasPermission) {
+        const study = await this.db.collections.studies_collection.findOne({ id: project.studyId });
+        if (!study) {
             return [];
         }
-        const study = await this.findOneStudy_throwErrorIfNotExist(project.studyId);
-        const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        const availableTrees: IOntologyTree[] = [];
-        const trees: IOntologyTree[] = study.ontologyTrees || [];
-        for (let i = trees.length - 1; i >= 0; i--) {
-            if (availableDataVersions.includes(trees[i].dataVersion || '')
-                && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
-                availableTrees.push(trees[i]);
-            } else {
-                continue;
-            }
-        }
-        if (availableTrees.length === 0) {
-            return [];
-        }
-        const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
-        const fileFieldIds: string[] = (await this.db.collections.field_dictionary_collection.aggregate<IField>([{
-            $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumDataTypes.FILE }
-        }, { $match: { $and: [{ fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } }, { fieldId: { $in: ontologyTreeFieldIds } }] } }, {
-            $group: {
-                _id: '$fieldId',
-                doc: { $last: '$$ROOT' }
-            }
-        }, {
-            $replaceRoot: {
-                newRoot: '$doc'
-            }
-        }, {
-            $sort: { fieldId: 1 }
-        }]).toArray()).map(el => el.fieldId);
-        let add: string[] = [];
-        let remove: string[] = [];
-        if (Object.keys(hasPermission.matchObj).length === 0) {
-            (await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { studyId: study.id, dataVersion: { $in: availableDataVersions }, fieldId: { $in: fileFieldIds } }
-            }]).toArray()).forEach(element => {
-                add = add.concat(element.metadata?.add || []);
-                remove = remove.concat(element.metadata?.remove || []);
-            });
-        } else {
-            const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
-            hasPermission.matchObj.forEach((subMetadata) => {
-                subqueries.push(translateMetadata(subMetadata));
-            });
-            const metadataFilter = { $or: subqueries };
-            (await this.db.collections.data_collection.aggregate<IDataEntry>([{
-                $match: { studyId: study.id, dataVersion: { $in: availableDataVersions }, fieldId: { $in: fileFieldIds } }
+        const roles = await this.permissionCore.getRolesOfUser(requester, study.id);
+
+        if (requester.type !== enumUserTypes.ADMIN && !roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+
+        const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+        availableDataVersions.push(null);
+        let fieldRecords: IField[] = [];
+        let dataRecords: IData[] = [];
+
+        if (requester.type === enumUserTypes.ADMIN) {
+            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                $match: { studyId: study.id, dataVersion: { $in: availableDataVersions } }
             }, {
-                $match: metadataFilter
-            }]).toArray()).forEach(element => {
-                add = add.concat(element.metadata?.add || []);
-                remove = remove.concat(element.metadata?.remove || []);
-            });
+                $sort: { 'life.createdTime': -1 }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }, {
+                $sort: { fieldId: 1 }
+            }]).toArray();
+            const pipeline = buildPipeline(study.id, roles, fieldRecords, availableDataVersions);
+            dataRecords = await this.db.collections.data_collection.aggregate<IData>(pipeline, { allowDiskUse: true }).toArray();
+        } else {
+            const matchFilter: Filter<IField>[] = [];
+            for (const role of roles) {
+                for (const dataPermission of role.dataPermissions) {
+                    if (permissionString[enumDataAtomicPermissions.READ].includes(dataPermission.permission)) {
+                        for (const re of dataPermission.fields) {
+                            matchFilter.push({ fieldId: { $regex: re }, dataVersion: { $in: availableDataVersions } });
+                        }
+                    }
+                }
+            }
+            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate<IField>([{
+                $match: { $or: matchFilter }
+            }, {
+                $sort: { 'life.createdTime': -1 }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }, {
+                $sort: { fieldId: 1 }
+            }]).toArray();
+            const pipeline = buildPipeline(study.id, roles, fieldRecords, availableDataVersions);
+            dataRecords = await this.db.collections.data_collection.aggregate<IData>(pipeline, { allowDiskUse: true }).toArray();
         }
-        return await this.db.collections.files_collection.find({ $and: [{ id: { $in: add } }, { id: { $nin: remove } }] }).toArray();
+        return await this.db.collections.files_collection.find({ id: { $in: dataRecords.map(el => String(el.value)) } }).toArray();
     }
 
     public async getProjectDataVersion(project: IProject) {
@@ -891,80 +542,11 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* user can get study if he has readonly permission */
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            project.studyId
-        );
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            project.studyId,
-            project.id
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
-        // get all dataVersions that are valid (before the current version)
-        const aggregatedPermissions = this.permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
-
-        let metadataFilter;
-
-        const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        // ontology trees
-        const availableTrees: IOntologyTree[] = [];
-        const trees: IOntologyTree[] = study.ontologyTrees || [];
-        for (let i = trees.length - 1; i >= 0; i--) {
-            if (availableDataVersions.includes(trees[i].dataVersion || '')
-                && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
-                availableTrees.push(trees[i]);
-            } else {
-                continue;
-            }
-        }
-        // const ontologyTreeFieldIds = (availableTrees[0]?.routes || []).map(el => el.field[0].replace('$', ''));
-
-        let fieldRecords;
-        if (requester.type === enumUserTypes.ADMIN) {
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate([{
-                $match: { 'studyId': project.studyId, 'life.deletedTime': null, 'dataVersion': { $in: availableDataVersions } }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }]).toArray();
-        } else {
-            const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
-            aggregatedPermissions.matchObj.forEach((subMetadata) => {
-                subqueries.push(translateMetadata(subMetadata));
-            });
-            metadataFilter = { $or: subqueries };
-            fieldRecords = await this.db.collections.field_dictionary_collection.aggregate([{
-                $match: { 'studyId': project.studyId, 'life.deletedTime': null, 'dataVersion': { $in: availableDataVersions } }
-            }, { $match: metadataFilter }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }]).toArray();
-        }
-        // fieldRecords = fieldRecords.filter(el => ontologyTreeFieldIds.includes(el.fieldId));
-        const emptyQueryString: IQueryString = {
-            cohort: [[]],
-            new_fields: []
-        };
-        const pipeline = buildPipeline(emptyQueryString, project.studyId, [availableDataVersions[availableDataVersions.length - 1]], fieldRecords as IField[], metadataFilter, requester.type === enumUserTypes.ADMIN, false);
-        const result = await this.db.collections.data_collection.aggregate<{ m_subjectId: string, m_visitId: string, m_fieldId: string, value: unknown }>(pipeline, { allowDiskUse: true }).toArray();
-        summary['subjects'] = Array.from(new Set(result.map((el) => el.m_subjectId))).sort();
-        summary['visits'] = Array.from(new Set(result.map((el) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
-        summary['standardizationTypes'] = (await this.db.collections.standardizations_collection.distinct('type', { studyId: study.id, deleted: null })).sort();
+        const roles = await this.permissionCore.getRolesOfUser(requester, project.studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        summary['subjects'] = [];
+        summary['visits'] = [];
+        summary['standardizationTypes'] = [];
         return summary;
     }
 
@@ -972,13 +554,9 @@ export class StudyCore {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        /* check privileges */
-        if (!(await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,  // patientMapping is not visible to project users; only to study users.
-            requester,
-            project.studyId
-        ))) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
+        const roles = await this.permissionCore.getRolesOfUser(requester, project.studyId);
+        if (!roles.length) {
+            return null;
         }
 
         /* returning */
@@ -1076,7 +654,7 @@ export class StudyCore {
             error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'bool' for boolean, 'date' for datetime, 'file' for FILE, 'json' for json.`);
         }
         // check possiblevalues to be not-empty if datatype is categorical
-        if (fieldEntry.dataType === 'cat') {
+        if (fieldEntry.dataType === enumDataTypes.CATEGORICAL) {
             if (fieldEntry.possibleValues !== undefined && fieldEntry.possibleValues !== null) {
                 if (fieldEntry.possibleValues.length === 0) {
                     error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: possible values can't be empty if data type is categorical.`);
@@ -1094,7 +672,7 @@ export class StudyCore {
             fieldName: fieldEntry.fieldName,
             tableName: null,
             dataType: fieldEntry.dataType,
-            possibleValues: fieldEntry.dataType === 'cat' ? fieldEntry.possibleValues : null,
+            possibleValues: fieldEntry.dataType === enumDataTypes.CATEGORICAL ? fieldEntry.possibleValues : null,
             unit: fieldEntry.unit,
             comments: fieldEntry.comments,
             metadata: {
@@ -1113,15 +691,10 @@ export class StudyCore {
         }
         /* check privileges */
         /* user can get study if he has readonly permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
-
         // check study exists
         await this.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -1137,7 +710,7 @@ export class StudyCore {
         for (const oneFieldInput of filteredFieldInput) {
             isError = false;
             // check data valid
-            if (!(this.permissionCore.checkDataEntryValid(hasPermission.raw, oneFieldInput.fieldId))) {
+            if (!(await this.permissionCore.checkFieldPermission(roles, oneFieldInput, enumDataAtomicPermissions.WRITE))) {
                 isError = true;
                 response.push({ successful: false, code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have permissions to create this field.' });
                 continue;
@@ -1177,6 +750,25 @@ export class StudyCore {
                             return enumDataTypes.STRING;
                         }
                     })(),
+                    properties: oneFieldInput.fieldId.startsWith('Device') ? [{
+                        name: 'participantId',
+                        required: true
+                    }, {
+                        name: 'deviceId',
+                        required: true
+                    }, {
+                        name: 'startDate',
+                        required: true
+                    }, {
+                        name: 'endDate',
+                        required: true
+                    }] : [{
+                        name: 'm_subjectId',
+                        required: true
+                    }, {
+                        name: 'm_visitId',
+                        required: true
+                    }],
                     categoricalOptions: oneFieldInput.dataType === 'cat' ? oneFieldInput.possibleValues : undefined,
                     unit: oneFieldInput.unit,
                     comments: oneFieldInput.comments,
@@ -1216,6 +808,27 @@ export class StudyCore {
         }
         searchField.fieldId = fieldInput.fieldId;
         searchField.fieldName = fieldInput.fieldName;
+        searchField.dataType = (() => {
+            if (fieldInput.dataType === 'int') {
+                return enumDataTypes.INTEGER;
+            } else if (fieldInput.dataType === 'dec') {
+                return enumDataTypes.DECIMAL;
+            } else if (fieldInput.dataType === 'str') {
+                return enumDataTypes.STRING;
+            } else if (fieldInput.dataType === 'bool') {
+                return enumDataTypes.BOOLEAN;
+            } else if (fieldInput.dataType === 'date') {
+                return enumDataTypes.DATETIME;
+            } else if (fieldInput.dataType === 'file') {
+                return enumDataTypes.FILE;
+            } else if (fieldInput.dataType === 'json') {
+                return enumDataTypes.JSON;
+            } else if (fieldInput.dataType === 'cat') {
+                return enumDataTypes.CATEGORICAL;
+            } else {
+                return enumDataTypes.STRING;
+            }
+        })();
         if (fieldInput.tableName) {
             searchField.metadata['tableName'] = fieldInput.tableName;
         }
@@ -1232,7 +845,7 @@ export class StudyCore {
             searchField.comments = fieldInput.comments;
         }
 
-        const { error } = await this.validateAndGenerateFieldEntry({ ...this.fieldTypeConverter([searchField])[0], dataType: fieldInput.dataType }, requester);
+        const { error } = await this.validateAndGenerateFieldEntry(searchField, requester);
         if (error.length !== 0) {
             throw new GraphQLError(JSON.stringify(error), { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
         }
@@ -1267,16 +880,12 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
-        if (!(await this.permissionCore.checkDataEntryValid(hasPermission.raw, fieldId))) {
+        if (!(await this.permissionCore.checkFieldPermission(roles, { fieldId: fieldId }, enumDataAtomicPermissions.DELETE))) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -1336,12 +945,8 @@ export class StudyCore {
         }
         /* check privileges */
         /* user can get study if he has readonly permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -1363,7 +968,7 @@ export class StudyCore {
         ]).toArray();
         // filter those that have been deleted
         const fieldsList = fieldRecords.map(el => el['doc']).filter(eh => eh.life.deletedTime === null);
-        const response = (await this.uploadOneDataClip(studyId, hasPermission.raw, fieldsList, data, requester));
+        const response = (await this.uploadOneDataClip(requester, studyId, roles, fieldsList, data));
 
         return response;
     }
@@ -1376,12 +981,8 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -1409,10 +1010,7 @@ export class StudyCore {
         for (const subjectId of validSubjects) {
             for (const visitId of validVisits) {
                 for (const fieldId of validFields) {
-                    if (!(await this.permissionCore.checkDataEntryValid(hasPermission.raw, fieldId, subjectId, visitId))) {
-                        continue;
-                    }
-                    bulk.insert({
+                    const dataEntry: IData = {
                         studyId: studyId,
                         fieldId: fieldId,
                         value: null,
@@ -1427,8 +1025,14 @@ export class StudyCore {
                             deletedTime: Date.now(),
                             deletedUser: requester.id
                         },
-                        id: uuid()
-                    });
+                        id: uuid(),
+                        metadata: {}
+                    };
+                    if (!(await this.permissionCore.checkDataPermission(roles, dataEntry, enumDataAtomicPermissions.DELETE))) {
+                        response.push({ successful: false, description: `SubjectId-${subjectId}:visitId-${visitId}:fieldId-${fieldId} does not have permission to delete.` });
+                        continue;
+                    }
+                    bulk.insert(dataEntry);
                     response.push({ successful: true, description: `SubjectId-${subjectId}:visitId-${visitId}:fieldId-${fieldId} is deleted.` });
                 }
             }
@@ -1517,88 +1121,6 @@ export class StudyCore {
             }
         });
 
-        // update permissions based on roles
-        const roles = await this.db.collections.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
-        for (const role of roles) {
-            const filters: ICombinedPermissions = {
-                subjectIds: role.permissions.data?.subjectIds || [],
-                visitIds: role.permissions.data?.visitIds || [],
-                fieldIds: role.permissions.data?.fieldIds || []
-            };
-            // deal with data filters
-            let validSubjects: Array<string | RegExp> | null = null;
-            if (role.permissions.data?.filters) {
-                if (role.permissions.data.filters.length > 0) {
-                    validSubjects = [];
-                    const subqueries = translateCohort(role.permissions.data.filters);
-                    validSubjects = (await this.db.collections.data_collection.aggregate<{
-                        'm_subjectId': string, m_visitId: string, fieldId: string, value: string | number | boolean | { [key: string]: unknown }
-                    }>([{
-                        $match: { fieldId: { $in: role.permissions.data.filters.map(el => el.field) } }
-                    },
-                    {
-                        $sort: { uploadedAt: -1 }
-                    }, {
-                        $group: {
-                            _id: { m_subjectId: '$properties.m_subjectId', m_visitId: '$properties.m_visitId', m_fieldId: '$fieldId' },
-                            doc: { $first: '$$ROOT' }
-                        }
-                    }, {
-                        $project: {
-                            m_subjectId: '$doc.properties.m_subjectId',
-                            m_visitId: '$doc.properties.m_visitId',
-                            m_fieldId: '$doc.fieldId',
-                            value: '$doc.value',
-                            _id: 0
-                        }
-                    }, {
-                        $match: { $and: subqueries }
-                    }], { allowDiskUse: true }).toArray()).map(el => el.m_subjectId);
-                }
-            }
-            if (validSubjects === null) {
-                validSubjects = [/^.*$/];
-            }
-            const tag = `metadata.${'role:'.concat(role.id)}`;
-            await this.db.collections.data_collection.updateMany({
-                'studyId': studyId,
-                'dataVersion': newDataVersionId,
-                '$and': [
-                    { 'properties.m_subjectId': { $in: filters.subjectIds.map((el: string) => new RegExp(el)) } },
-                    { 'properties.m_subjectId': { $in: validSubjects } }
-                ],
-                'properties.m_visitId': { $in: filters.visitIds.map((el: string) => new RegExp(el)) },
-                'fieldId': { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
-            }, {
-                $set: { [tag]: true }
-            });
-            await this.db.collections.data_collection.updateMany({
-                studyId: studyId,
-                dataVersion: newDataVersionId,
-                $or: [
-                    { 'properties.m_subjectId': { $nin: filters.subjectIds.map((el: string) => new RegExp(el)) } },
-                    { 'properties.m_subjectId': { $nin: validSubjects } },
-                    { 'properties.m_visitId': { $nin: filters.visitIds.map((el: string) => new RegExp(el)) } },
-                    { fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) } }
-                ]
-            }, {
-                $set: { [tag]: false }
-            });
-            await this.db.collections.field_dictionary_collection.updateMany({
-                studyId: studyId,
-                dataVersion: newDataVersionId,
-                fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
-            }, {
-                $set: { [tag]: true }
-            });
-            await this.db.collections.field_dictionary_collection.updateMany({
-                studyId: studyId,
-                dataVersion: newDataVersionId,
-                fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) }
-            }, {
-                $set: { [tag]: false }
-            });
-        }
         if (newDataVersion === null) {
             throw new GraphQLError('No matched or modified records', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
@@ -1609,7 +1131,7 @@ export class StudyCore {
         };
     }
 
-    public async uploadOneDataClip(studyId: string, permissions, fieldList: Partial<IField>[], data: IDataClip[], requester: IUserWithoutToken): Promise<unknown> {
+    public async uploadOneDataClip(requester: IUserWithoutToken, studyId: string, roles: IRole[], fieldList: Partial<IField>[], data: IDataClip[]): Promise<unknown> {
         const response: IGenericResponse[] = [];
         let bulk = this.db.collections.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
@@ -1630,7 +1152,26 @@ export class StudyCore {
                 response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
                 continue;
             }
-            if (!(await this.permissionCore.checkDataEntryValid(permissions, dataClip.fieldId, dataClip.subjectId, dataClip.visitId))) {
+            const dataEntry: IData = {
+                id: uuid(),
+                studyId: studyId,
+                fieldId: dataClip.fieldId,
+                dataVersion: null,
+                value: null,
+                properties: {
+                    m_subjectId: dataClip.subjectId,
+                    m_visitId: dataClip.visitId
+                },
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: requester.id,
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+
+            if (!(await this.permissionCore.checkDataPermission(roles, dataEntry, enumDataAtomicPermissions.WRITE))) {
                 response.push({ successful: false, code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have access to this field.' });
                 continue;
             }
@@ -1921,13 +1462,8 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* user can get study if he has readonly permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.ontologyTrees,
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         // in case of old documents whose ontologyTrees are invalid
         if (study.ontologyTrees === undefined || study.ontologyTrees === null) {
@@ -1976,13 +1512,8 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* user can get study if he has readonly permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.ontologyTrees,
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         const resultAdd = await this.db.collections.studies_collection.findOneAndUpdate({
             id: studyId, deleted: null, ontologyTrees: {
@@ -2023,14 +1554,9 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        if (!(await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.own,
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        ))) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-        }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+
 
         /* making sure that the study exists first */
         await this.findOneStudy_throwErrorIfNotExist(studyId);
@@ -2091,7 +1617,7 @@ export class StudyCore {
             await this.db.collections.projects_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             /* delete all roles related to the study */
-            await this.permissionCore.removeRoleFromStudyOrProject({ studyId });
+            await this.db.collections.roles_collection.updateMany({ studyId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': timestamp, 'life.deletedUser': requester.id } });
 
             /* delete all files belong to the study*/
             await this.db.collections.files_collection.updateMany({ studyId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': timestamp } });
@@ -2116,14 +1642,9 @@ export class StudyCore {
         const project = await this.findOneProject_throwErrorIfNotExist(projectId);
 
         /* check privileges */
-        if (!(await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.own,
-            atomicOperation.WRITE,
-            requester,
-            project.studyId
-        ))) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-        }
+        const roles = await this.permissionCore.getRolesOfUser(requester, project.studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+
 
         /* delete project */
         const timestamp = new Date().valueOf();
@@ -2132,7 +1653,7 @@ export class StudyCore {
         await this.db.collections.projects_collection.findOneAndUpdate({ id: projectId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } }, { returnDocument: 'after' });
 
         /* delete all roles related to the study */
-        await this.permissionCore.removeRoleFromStudyOrProject({ projectId });
+        await this.db.collections.roles_collection.updateMany({ projectId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': timestamp, 'life.deletedUser': requester.id } });
         return makeGenericReponse(projectId);
     }
 
@@ -2141,14 +1662,11 @@ export class StudyCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check privileges */
-        if (!(await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.own,
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        ))) {
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (requester.type !== enumUserTypes.ADMIN && roles.every(el => el.studyRole !== enumStudyRoles.STUDY_MANAGER)) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
+
 
         const study = await this.findOneStudy_throwErrorIfNotExist(studyId);
 

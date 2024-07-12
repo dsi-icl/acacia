@@ -20,14 +20,14 @@ export const studyResolvers: DMPResolversMap = {
         getProject: async (_parent, args: { projectId: string }, context) => {
             return await studyCore.getProject(context.req.user, args.projectId);
         },
-        getStudyFields: async (_parent, { studyId, projectId, versionId }: { studyId: string, projectId?: string, versionId?: string | null }, context) => {
-            return await studyCore.getStudyFields(context.req.user, studyId, projectId, versionId);
+        getStudyFields: async (_parent, { studyId, versionId }: { studyId: string, versionId?: string | null }, context) => {
+            return await studyCore.getStudyFields(context.req.user, studyId, versionId);
         },
-        getOntologyTree: async (_parent, { studyId, projectId, treeName, versionId }: { studyId: string, projectId?: string, treeName?: string, versionId?: string }, context) => {
-            return await studyCore.getOntologyTree(context.req.user, studyId, projectId, treeName, versionId);
+        getOntologyTree: async (_parent, { studyId, treeName, versionId }: { studyId: string, treeName?: string, versionId?: string }, context) => {
+            return await studyCore.getOntologyTree(context.req.user, studyId, treeName, versionId);
         },
-        getDataRecords: async (_parent, { studyId, queryString, versionId, projectId }: { queryString, studyId: string, versionId: string | null | undefined, projectId?: string }, context) => {
-            return await studyCore.getDataRecords(context.req.user, queryString, studyId, versionId, projectId);
+        getDataRecords: async (_parent, { studyId, queryString, versionId }: { queryString, studyId: string, versionId: string | null | undefined }, context) => {
+            return await studyCore.getDataRecords(context.req.user, queryString, studyId, versionId);
         }
     },
     Study: {

@@ -1,9 +1,8 @@
-import { IFile, IPermissionManagementOptions, IUserWithoutToken, atomicOperation, deviceTypes, enumFileCategories, enumFileTypes } from '@itmat-broker/itmat-types';
+import { IData, IFile, IUserWithoutToken, deviceTypes, enumDataAtomicPermissions, enumDataTypes, enumFileCategories, enumFileTypes, enumReservedKeys } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
 import { FileUpload } from 'graphql-upload-minimal';
 import { GraphQLError } from 'graphql';
-import { validate } from '@ideafast/idgen';
 import { fileSizeLimit } from '../utils/definition';
 import crypto from 'crypto';
 import { makeGenericReponse } from '../utils/responses';
@@ -13,7 +12,6 @@ import { StudyCore } from './studyCore';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 
 // default visitId for file data
-const targetVisitId = '0';
 export class FileCore {
     db: DBType;
     permissionCore: PermissionCore;
@@ -32,30 +30,12 @@ export class FileCore {
         }
         // get the target fieldId of this file
         const study = await this.studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-
-        const hasStudyLevelSubjectPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        const hasStudyLevelStudyDataPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.own,
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasStudyLevelSubjectPermission && !hasStudyLevelStudyDataPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         let targetFieldId: string;
         let isStudyLevel = false;
-        const organisations = await this.db.collections.organisations_collection.find({ 'life.deletedTime': null }).toArray();
-        const sitesIDMarkers: Record<string, string> = organisations.reduce((acc, curr) => {
-            if (curr.metadata['siteIDMarker']) {
-                acc[String(curr.metadata['siteIDMarker'])] = curr.shortname ?? curr.name;
-            }
-            return acc;
-        }, {});
-
+        let dataEntry: IData | null = null;
         // if the description object is empty, then the file is study-level data
         // otherwise, a subjectId must be provided in the description object
         // we will check other properties in the decription object (deviceId, startDate, endDate)
@@ -65,21 +45,24 @@ export class FileCore {
         }
         if (!parsedDescription.participantId) {
             isStudyLevel = true;
+            targetFieldId = enumReservedKeys.STUDY_LEVEL_DATA;
+            dataEntry = {
+                id: uuid(),
+                studyId: studyId,
+                fieldId: targetFieldId,
+                dataVersion: null,
+                value: '',
+                properties: {},
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: requester.id,
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
         } else {
             isStudyLevel = false;
-            if (!Object.keys(sitesIDMarkers).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase())) {
-                throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-            }
-            // check deviceId, startDate, endDate if necessary
-            if (parsedDescription.deviceId && parsedDescription.startDate && parsedDescription.endDate) {
-                if (!Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
-                    !validate(parsedDescription.participantId?.substr(1) ?? '') ||
-                    !validate(parsedDescription.deviceId.substr(3) ?? '')) {
-                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-                }
-            } else {
-                throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-            }
             // if the targetFieldId is in the description object; then use the fieldId, otherwise, infer it from the device types
             if (parsedDescription.fieldId) {
                 targetFieldId = parsedDescription.fieldId;
@@ -88,70 +71,44 @@ export class FileCore {
                 targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
             }
             // check fieldId exists
-            if ((await this.db.collections.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
+            if ((await this.db.collections.field_dictionary_collection.find({ 'studyId': study.id, 'fieldId': targetFieldId, 'life.deletedTime': null }).sort({ 'life.createdTime': -1 }).limit(1).toArray()).length === 0) {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
+            dataEntry = {
+                id: uuid(),
+                studyId: studyId,
+                fieldId: targetFieldId,
+                dataVersion: null,
+                value: '',
+                properties: {
+                    participantId: parsedDescription.participantId,
+                    deviceId: parsedDescription.deviceId,
+                    startDate: parsedDescription.startDate,
+                    endDate: parsedDescription.endDate
+                },
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: requester.id,
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
             // check field permission
-            if (!this.permissionCore.checkDataEntryValid(await this.permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, studyId, undefined), targetFieldId, parsedDescription.participantId, targetVisitId)) {
+            if (!this.permissionCore.checkDataPermission(roles, dataEntry, enumDataAtomicPermissions.WRITE)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
+            // TODO: check data is valid
         }
 
         const file_ = await file;
-        const fileNameParts = file_.filename.split('.');
 
         return new Promise((resolve, reject) => {
             (async () => {
                 try {
-                    let fileName: string = file_.filename;
+                    const fileName: string = file_.filename;
                     let metadata: Record<string, unknown> = {};
                     if (!isStudyLevel) {
-                        const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
-                        let startDate;
-                        let endDate;
-                        let participantId;
-                        let deviceId;
-                        // check description first, then filename
-                        if (description) {
-                            const parsedDescription = JSON.parse(description);
-                            startDate = parseInt(parsedDescription.startDate);
-                            endDate = parseInt(parsedDescription.endDate);
-                            participantId = parsedDescription.participantId.toString();
-                            deviceId = parsedDescription.deviceId.toString();
-                        } else if (matcher.test(file_.filename)) {
-                            const particles = file_.filename.split('-');
-                            participantId = particles[0];
-                            deviceId = particles[1];
-                            startDate = particles[2];
-                            endDate = particles[3];
-                        } else {
-                            reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                            return;
-                        }
-
-
-                        try {
-                            if (
-                                !Object.keys(sitesIDMarkers).includes(participantId.substr(0, 1)?.toUpperCase()) ||
-                                !Object.keys(deviceTypes).includes(deviceId.substr(0, 3)?.toUpperCase()) ||
-                                !validate(participantId.substr(1) ?? '') ||
-                                !validate(deviceId.substr(3) ?? '') ||
-                                !startDate || !endDate ||
-                                (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
-                            ) {
-                                reject(new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                                return;
-                            }
-                        } catch (e) {
-                            reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                            return;
-                        }
-
-                        const typedStartDate = new Date(startDate);
-                        const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
-                        const typedEndDate = new Date(endDate);
-                        const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
-                        fileName = `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
                         metadata = {
                             participantId: parsedDescription.participantId,
                             deviceId: parsedDescription.deviceId,
@@ -225,36 +182,14 @@ export class FileCore {
                         },
                         metadata: metadata
                     };
-                    if (!isStudyLevel) {
-                        await this.db.collections.data_collection.insertOne({
-                            id: uuid(),
-                            studyId: studyId,
-                            fieldId: targetFieldId,
-                            dataVersion: null,
-                            value: fileEntry.id,
-                            properties: {
-                                m_subjectId: parsedDescription.participantId,
-                                m_visitId: targetVisitId
-                            },
-                            life: {
-                                createdTime: Date.now(),
-                                createdUser: requester.id,
-                                deletedTime: null,
-                                deletedUser: null
-                            },
-                            metadata: {}
-                        });
-                    }
-                    const insertResult = await this.db.collections.files_collection.insertOne(fileEntry);
-                    if (insertResult.acknowledged) {
-                        resolve({
-                            ...fileEntry,
-                            uploadTime: fileEntry.life.createdTime,
-                            uploadedBy: requester.id
-                        });
-                    } else {
-                        throw new GraphQLError(errorCodes.DATABASE_ERROR);
-                    }
+                    dataEntry.value = fileEntry.id;
+                    await this.db.collections.data_collection.insertOne(dataEntry);
+                    await this.db.collections.files_collection.insertOne(fileEntry);
+                    resolve({
+                        ...fileEntry,
+                        uploadTime: fileEntry.life.createdTime,
+                        uploadedBy: requester.id
+                    });
 
                 } catch (error) {
                     reject(new GraphQLError('General upload error', { extensions: { code: errorCodes.UNQUALIFIED_ERROR, error } }));
@@ -267,35 +202,33 @@ export class FileCore {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const file = await this.db.collections.files_collection.findOne({ deleted: null, id: fileId });
-
+        const file = await this.db.collections.files_collection.findOne({ 'life.deletedTime': null, 'id': fileId });
         if (!file || !file.studyId || !file.description) {
+            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
+        }
+
+        const roles = await this.permissionCore.getRolesOfUser(requester, file.studyId);
+
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const data = await this.db.collections.data_collection.findOne({ 'value': fileId, 'life.deletedTime': null });
+        if (!data) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            file.studyId
-        );
-        if (!hasStudyLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
-        const parsedDescription = JSON.parse(file.description);
-        if (Object.keys(parsedDescription).length === 0) {
-            await this.db.collections.files_collection.findOneAndUpdate({ deleted: null, id: fileId }, { $set: { deleted: Date.now().valueOf() } });
-            return makeGenericReponse();
+        // check if data and file matches
+        const field = await this.db.collections.field_dictionary_collection.findOne({ 'fieldId': data.fieldId, 'studyId': file.studyId, 'life.deletedTime': null });
+        if (field?.dataType !== enumDataTypes.FILE) {
+            throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
-        const device = parsedDescription.deviceId.slice(0, 3);
-        if (!Object.keys(deviceTypes).includes(device)) {
-            throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-        }
-        const targetFieldId = `Device_${(deviceTypes[device] as string).replace(/ /g, '_')}`;
-        if (!this.permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.participantId, targetVisitId)) {
+
+        // TODO: check user has permission to delete this file
+        if (!this.permissionCore.checkDataPermission(roles, data, enumDataAtomicPermissions.DELETE)) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
         // update data record
         await this.db.collections.data_collection.insertOne({
             id: uuid(),
             studyId: file.studyId,
-            fieldId: targetFieldId,
+            fieldId: data.fieldId,
             dataVersion: null,
             value: fileId,
             properties: file.properties,

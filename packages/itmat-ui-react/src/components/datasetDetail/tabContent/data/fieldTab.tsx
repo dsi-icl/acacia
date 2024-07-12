@@ -47,8 +47,7 @@ export const FieldManagementTabContentFetch: FunctionComponent<{ studyId: string
         field: [],
         path: [],
         stdRules: [],
-        joinByKeys: [],
-        deleted: null
+        joinByKeys: []
     });
     const [form] = Form.useForm();
     useEffect(() => {

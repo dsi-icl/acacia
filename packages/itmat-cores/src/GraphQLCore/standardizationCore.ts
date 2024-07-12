@@ -1,4 +1,4 @@
-import { IProject, IStandardization, IUserWithoutToken, atomicOperation } from '@itmat-broker/itmat-types';
+import { IProject, IStandardization, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { GraphQLError } from 'graphql';
 import { errorCodes } from '../utils/errors';
 import { v4 as uuid } from 'uuid';
@@ -7,6 +7,11 @@ import { DBType } from '../database/database';
 import { PermissionCore } from './permissionCore';
 import { StudyCore } from './studyCore';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
+
+
+/**
+ * TODO: This file is not yet implemented. It is a placeholder for the standardization core.
+ */
 
 export class StandarizationCore {
     db: DBType;
@@ -36,23 +41,13 @@ export class StandarizationCore {
         }
 
         /* check permission */
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            studyId
-        );
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.READ,
-            requester,
-            studyId,
-            projectId
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         const study = await this.studyCore.findOneStudy_throwErrorIfNotExist(modifiedStudyId);
         // get all dataVersions that are valid (before/equal the current version)
         const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-        if (hasStudyLevelPermission && hasStudyLevelPermission.hasVersioned && versionId === null) {
+        if (versionId === null) {
             availableDataVersions.push(null);
         }
         const standardizations = await this.db.collections.standardizations_collection.aggregate([{
@@ -83,14 +78,8 @@ export class StandarizationCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-        }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         /* check study exists */
         const studySearchResult = await this.db.collections.studies_collection.findOne({ id: studyId, deleted: null });
@@ -101,9 +90,6 @@ export class StandarizationCore {
         stdRulesWithId.forEach(el => {
             el.id = uuid();
         });
-        if (!(this.permissionCore.checkDataEntryValid(hasPermission.raw, standardization.field[0].slice(1)))) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-        }
         const standardizationEntry: IStandardization = {
             id: uuid(),
             studyId: studyId,
@@ -114,8 +100,12 @@ export class StandarizationCore {
             joinByKeys: standardization.joinByKeys || [],
             dataVersion: null,
             metadata: standardization.metadata,
-            uploadedAt: Date.now(),
-            deleted: null
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: null,
+                deletedUser: null
+            }
         };
 
         await this.db.collections.standardizations_collection.findOneAndUpdate({ studyId: studyId, type: standardization.type, field: standardization.field, dataVersion: null }, {
@@ -131,17 +121,8 @@ export class StandarizationCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check permission */
-        const hasPermission = await this.permissionCore.userHasTheNeccessaryDataPermission(
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        if (!hasPermission) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-        }
-        if (!(this.permissionCore.checkDataEntryValid(hasPermission.raw, field[0].slice(1)))) {
-            throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-        }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
         /* check study exists */
         const studySearchResult = await this.db.collections.studies_collection.findOne({ id: studyId, deleted: null });
         if (studySearchResult === null || studySearchResult === undefined) {

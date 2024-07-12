@@ -1,4 +1,4 @@
-import { IJobEntry, IJobEntryForQueryCuration, IPermissionManagementOptions, IUserWithoutToken, atomicOperation } from '@itmat-broker/itmat-types';
+import { IJobEntry, IJobEntryForQueryCuration, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
 import { GraphQLError } from 'graphql';
@@ -39,34 +39,17 @@ export class JobCore {
         return job;
     }
 
-    public async createQueryCurationJob(requester: IUserWithoutToken | undefined, queryId: string[], studyId: string, projectId: string) {
+    public async createQueryCurationJob(requester: IUserWithoutToken | undefined, queryId: string[], studyId: string) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* check permission */
-        const hasStudyLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.job,
-            atomicOperation.WRITE,
-            requester,
-            studyId
-        );
-        const hasProjectLevelPermission = await this.permissionCore.userHasTheNeccessaryManagementPermission(
-            IPermissionManagementOptions.job,
-            atomicOperation.WRITE,
-            requester,
-            studyId,
-            projectId
-        );
-        if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+        const roles = await this.permissionCore.getRolesOfUser(requester, studyId);
+        if (!roles.length) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
         /* check study exists */
         await this.studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
-        /* check if project exists */
-        const projectExist = await this.db.collections.projects_collection.findOne({ id: projectId });
-        if (!projectExist) {
-            throw new GraphQLError('Project does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
-        }
 
         /* check if the query exists */
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -88,7 +71,6 @@ export class JobCore {
             cancelled: false,
             data: {
                 queryId: queryId,
-                projectId: projectId,
                 studyId: studyId
             }
         };

@@ -110,7 +110,7 @@ if (global.hasMinio) {
         await db.collections.users_collection.findOneAndUpdate({ id: userProfile.id }, {
             $set: userProfile
         });
-        await db.collections.users_collection.deleteMany({ id: { $nin: [userProfile.id, adminProfile.id] } });
+        await db.collections.users_collection.deleteMany({ id: { $nin: [adminProfile.id, userProfile.id] } });
     });
 
     describe('tRPC User APIs', () => {

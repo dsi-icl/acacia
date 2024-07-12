@@ -17,15 +17,9 @@ import { v4 as uuid } from 'uuid';
 import {
     GET_STUDY_FIELDS,
     GET_STUDY,
-    GET_PROJECT,
-    GET_USERS,
-    EDIT_ROLE,
-    ADD_NEW_ROLE,
     WHO_AM_I,
-    CREATE_PROJECT,
     CREATE_STUDY,
     DELETE_STUDY,
-    DELETE_PROJECT,
     SET_DATAVERSION_AS_CURRENT,
     EDIT_STUDY,
     UPLOAD_DATA_IN_ARRAY,
@@ -33,10 +27,7 @@ import {
     GET_DATA_RECORDS,
     CREATE_NEW_DATA_VERSION,
     CREATE_NEW_FIELD,
-    DELETE_FIELD,
-    CREATE_ONTOLOGY_TREE,
-    DELETE_ONTOLOGY_TREE,
-    GET_ONTOLOGY_TREE
+    DELETE_FIELD
 } from '@itmat-broker/itmat-models';
 import {
     enumUserTypes,
@@ -48,11 +39,7 @@ import {
     IField,
     IStudyDataVersion,
     IStudy,
-    IProject,
     IRole,
-    IPermissionManagementOptions,
-    atomicOperation,
-    enumReservedUsers,
     IData,
     enumFileTypes,
     enumFileCategories
@@ -472,328 +459,14 @@ if (global.hasMinio) {
             });
         });
 
-        describe('MANIPULATING PROJECTS EXISTENCE', () => {
-            let testCounter = 0;
-            let setupStudy: IStudy;
-            let setupProject: { id: any; studyId?: string; createdBy?: string; name?: string; patientMapping?: { patient001: string; }; lastModified?: number; deleted?: null; };
-            beforeEach(async () => {
-                testCounter++;
-                /* setup: creating a study */
-                const studyName = uuid() + 'STUDYNAME_manipulating_project_existentce_' + testCounter;
-                setupStudy = {
-                    id: `id_${studyName}`,
-                    name: studyName,
-                    currentDataVersion: 0,
-                    dataVersions: [
-                        {
-                            id: 'dataVersionId',
-                            contentId: 'dataVersionContentId',
-                            version: '1',
-                            tag: '1',
-                            updateDate: '1628049066475'
-                        }
-                    ],
-                    life: {
-                        createdTime: 20000001,
-                        createdUserId: 'admin',
-                        deletedTime: null,
-                        deletedUser: null
-                    },
-                    metadata: {}
-                };
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).insertOne(setupStudy);
-
-                /* setup: creating a project */
-                const projectName = uuid() + 'PROJECTNAME_manipulating_project_existentce_' + testCounter;
-                setupProject = {
-                    id: `id_${projectName}`,
-                    studyId: setupStudy.id,
-                    createdBy: 'admin',
-                    name: projectName,
-                    patientMapping: { patient001: 'patientA' },
-                    lastModified: 20000002,
-                    deleted: null
-                };
-                await mongoClient.collection<IProject>(config.database.collections.projects_collection).insertOne(setupProject);
-            });
-
-            afterEach(async () => {
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection).updateOne({ id: setupStudy.id }, { $set: { 'life.deletedTime': 10000 } });
-                await mongoClient.collection<IProject>(config.database.collections.projects_collection).updateOne({ id: setupProject.id }, { $set: { deleted: 10000 } });
-            });
-
-            test('Create project (no existing patients in study) (admin)', async () => {
-                const projectName = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_PROJECT),
-                    variables: {
-                        studyId: setupStudy.id,
-                        projectName: projectName
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-
-                const createdProject = await mongoClient.collection<IProject>(config.database.collections.projects_collection).findOne({ name: projectName });
-                expect(createdProject).toEqual({
-                    _id: createdProject._id,
-                    id: createdProject.id,
-                    studyId: setupStudy.id,
-                    createdBy: adminId,
-                    name: projectName,
-                    patientMapping: {},
-                    lastModified: createdProject.lastModified,
-                    deleted: null,
-                    metadata: {}
-                });
-                expect(res.body.data.createProject).toEqual({
-                    id: createdProject.id,
-                    studyId: setupStudy.id,
-                    name: projectName
-                });
-
-                /* cleanup: delete project */
-                await mongoClient.collection<IProject>(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { deleted: 10000 } });
-            });
-
-            test('Create project (user with no privilege) (should fail)', async () => {
-                const res = await user.post('/graphql').send({
-                    query: print(CREATE_PROJECT),
-                    variables: {
-                        studyId: setupStudy.id,
-                        projectName: 'new_project_4'
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.createProject).toBe(null);
-            });
-
-            test('Create project (user with privilege)', async () => {
-                /* setup: creating a privileged user */
-                const username = uuid();
-                const authorisedUserProfile: IUser = {
-                    username,
-                    type: enumUserTypes.STANDARD,
-                    firstname: `${username}_firstname`,
-                    lastname: `${username}_lastname`,
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${username}@example.com`,
-                    resetPasswordRequests: [],
-                    description: 'I am a new user.',
-                    emailNotificationsActivated: true,
-                    emailNotificationsStatus: { expiringNotification: false },
-                    organisation: 'organisation_system',
-                    id: `new_user_id_${username}`,
-                    expiredAt: 1991134065000,
-                    life: {
-                        createdTime: 1591134065000,
-                        createdUserId: 'admin',
-                        deletedTime: null,
-                        deletedUser: null
-                    },
-                    metadata: {}
-                };
-                await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
-
-                const roleId = uuid();
-                const newRole = {
-                    id: roleId,
-                    studyId: setupStudy.id,
-                    name: `${roleId}_rolename`,
-                    permissions: {
-                        data: {
-                            fieldIds: ['^.*$'],
-                            hasVersioned: false,
-                            uploaders: ['^.*$'],
-                            operations: ['^.*$'],
-                            subjectIds: ['^.*$'],
-                            visitIds: ['^.*$']
-                        },
-                        manage: {
-                            [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                            [IPermissionManagementOptions.role]: [],
-                            [IPermissionManagementOptions.job]: [],
-                            [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                        }
-                    },
-                    users: [authorisedUserProfile.id],
-                    deleted: null
-                };
-                await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertOne(newRole);
-
-                const authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
-
-                /* test */
-                const projectName = uuid();
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_PROJECT),
-                    variables: {
-                        studyId: setupStudy.id,
-                        projectName: projectName
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                const createdProject = await mongoClient.collection<IProject>(config.database.collections.projects_collection).findOne({ name: projectName });
-                expect(createdProject).toEqual({
-                    _id: createdProject._id,
-                    id: createdProject.id,
-                    studyId: setupStudy.id,
-                    createdBy: authorisedUserProfile.id,
-                    patientMapping: {},
-                    name: projectName,
-                    lastModified: createdProject.lastModified,
-                    deleted: null,
-                    metadata: {}
-                });
-                expect(res.body.data.createProject).toEqual({
-                    id: createdProject.id,
-                    studyId: setupStudy.id,
-                    name: projectName
-                });
-
-                /* cleanup: delete project */
-                await mongoClient.collection<IProject>(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { deleted: 10000 } });
-            });
-
-            test('Delete project (user without privilege) (should fail)', async () => {
-                const res = await user.post('/graphql').send({
-                    query: print(DELETE_PROJECT),
-                    variables: {
-                        projectId: setupProject.id
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.deleteProject).toEqual(null);
-                /* TO_DO make sure api project is not gone */
-            });
-
-            test('Delete project (admin)', async () => {
-                const res = await admin.post('/graphql').send({
-                    query: print(DELETE_PROJECT),
-                    variables: {
-                        projectId: setupProject.id
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.deleteProject).toEqual({
-                    id: setupProject.id,
-                    successful: true
-                });
-                /* TO_DO make sure api project is gone */
-            });
-
-            test('Delete project (user with privilege)', async () => {
-                /* setup: creating a privileged user */
-                const username = uuid();
-                const authorisedUserProfile: IUser = {
-                    username,
-                    type: enumUserTypes.STANDARD,
-                    firstname: `${username}_firstname`,
-                    lastname: `${username}_lastname`,
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${username}@example.com`,
-                    resetPasswordRequests: [],
-                    description: 'I am a new user.',
-                    emailNotificationsActivated: true,
-                    emailNotificationsStatus: { expiringNotification: false },
-                    organisation: 'organisation_system',
-                    id: `new_user_id_${username}`,
-                    expiredAt: 1991134065000,
-                    life: {
-                        createdTime: 1591134065000,
-                        createdUserId: 'admin',
-                        deletedTime: null,
-                        deletedUser: null
-                    },
-                    metadata: {}
-                };
-                await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
-
-                const roleId = uuid();
-                const newRole = {
-                    id: roleId,
-                    studyId: setupStudy.id,
-                    name: `${roleId}_rolename`,
-                    permissions: {
-                        data: {
-                            fieldIds: [],
-                            hasVersioned: false,
-                            uploaders: ['^.*$'],
-                            operations: [],
-                            subjectIds: [],
-                            visitIds: []
-                        },
-                        manage: {
-                            [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                            [IPermissionManagementOptions.role]: [],
-                            [IPermissionManagementOptions.job]: [],
-                            [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                        }
-                    },
-                    users: [authorisedUserProfile.id],
-                    deleted: null
-                };
-                await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertOne(newRole);
-
-                const authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
-
-                /* test */
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(DELETE_PROJECT),
-                    variables: {
-                        projectId: setupProject.id
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.deleteProject).toEqual({
-                    id: setupProject.id,
-                    successful: true
-                });
-                /* TO_DO make sure api project is gone */
-            });
-
-            test('Delete a non-existent project (admin) (should fail)', async () => {
-                const res = await admin.post('/graphql').send({
-                    query: print(DELETE_PROJECT),
-                    variables: {
-                        projectId: 'I dont exist'
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe('Project does not exist.');
-                expect(res.body.data.deleteProject).toEqual(null);
-            });
-        });
-
         describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
-            let createdProject: { id: any; name: any; patientMapping: { mock_patient1: any; mock_patient2: any; }; };
             let createdStudy: { id: any; name: any; };
-            let createdRole_study: { _id: any; id: any; name: any; };
-            let createdRole_study_manageProject: { _id: any; id: any; name: any; };
-            let createdRole_project: { _id: any; id: any; name: any; };
-            let createdUserAuthorised: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; };  // profile
-            let createdUserAuthorisedStudy: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; };  // profile
-            let createdUserAuthorisedStudyManageProjects: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; };  // profile
+            let authorisedUserProfile: { id: any; firstname: any; lastname: any; username: string; otpSecret: string; };  // profile
             let authorisedUser: request.SuperTest<request.Test>; // client
-            let authorisedUserStudy: request.SuperTest<request.Test>; // client
-            let authorisedUserStudyManageProject: request.SuperTest<request.Test>; // client
             let mockFields: IField[];
             let mockFiles: IFile[];
             let mockDataVersion: IStudyDataVersion;
+            let newRole: IRole;
             const newMockDataVersion: IStudyDataVersion = { // this is not added right away; but multiple tests uses this
                 id: 'mockDataVersionId2',
                 contentId: 'mockContentId2',
@@ -840,7 +513,6 @@ if (global.hasMinio) {
                             properties: {
                                 m_subjectId: 'mock_patient1',
                                 m_visitId: 'mockvisitId'
-
                             },
                             life: {
                                 createdTime: 10000,
@@ -859,7 +531,6 @@ if (global.hasMinio) {
                             properties: {
                                 m_subjectId: 'mock_patient1',
                                 m_visitId: 'mockvisitId'
-
                             },
                             life: {
                                 createdTime: 10001,
@@ -878,7 +549,6 @@ if (global.hasMinio) {
                             properties: {
                                 m_subjectId: 'mock_patient2',
                                 m_visitId: 'mockvisitId'
-
                             },
                             life: {
                                 createdTime: 10002,
@@ -906,6 +576,40 @@ if (global.hasMinio) {
                                 deletedUser: null
                             },
                             metadata: {}
+                        },
+                        {
+                            id: 'mockfile1',
+                            studyId: createdStudy.id,
+                            fieldId: 'mockfield_file',
+                            dataVersion: mockDataVersion.id,
+                            value: 'mockfile1_id',
+                            properties: {
+                                description: 'Just a test file1'
+                            },
+                            life: {
+                                createdTime: 10003,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
+                        },
+                        {
+                            id: 'mockfile2',
+                            studyId: createdStudy.id,
+                            fieldId: 'mockfield_file',
+                            dataVersion: mockDataVersion.id,
+                            value: 'mockfile2_id',
+                            properties: {
+                                description: 'Just a test file2'
+                            },
+                            life: {
+                                createdTime: 10004,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
                         }
                     ];
                     mockFields = [
@@ -916,6 +620,13 @@ if (global.hasMinio) {
                             fieldName: 'Sex',
                             dataType: enumDataTypes.STRING,
                             categoricalOptions: [],
+                            properties: [{
+                                name: 'm_subjectId',
+                                required: true
+                            }, {
+                                name: 'm_visitId',
+                                required: true
+                            }],
                             unit: 'person',
                             comments: 'mockComments1',
                             dataVersion: 'mockDataVersionId',
@@ -934,8 +645,35 @@ if (global.hasMinio) {
                             fieldName: 'Race',
                             dataType: enumDataTypes.STRING,
                             categoricalOptions: [],
+                            properties: [{
+                                name: 'm_subjectId',
+                                required: true
+                            }, {
+                                name: 'm_visitId',
+                                required: true
+                            }],
                             unit: 'person',
                             comments: 'mockComments2',
+                            dataVersion: 'mockDataVersionId',
+                            life: {
+                                createdTime: 20000,
+                                createdUser: 'admin',
+                                deletedTime: null,
+                                deletedUser: null
+                            },
+                            metadata: {}
+                        },
+                        {
+                            id: 'mockfield_file',
+                            studyId: createdStudy.id,
+                            fieldId: 'mockfield_file',
+                            fieldName: 'File',
+                            dataType: enumDataTypes.FILE,
+                            categoricalOptions: [],
+                            properties: [{
+                                name: 'description',
+                                required: true
+                            }],
                             dataVersion: 'mockDataVersionId',
                             life: {
                                 createdTime: 20000,
@@ -1029,747 +767,66 @@ if (global.hasMinio) {
                     await db.collections.field_dictionary_collection.insertMany(mockFields);
                     await db.collections.files_collection.insertMany(mockFiles);
                 }
-                /* 2. create projects for the study */
-                {
-                    const projectName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(CREATE_PROJECT),
-                        variables: {
-                            studyId: createdStudy.id,
-                            projectName: projectName,
-                            dataVersion: mockDataVersion.id
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    createdProject = await mongoClient.collection<IProject>(config.database.collections.projects_collection).findOne({ name: projectName });
-                    expect(res.body.data.createProject).toEqual({
-                        id: createdProject.id,
-                        studyId: createdStudy.id,
-                        name: projectName
-                    });
-                }
 
-                /* 3. create roles for study */
-                {
-                    const roleName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(ADD_NEW_ROLE),
-                        variables: {
-                            roleName,
-                            studyId: createdStudy.id
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
+                /* setup: creating a privileged user */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username,
+                    type: 'STANDARD',
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: `${username}@example.com`,
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'organisation_system',
+                    id: `new_user_id_${username}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
+                };
+                await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
-                    createdRole_study = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
-                    expect(createdRole_study).toEqual({
-                        _id: createdRole_study._id,
-                        id: createdRole_study.id,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        description: '',
-                        createdBy: adminId,
-                        users: [],
-                        deleted: null,
-                        metadata: {}
-                    });
-                    expect(res.body.data.addRole).toEqual({
-                        id: createdRole_study.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        users: []
-                    });
-                }
-                /* create another role for study (this time it will have "manage project" privilege - equivalent to PI */
-                {
-                    const roleName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(ADD_NEW_ROLE),
-                        variables: {
-                            roleName,
-                            studyId: createdStudy.id
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
+                const roleId = uuid();
+                newRole = {
+                    id: roleId,
+                    studyId: createdStudy.id,
+                    name: `${roleId}_rolename`,
+                    dataPermissions: [{
+                        fields: ['^.*$'],
+                        dataProperties: {},
+                        includeUnVersioned: true,
+                        permission: 7
+                    }],
+                    studyRole: 'STUDY_MANAGER',
+                    users: [authorisedUserProfile.id],
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
+                };
+                await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertOne(newRole);
 
-                    createdRole_study_manageProject = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
-                    expect(createdRole_study_manageProject).toEqual({
-                        _id: createdRole_study_manageProject._id,
-                        id: createdRole_study_manageProject.id,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        description: '',
-                        createdBy: adminId,
-                        users: [],
-                        deleted: null,
-                        metadata: {}
-                    });
-                    expect(res.body.data.addRole).toEqual({
-                        id: createdRole_study_manageProject.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        users: []
-                    });
-                }
-
-                /* 4. create roles for project */
-                {
-                    const roleName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(ADD_NEW_ROLE),
-                        variables: {
-                            roleName,
-                            studyId: createdStudy.id,
-                            projectId: createdProject.id
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    createdRole_project = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
-                    expect(createdRole_project).toEqual({
-                        _id: createdRole_project._id,
-                        id: createdRole_project.id,
-                        projectId: createdProject.id,
-                        studyId: createdStudy.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        description: '',
-                        createdBy: adminId,
-                        users: [],
-                        deleted: null,
-                        metadata: {}
-                    });
-                    expect(res.body.data.addRole).toEqual({
-                        id: createdRole_project.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id,
-                        users: []
-                    });
-                }
-
-                /* 5. create an authorised project user (no role yet) */
-                {
-                    const username = uuid();
-                    const newUser: IUser = {
-                        username: username,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${username}_firstname`,
-                        lastname: `${username}_lastname`,
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                        email: `${username}@user.io`,
-                        resetPasswordRequests: [],
-                        description: 'I am an authorised project user.',
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        organisation: 'organisation_system',
-                        id: `AuthorisedProjectUser_${username}`,
-                        expiredAt: 1991134065000,
-                        life: {
-                            createdTime: 1591134065000,
-                            createdUserId: 'admin',
-                            deletedTime: null,
-                            deletedUser: null
-                        },
-                        metadata: {}
-                    };
-                    await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-                    createdUserAuthorised = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
-                }
-
-                /* 6. add authorised user to role */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(EDIT_ROLE),
-                        variables: {
-                            roleId: createdRole_project.id,
-                            userChanges: {
-                                add: [createdUserAuthorised.id],
-                                remove: []
-                            },
-                            permissionChanges: {
-                                data: {
-                                    fieldIds: ['^.*$'],
-                                    hasVersioned: false,
-                                    uploaders: ['^.*$'],
-                                    operations: [atomicOperation.READ],
-                                    subjectIds: ['^.*$'],
-                                    visitIds: ['^.*$']
-                                },
-                                manage: {
-                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                    [IPermissionManagementOptions.role]: [],
-                                    [IPermissionManagementOptions.job]: [],
-                                    [IPermissionManagementOptions.query]: [],
-                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                }
-                            }
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.editRole).toEqual({
-                        id: createdRole_project.id,
-                        name: createdRole_project.name,
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id,
-                        description: '',
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ],
-                                subjectIds: ['^.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        users: [{
-                            id: createdUserAuthorised.id,
-                            organisation: 'organisation_system',
-                            firstname: createdUserAuthorised.firstname,
-                            lastname: createdUserAuthorised.lastname
-                        }]
-                    });
-                    const resUser = await admin.post('/graphql').send({
-                        query: print(GET_USERS),
-                        variables: {
-                            fetchDetailsAdminOnly: false,
-                            userId: createdUserAuthorised.id,
-                            fetchAccessPrivileges: true
-                        }
-                    });
-                    expect(resUser.status).toBe(200);
-                    expect(resUser.body.errors).toBeUndefined();
-                    expect(resUser.body.data.getUsers).toHaveLength(1);
-                    expect(resUser.body.data.getUsers[0]).toEqual({
-                        id: createdUserAuthorised.id,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${createdUserAuthorised.username}_firstname`,
-                        lastname: `${createdUserAuthorised.username}_lastname`,
-                        organisation: 'organisation_system',
-                        access: {
-                            id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
-                            projects: [{
-                                id: createdProject.id,
-                                name: createdProject.name,
-                                studyId: createdStudy.id
-                            }],
-                            studies: []
-                        }
-                    });
-                    const tag = `metadata.${'role:'.concat(createdRole_project.id)}`;
-                    await db.collections.field_dictionary_collection.updateMany({}, {
-                        $set: {
-                            [tag]: true
-                        }
-                    });
-                    await db.collections.data_collection.updateMany({}, {
-                        $set: {
-                            [tag]: true
-                        }
-                    });
-                }
-
-                /* 5. create an authorised study user (no role yet) */
-                {
-                    const username = uuid();
-                    const newUser: IUser = {
-                        username: username,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${username}_firstname`,
-                        lastname: `${username}_lastname`,
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                        email: `${username}@user.io`,
-                        resetPasswordRequests: [],
-                        description: 'I am an authorised study user.',
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        organisation: 'organisation_system',
-                        id: `AuthorisedStudyUser_${username}`,
-                        expiredAt: 1991134065000,
-                        life: {
-                            createdTime: 1591134065000,
-                            createdUserId: 'admin',
-                            deletedTime: null,
-                            deletedUser: null
-                        },
-                        metadata: {}
-                    };
-                    await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-                    createdUserAuthorisedStudy = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
-                }
-                /* 6. add authorised user to role */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(EDIT_ROLE),
-                        variables: {
-                            roleId: createdRole_study.id,
-                            userChanges: {
-                                add: [createdUserAuthorisedStudy.id],
-                                remove: []
-                            },
-                            permissionChanges: {
-                                data: {
-                                    fieldIds: ['^.*$'],
-                                    hasVersioned: true,
-                                    uploaders: ['^.*$'],
-                                    operations: [atomicOperation.READ],
-                                    subjectIds: ['^.*$'],
-                                    visitIds: ['^.*$']
-                                },
-                                manage: {
-                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                    [IPermissionManagementOptions.role]: [],
-                                    [IPermissionManagementOptions.job]: [],
-                                    [IPermissionManagementOptions.query]: [],
-                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                }
-                            }
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.editRole).toEqual({
-                        id: createdRole_study.id,
-                        name: createdRole_study.name,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        description: '',
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: true,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ],
-                                subjectIds: ['^.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        users: [{
-                            id: createdUserAuthorisedStudy.id,
-                            organisation: 'organisation_system',
-                            firstname: createdUserAuthorisedStudy.firstname,
-                            lastname: createdUserAuthorisedStudy.lastname
-                        }]
-                    });
-                    const resUser = await admin.post('/graphql').send({
-                        query: print(GET_USERS),
-                        variables: {
-                            fetchDetailsAdminOnly: false,
-                            userId: createdUserAuthorisedStudy.id,
-                            fetchAccessPrivileges: true
-                        }
-                    });
-                    expect(resUser.status).toBe(200);
-                    expect(resUser.body.errors).toBeUndefined();
-                    expect(resUser.body.data.getUsers).toHaveLength(1);
-                    expect(resUser.body.data.getUsers[0]).toEqual({
-                        id: createdUserAuthorisedStudy.id,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${createdUserAuthorisedStudy.username}_firstname`,
-                        lastname: `${createdUserAuthorisedStudy.username}_lastname`,
-                        organisation: 'organisation_system',
-                        access: {
-                            id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
-                            projects: [{
-                                id: createdProject.id,
-                                name: createdProject.name,
-                                studyId: createdStudy.id
-                            }],
-                            studies: [{
-                                id: createdStudy.id,
-                                name: createdStudy.name
-                            }]
-                        }
-                    });
-                    const tag = `metadata.${'role:'.concat(createdRole_study.id)}`;
-                    await db.collections.field_dictionary_collection.updateMany({}, {
-                        $set: {
-                            [tag]: true
-                        }
-                    });
-                    await db.collections.data_collection.updateMany({}, {
-                        $set: {
-                            [tag]: true
-                        }
-                    });
-                }
-                /* 5. create an authorised study user that can manage projects (no role yet) */
-                {
-                    const username = uuid();
-                    const newUser: IUser = {
-                        username: username,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${username}_firstname`,
-                        lastname: `${username}_lastname`,
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                        email: `${username}'@user.io'`,
-                        resetPasswordRequests: [],
-                        description: 'I am an authorised study user managing project.',
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        organisation: 'organisation_system',
-                        id: `AuthorisedStudyUserManageProject_${username}`,
-                        expiredAt: 1991134065000,
-                        life: {
-                            createdTime: 1591134065000,
-                            createdUserId: 'admin',
-                            deletedTime: null,
-                            deletedUser: null
-                        },
-                        metadata: {}
-                    };
-
-                    await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-                    createdUserAuthorisedStudyManageProjects = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
-                }
-
-                /* 6. add authorised user to role */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(EDIT_ROLE),
-                        variables: {
-                            roleId: createdRole_study_manageProject.id,
-                            userChanges: {
-                                add: [createdUserAuthorisedStudyManageProjects.id],
-                                remove: []
-                            },
-                            permissionChanges: {
-                                data: {
-                                    fieldIds: [],
-                                    hasVersioned: false,
-                                    uploaders: ['^.*$'],
-                                    operations: [],
-                                    subjectIds: [],
-                                    visitIds: []
-                                },
-                                manage: {
-                                    [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                                    [IPermissionManagementOptions.role]: [],
-                                    [IPermissionManagementOptions.job]: [],
-                                    [IPermissionManagementOptions.query]: [],
-                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                }
-                            }
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.editRole).toEqual({
-                        id: createdRole_study_manageProject.id,
-                        name: createdRole_study_manageProject.name,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        description: '',
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        users: [{
-                            id: createdUserAuthorisedStudyManageProjects.id,
-                            organisation: 'organisation_system',
-                            firstname: createdUserAuthorisedStudyManageProjects.firstname,
-                            lastname: createdUserAuthorisedStudyManageProjects.lastname
-                        }]
-                    });
-                    const resUser = await admin.post('/graphql').send({
-                        query: print(GET_USERS),
-                        variables: {
-                            fetchDetailsAdminOnly: false,
-                            userId: createdUserAuthorisedStudyManageProjects.id,
-                            fetchAccessPrivileges: true
-                        }
-                    });
-                    expect(resUser.status).toBe(200);
-                    expect(resUser.body.errors).toBeUndefined();
-                    expect(resUser.body.data.getUsers).toHaveLength(1);
-                    expect(resUser.body.data.getUsers[0]).toEqual({
-                        id: createdUserAuthorisedStudyManageProjects.id,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${createdUserAuthorisedStudyManageProjects.username}_firstname`,
-                        lastname: `${createdUserAuthorisedStudyManageProjects.username}_lastname`,
-                        organisation: 'organisation_system',
-                        access: {
-                            id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
-                            projects: [{
-                                id: createdProject.id,
-                                name: createdProject.name,
-                                studyId: createdStudy.id
-                            }],
-                            studies: [{
-                                id: createdStudy.id,
-                                name: createdStudy.name
-                            }]
-                        }
-                    });
-                }
-                /* fsdafs: admin who am i */
-                {
-                    const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                    expect(res.body.data.whoAmI).toStrictEqual({
-                        username: 'admin',
-                        type: enumUserTypes.ADMIN,
-                        firstname: 'Fadmin',
-                        lastname: 'Ladmin',
-                        organisation: 'organisation_system',
-                        email: 'admin@example.com',
-                        description: 'I am an admin user.',
-                        id: adminId,
-                        access: {
-                            id: `user_access_obj_user_id_${adminId}`,
-                            projects: [{
-                                id: createdProject.id,
-                                name: createdProject.name,
-                                studyId: createdStudy.id
-                            }],
-                            studies: [{
-                                id: createdStudy.id,
-                                name: createdStudy.name
-                            }]
-                        },
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000,
-                        metadata: {}
-                    });
-                }
-                /* connecting users */
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin', createdUserAuthorised.otpSecret);
-                authorisedUserStudy = request.agent(app);
-                await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret);
-                authorisedUserStudyManageProject = request.agent(app);
-                await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret);
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
             });
 
             afterAll(async () => {
-                /* project user cannot delete study */
-                {
-                    const res = await authorisedUser.post('/graphql').send({
-                        query: print(DELETE_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                    expect(res.body.data.deleteStudy).toBe(null);
-                }
-
-                /* delete values in db */
-                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
-                await db.collections.data_collection.deleteMany({ studyId: createdStudy.id });
-                await db.collections.files_collection.deleteMany({ studyId: createdStudy.id });
-
-                /* study user cannot delete study */
-                {
-                    const res = await authorisedUserStudy.post('/graphql').send({
-                        query: print(DELETE_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                    expect(res.body.data.deleteStudy).toBe(null);
-                }
-
-                /* admin can delete study */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(DELETE_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.deleteStudy).toEqual({
-                        id: createdStudy.id,
-                        successful: true
-                    });
-                }
-
-                /* check projects and roles are also deleted */
-                {
-                    const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                    expect(res.body.data.whoAmI).toEqual({
-                        username: 'admin',
-                        type: enumUserTypes.ADMIN,
-                        firstname: 'Fadmin',
-                        lastname: 'Ladmin',
-                        organisation: 'organisation_system',
-                        email: 'admin@example.com',
-                        description: 'I am an admin user.',
-                        id: adminId,
-                        access: {
-                            id: `user_access_obj_user_id_${adminId}`,
-                            projects: [],
-                            studies: []
-                        },
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000,
-                        metadata: {}
-                    });
-
-                    // study data is NOT deleted for audit purposes - unless explicitly requested separately
-                    const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const study = await db.collections.studies_collection.findOne({ 'id': createdStudy.id, 'life.deletedTime': null });
-                    expect(roles).toEqual([]);
-                    expect(projects).toEqual([]);
-                    expect(study).toBe(null);
-                }
-
-                /* cannot get study from api anymore */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(GET_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                    expect(res.body.data.getStudy).toBe(null);
-                }
+                /* cleanup: delete study */
+                await db.collections.studies_collection.deleteMany({});
+                await db.collections.data_collection.deleteMany({});
+                await db.collections.field_dictionary_collection.deleteMany({});
+                await db.collections.files_collection.deleteMany({});
+                await db.collections.roles_collection.deleteMany({});
+                await db.collections.projects_collection.deleteMany({});
             });
 
             test('Get a non-existent study (admin)', async () => {
@@ -1783,185 +840,50 @@ if (global.hasMinio) {
                 expect(res.body.data.getStudy).toBe(null);
             });
 
-            test('Get a non-existent project (admin)', async () => {
+            test('Get study (admin)', async () => {
                 const res = await admin.post('/graphql').send({
-                    query: print(GET_PROJECT),
-                    variables: { projectId: 'iamfake', admin: true }
+                    query: print(GET_STUDY),
+                    variables: { studyId: createdStudy.id }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                expect(res.body.data.getProject).toBe(null);
-            });
-
-            test('Get study (admin)', async () => {
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(GET_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.getStudy).toEqual({
-                        id: createdStudy.id,
-                        name: createdStudy.name,
-                        createdBy: adminId,
-                        jobs: [],
-                        description: 'test description',
-                        type: null,
-                        projects: [
-                            {
-                                id: createdProject.id,
-                                studyId: createdStudy.id,
-                                name: createdProject.name
-                            }
-                        ],
-                        roles: [
-                            {
-                                id: createdRole_study.id,
-                                name: createdRole_study.name,
-                                description: '',
-                                permissions: {
-                                    data: {
-                                        fieldIds: ['^.*$'],
-                                        hasVersioned: true,
-                                        uploaders: ['^.*$'],
-                                        operations: [atomicOperation.READ],
-                                        subjectIds: ['^.*$'],
-                                        visitIds: ['^.*$']
-                                    },
-                                    manage: {
-                                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                        [IPermissionManagementOptions.role]: [],
-                                        [IPermissionManagementOptions.job]: [],
-                                        [IPermissionManagementOptions.query]: [],
-                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                    }
-                                },
-                                studyId: createdStudy.id,
-                                projectId: null,
-                                users: [{
-                                    id: createdUserAuthorisedStudy.id,
-                                    organisation: 'organisation_system',
-                                    firstname: createdUserAuthorisedStudy.firstname,
-                                    lastname: createdUserAuthorisedStudy.lastname,
-                                    username: createdUserAuthorisedStudy.username
-                                }]
-                            },
-                            {
-                                id: createdRole_study_manageProject.id,
-                                name: createdRole_study_manageProject.name,
-                                description: '',
-                                permissions: {
-                                    data: {
-                                        fieldIds: [],
-                                        hasVersioned: false,
-                                        uploaders: ['^.*$'],
-                                        operations: [],
-                                        subjectIds: [],
-                                        visitIds: []
-                                    },
-                                    manage: {
-                                        [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
-                                        [IPermissionManagementOptions.role]: [],
-                                        [IPermissionManagementOptions.job]: [],
-                                        [IPermissionManagementOptions.query]: [],
-                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                    }
-                                },
-                                studyId: createdStudy.id,
-                                projectId: null,
-                                users: [{
-                                    id: createdUserAuthorisedStudyManageProjects.id,
-                                    organisation: 'organisation_system',
-                                    firstname: createdUserAuthorisedStudyManageProjects.firstname,
-                                    lastname: createdUserAuthorisedStudyManageProjects.lastname,
-                                    username: createdUserAuthorisedStudyManageProjects.username
-                                }]
-                            }
-                        ],
-                        files: [],
-                        numOfRecords: [4, 0],
-                        subjects: [['mock_patient1', 'mock_patient2'], []],
-                        visits: [['mockvisitId'], []],
-                        currentDataVersion: 0,
-                        dataVersions: [{
-                            id: 'mockDataVersionId',
-                            contentId: 'mockContentId',
-                            version: '0.0.1',
-                            // fileSize: '10000',
-                            updateDate: '5000000',
-                            tag: null
-                        }]
-                    });
-                }
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(GET_PROJECT),
-                        variables: { projectId: createdProject.id, admin: true }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.getProject).toEqual({
-                        id: createdProject.id,
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.getStudy).toEqual({
+                    id: createdStudy.id,
+                    name: createdStudy.name,
+                    createdBy: adminId,
+                    jobs: [],
+                    description: 'test description',
+                    type: null,
+                    roles: [{
+                        id: newRole.id,
+                        name: `${newRole.id}_rolename`,
+                        permissions: null,
+                        projectId: null,
                         studyId: createdStudy.id,
-                        name: createdProject.name,
-                        dataVersion: {
-                            contentId: 'mockContentId',
-                            id: 'mockDataVersionId',
-                            tag: null,
-                            updateDate: '5000000',
-                            version: '0.0.1'
-                        },
-                        summary: {
-                            subjects: [
-                                'mock_patient1',
-                                'mock_patient2'
-                            ],
-                            visits: [
-                                'mockvisitId'
-                            ],
-                            standardizationTypes: []
-                        },
-                        jobs: [],
-                        roles: [
-                            {
-                                id: createdRole_project.id,
-                                name: createdRole_project.name,
-                                description: '',
-                                permissions: {
-                                    data: {
-                                        fieldIds: ['^.*$'],
-                                        hasVersioned: false,
-                                        uploaders: ['^.*$'],
-                                        operations: [atomicOperation.READ],
-                                        subjectIds: ['^.*$'],
-                                        visitIds: ['^.*$']
-                                    },
-                                    manage: {
-                                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                        [IPermissionManagementOptions.role]: [],
-                                        [IPermissionManagementOptions.job]: [],
-                                        [IPermissionManagementOptions.query]: [],
-                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                    }
-                                },
-                                projectId: createdProject.id,
-                                studyId: createdStudy.id,
-                                users: [{
-                                    id: createdUserAuthorised.id,
-                                    organisation: 'organisation_system',
-                                    firstname: createdUserAuthorised.firstname,
-                                    lastname: createdUserAuthorised.lastname,
-                                    username: createdUserAuthorised.username
-                                }]
-                            }
-                        ],
-                        iCanEdit: true,
-                        fields: [],
-                        files: []
-                    });
-                }
+                        description: null,
+                        users: [{
+                            id: authorisedUserProfile.id,
+                            username: authorisedUserProfile.username,
+                            firstname: authorisedUserProfile.firstname,
+                            lastname: authorisedUserProfile.lastname,
+                            organisation: 'organisation_system'
+                        }]
+                    }],
+                    projects: [],
+                    files: [],
+                    numOfRecords: [0, 0],
+                    subjects: [[], []],
+                    visits: [[], []],
+                    currentDataVersion: 0,
+                    dataVersions: [{
+                        id: 'mockDataVersionId',
+                        contentId: 'mockContentId',
+                        version: '0.0.1',
+                        // fileSize: '10000',
+                        updateDate: '5000000',
+                        tag: null
+                    }]
+                });
             });
 
             test('Get study (user without privilege)', async () => {
@@ -1976,50 +898,72 @@ if (global.hasMinio) {
             });
 
             test('Get study (user with privilege)', async () => {
-                {
-                    const res = await authorisedUser.post('/graphql').send({
-                        query: print(GET_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                    expect(res.body.data.getStudy).toEqual(null);
-                }
-                {
-                    const res = await authorisedUser.post('/graphql').send({
-                        query: print(GET_PROJECT),
-                        variables: { projectId: createdProject.id, admin: false }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.getProject).toEqual({
-                        id: createdProject.id,
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(GET_STUDY),
+                    variables: { studyId: createdStudy.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.getStudy).toEqual({
+                    id: createdStudy.id,
+                    name: createdStudy.name,
+                    createdBy: adminId,
+                    jobs: [],
+                    description: 'test description',
+                    type: null,
+                    roles: [{
+                        id: newRole.id,
+                        name: `${newRole.id}_rolename`,
+                        permissions: null,
+                        projectId: null,
                         studyId: createdStudy.id,
-                        name: createdProject.name,
-                        jobs: [],
-                        iCanEdit: true,
-                        fields: [],
-                        files: [],
-                        dataVersion: {
-                            contentId: 'mockContentId',
-                            id: 'mockDataVersionId',
-                            tag: null,
-                            updateDate: '5000000',
-                            version: '0.0.1'
-                        },
-                        summary: {
-                            subjects: [
-                                'mock_patient1',
-                                'mock_patient2'
-                            ],
-                            visits: [
-                                'mockvisitId'
-                            ],
-                            standardizationTypes: []
-                        }
-                    });
-                }
+                        description: null,
+                        users: [{
+                            id: authorisedUserProfile.id,
+                            username: authorisedUserProfile.username,
+                            firstname: authorisedUserProfile.firstname,
+                            lastname: authorisedUserProfile.lastname,
+                            organisation: 'organisation_system'
+                        }]
+                    }],
+                    projects: [],
+                    files: [{
+                        id: 'mockfile1_id',
+                        fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
+                        studyId: createdStudy.id,
+                        projectId: null,
+                        fileSize: '1000',
+                        description: 'Just a test file1',
+                        uploadTime: '1599345644000',
+                        uploadedBy: adminId,
+                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
+                        metadata: {}
+                    },
+                    {
+                        id: 'mockfile2_id',
+                        fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
+                        studyId: createdStudy.id,
+                        projectId: null,
+                        fileSize: '1000',
+                        description: 'Just a test file2',
+                        uploadTime: '1599345644000',
+                        uploadedBy: adminId,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3',
+                        metadata: {}
+                    }],
+                    numOfRecords: [0, 0],
+                    subjects: [[], []],
+                    visits: [[], []],
+                    currentDataVersion: 0,
+                    dataVersions: [{
+                        id: 'mockDataVersionId',
+                        contentId: 'mockContentId',
+                        version: '0.0.1',
+                        // fileSize: '10000',
+                        updateDate: '5000000',
+                        tag: null
+                    }]
+                });
             });
 
             test('Get study fields (admin)', async () => {
@@ -2030,50 +974,21 @@ if (global.hasMinio) {
                     }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getStudyFields.sort((a: { id: string; }, b: { id: any; }) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
-                    {
-                        id: 'mockfield2',
-                        studyId: createdStudy.id,
-                        fieldId: '32',
-                        fieldName: 'Race',
-                        tableName: null,
-                        dataType: 'str',
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments2',
-                        dateAdded: '20000',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
-                    },
-                    {
-                        id: 'mockfield1',
-                        studyId: createdStudy.id,
-                        fieldId: '31',
-                        fieldName: 'Sex',
-                        tableName: null,
-                        dataType: 'str',
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: '10000',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
-                    }
-                ].sort((a, b) => a.id.localeCompare(b.id)));
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.getStudy).toBeUndefined();
             });
 
             test('Get study fields (user project privilege)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(GET_STUDY_FIELDS),
                     variables: {
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id
+                        studyId: createdStudy.id
                     }
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getStudyFields.sort((a: { id: string; }, b: { id: any; }) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
+                expect(res.body.data.getStudyFields).toEqual([
                     {
                         id: 'mockfield1',
                         studyId: createdStudy.id,
@@ -2081,12 +996,12 @@ if (global.hasMinio) {
                         fieldName: 'Sex',
                         tableName: null,
                         dataType: 'str',
+                        dataVersion: 'mockDataVersionId',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
                         dateAdded: '10000',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dateDeleted: null
                     },
                     {
                         id: 'mockfield2',
@@ -2095,22 +1010,35 @@ if (global.hasMinio) {
                         fieldName: 'Race',
                         tableName: null,
                         dataType: 'str',
+                        dataVersion: 'mockDataVersionId',
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments2',
                         dateAdded: '20000',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dateDeleted: null
+                    },
+                    {
+                        id: 'mockfield_file',
+                        studyId: createdStudy.id,
+                        fieldId: 'mockfield_file',
+                        fieldName: 'File',
+                        tableName: null,
+                        dataType: 'file',
+                        dataVersion: 'mockDataVersionId',
+                        possibleValues: [],
+                        unit: null,
+                        comments: null,
+                        dateAdded: '20000',
+                        dateDeleted: null
                     }
-                ].sort((a, b) => a.id.localeCompare(b.id)));
+                ]);
             });
 
-            test('Get study fields (user without project privilege nor study privilege) (should fail)', async () => {
+            test('Get study fields (user without privilege) (should fail)', async () => {
                 const res = await user.post('/graphql').send({
                     query: print(GET_STUDY_FIELDS),
                     variables: {
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id
+                        studyId: createdStudy.id
                     }
                 });
                 expect(res.status).toBe(200);
@@ -2133,9 +1061,9 @@ if (global.hasMinio) {
                     dataVersion: null,
                     life: {
                         createdTime: 30000,
-                        createdUserId: 'admin',
+                        createdUser: 'admin',
                         deletedTime: 30000,
-                        deletedUserId: 'admin'
+                        deletedUser: 'admin'
                     },
                     metadata: {}
                 });
@@ -2159,58 +1087,17 @@ if (global.hasMinio) {
                     metadata: {}
                 });
 
-                // user with study privilege can access all latest field, including unversioned
-                const res = await authorisedUserStudy.post('/graphql').send({
+                // user with privilege can access all latest field, including unversioned
+                const res = await authorisedUser.post('/graphql').send({
                     query: print(GET_STUDY_FIELDS),
                     variables: {
                         studyId: createdStudy.id,
-                        projectId: createdProject.id,
                         versionId: null
                     }
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getStudyFields.map(el => el.id).sort()).toEqual(['mockfield1', 'mockfield3']);
-                // user with project privilege can only access the latest fields that are versioned
-                const res2 = await authorisedUser.post('/graphql').send({
-                    query: print(GET_STUDY_FIELDS),
-                    variables: {
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id
-                    }
-                });
-                expect(res2.status).toBe(200);
-                expect(res2.body.errors).toBeUndefined();
-                expect(res2.body.data.getStudyFields.sort((a: { id: string; }, b: { id: any; }) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
-                    {
-                        id: 'mockfield2',
-                        studyId: createdStudy.id,
-                        fieldId: '32',
-                        fieldName: 'Race',
-                        tableName: null,
-                        dataType: 'str',
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments2',
-                        dateAdded: '20000',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
-                    },
-                    {
-                        id: 'mockfield1',
-                        studyId: createdStudy.id,
-                        fieldId: '31',
-                        fieldName: 'Sex',
-                        tableName: null,
-                        dataType: 'str',
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: '10000',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
-                    }
-                ].sort((a, b) => a.id.localeCompare(b.id)));
+                expect(res.body.data.getStudyFields.map(el => el.id)).toEqual(['mockfield1', 'mockfield3', 'mockfield_file']);
                 // clear database
                 await db.collections.field_dictionary_collection.deleteMany({ dataVersion: null });
             });
@@ -2263,151 +1150,9 @@ if (global.hasMinio) {
                     .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
             });
 
-            test('Set a previous study dataversion as current (user with project privilege) (should fail)', async () => {
-                /* setup: add an extra dataversion */
-                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
-
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(SET_DATAVERSION_AS_CURRENT),
-                    variables: {
-                        studyId: createdStudy.id,
-                        dataVersionId: mockDataVersion.id
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.data.setDataversionAsCurrent).toEqual(null);
-
-                /* cleanup: reverse setting dataversion */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection)
-                    .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
-            });
-
-            test('Set a previous study dataversion as current (user with study read-only privilege) (should fail)', async () => {
-                /* setup: add an extra dataversion */
-                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
-
-                const res = await authorisedUserStudy.post('/graphql').send({
-                    query: print(SET_DATAVERSION_AS_CURRENT),
-                    variables: {
-                        studyId: createdStudy.id,
-                        dataVersionId: mockDataVersion.id
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.data.setDataversionAsCurrent).toEqual(null);
-
-                /* cleanup: reverse setting dataversion */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection)
-                    .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
-            });
-
-            test('Set a previous study dataversion as current (user with study "manage project" privilege)', async () => {
-                /* setup: add an extra dataversion */
-                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
-
-                const res = await authorisedUserStudyManageProject.post('/graphql').send({
-                    query: print(SET_DATAVERSION_AS_CURRENT),
-                    variables: {
-                        studyId: createdStudy.id,
-                        dataVersionId: mockDataVersion.id
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.data.setDataversionAsCurrent.currentDataVersion).toBe(0);
-
-                /* cleanup: reverse setting dataversion */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection)
-                    .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
-            });
-
-            test('Set a previous study dataversion as current (user with study "manage data" privilege) (should fail)', async () => {
-                /* setup: create a new user */
-                const userDataCurator: IUser = {
-                    id: uuid(),
-                    username: 'datacurator',
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: 'user@ic.ac.uk',
-                    firstname: 'FDataCurator',
-                    lastname: 'LDataCurator',
-                    organisation: 'organisation_system',
-                    type: enumUserTypes.STANDARD,
-                    description: 'just a data curator',
-                    resetPasswordRequests: [],
-                    emailNotificationsActivated: true,
-                    emailNotificationsStatus: { expiringNotification: false },
-                    expiredAt: 1991134065000,
-                    life: {
-                        createdTime: 1591134065000,
-                        createdUser: enumReservedUsers.SYSTEM,
-                        deletedTime: null,
-                        deletedUser: null
-                    },
-                    metadata: {}
-                };
-                await db.collections.users_collection.insertOne(userDataCurator);
-
-                /* setup: create a new role with data management */
-                const roleDataCurator: any = {
-                    id: uuid(),
-                    studyId: createdStudy.id,
-                    name: 'Data Manager',
-                    permissions: {
-                        data: {
-                            fieldIds: ['^.*$'],
-                            hasVersioned: true,
-                            uploaders: ['^.*$'],
-                            operations: [atomicOperation.READ, atomicOperation.WRITE],
-                            subjectIds: ['^.*$'],
-                            visitIds: ['^.*$']
-                        },
-                        manage: {
-                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                            [IPermissionManagementOptions.role]: [],
-                            [IPermissionManagementOptions.job]: [],
-                            [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                        }
-                    },
-                    users: [userDataCurator.id],
-                    createdBy: adminId,
-                    deleted: null
-                };
-                await db.collections.roles_collection.insertOne(roleDataCurator);
-
-                /* setup: connect user */
-                const dataCurator = request.agent(app);
-                await connectAgent(dataCurator, userDataCurator.username, 'admin', userDataCurator.otpSecret);
-
-                /* setup: add an extra dataversion */
-                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
-
-                /* test */
-                const res = await dataCurator.post('/graphql').send({
-                    query: print(SET_DATAVERSION_AS_CURRENT),
-                    variables: {
-                        studyId: createdStudy.id,
-                        dataVersionId: mockDataVersion.id
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-
-                /* cleanup: reverse setting dataversion */
-                await mongoClient.collection<IStudy>(config.database.collections.studies_collection)
-                    .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
-
-                /* cleanup: delete user and role */
-                await db.collections.users_collection.deleteOne({ id: userDataCurator.id });
-                await db.collections.roles_collection.deleteOne({ id: roleDataCurator.id });
-            });
-
-            test('Create New fields (admin)', async () => {
+            test('Create New fields (authorised user)', async () => {
                 await db.collections.field_dictionary_collection.deleteMany({ dataVersion: null });
-                const res = await admin.post('/graphql').send({
+                const res = await authorisedUser.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
                         studyId: createdStudy.id,
@@ -2445,10 +1190,11 @@ if (global.hasMinio) {
                 ]);
                 const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: null }).toArray();
                 expect(fieldsInDb).toHaveLength(2);
+                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
             });
 
-            test('Create New field with unsupported characters (admin)', async () => {
-                const res = await admin.post('/graphql').send({
+            test('Create New field with unsupported characters (authorised user)', async () => {
+                const res = await authorisedUser.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
                         studyId: createdStudy.id,
@@ -2512,8 +1258,92 @@ if (global.hasMinio) {
                 expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
             });
 
-            test('Delete an unversioned field (admin)', async () => {
-                await admin.post('/graphql').send({
+            test('Create New fields (admin, should fail)', async () => {
+                const res = await admin.post('/graphql').send({
+                    query: print(CREATE_NEW_FIELD),
+                    variables: {
+                        studyId: createdStudy.id,
+                        fieldInput: [
+                            {
+                                fieldId: '8',
+                                fieldName: 'newField8',
+                                tableName: 'test',
+                                dataType: 'int',
+                                comments: 'test',
+                                possibleValues: [
+                                    { code: '1', description: 'NOW' },
+                                    { code: '2', description: 'OLD' }
+                                ]
+                            },
+                            {
+                                fieldId: '9',
+                                fieldName: 'newField9',
+                                tableName: 'test',
+                                dataType: 'cat',
+                                comments: 'test',
+                                possibleValues: [
+                                    { code: '1', description: 'TRUE' },
+                                    { code: '2', description: 'FALSE' }
+                                ]
+                            }
+                        ]
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            });
+
+            test('Delete an unversioned field (authorised user)', async () => {
+                await authorisedUser.post('/graphql').send({
+                    query: print(CREATE_NEW_FIELD),
+                    variables: {
+                        studyId: createdStudy.id,
+                        fieldInput: [
+                            {
+                                fieldId: '8',
+                                fieldName: 'newField8',
+                                tableName: 'test',
+                                dataType: 'int',
+                                comments: 'test',
+                                possibleValues: [
+                                    { code: '1', description: 'NOW' },
+                                    { code: '2', description: 'OLD' }
+                                ]
+                            },
+                            {
+                                fieldId: '9',
+                                fieldName: 'newField9',
+                                tableName: 'test',
+                                dataType: 'cat',
+                                comments: 'test',
+                                possibleValues: [
+                                    { code: '1', description: 'TRUE' },
+                                    { code: '2', description: 'FALSE' }
+                                ]
+                            }
+                        ]
+                    }
+                });
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(DELETE_FIELD),
+                    variables: {
+                        studyId: createdStudy.id,
+                        fieldId: '8'
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.deleteField.fieldId).toBe('8');
+                const fieldsInDb = await db.collections.field_dictionary_collection.find({ 'studyId': createdStudy.id, 'life.deletedTime': { $ne: null } }).toArray();
+                expect(fieldsInDb).toHaveLength(1);
+                expect(fieldsInDb[0].fieldId).toBe('8');
+                // clear database
+                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
+            });
+
+            test('Delete an unversioned field (admin, should fail)', async () => {
+                await authorisedUser.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
                         studyId: createdStudy.id,
@@ -2551,17 +1381,13 @@ if (global.hasMinio) {
                     }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.deleteField.fieldId).toBe('8');
-                const fieldsInDb = await db.collections.field_dictionary_collection.find({ 'studyId': createdStudy.id, 'life.deletedTime': { $ne: null } }).toArray();
-                expect(fieldsInDb).toHaveLength(1);
-                expect(fieldsInDb[0].fieldId).toBe('8');
-                // clear database
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                 await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
             });
 
-            test('Delete a versioned field (admin)', async () => {
-                await admin.post('/graphql').send({
+            test('Delete a versioned field (authorised user)', async () => {
+                await authorisedUser.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
                         studyId: createdStudy.id,
@@ -2591,11 +1417,11 @@ if (global.hasMinio) {
                         ]
                     }
                 });
-                await admin.post('/graphql').send({
+                await authorisedUser.post('/graphql').send({
                     query: print(CREATE_NEW_DATA_VERSION),
                     variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
                 });
-                const res = await admin.post('/graphql').send({
+                const res = await authorisedUser.post('/graphql').send({
                     query: print(DELETE_FIELD),
                     variables: {
                         studyId: createdStudy.id,
@@ -2617,17 +1443,11 @@ if (global.hasMinio) {
 
         describe('UPLOAD/DELETE DATA RECORDS DIRECTLY VIA API', () => {
             let createdStudy: { id: any; name: any; };
-            let createdProject: { id: any; name: any; studyId: any; };
-            let createdRole_study_accessData;
-            let createdRole_project;
-            let createdUserAuthorisedProject;  // profile
-            let createdUserNoAuthorisedProfile;
-            let createdUserAuthorisedProfile;
+            let authorisedUserProfile;
             let authorisedUser: request.SuperTest<request.Test>;
-            let authorisedProjectUser: request.SuperTest<request.Test>;
-            let unauthorisedUser: request.SuperTest<request.Test>;
             let mockFields: IField[];
             let mockDataVersion: IStudyDataVersion;
+            let newRole: IRole;
             const fieldTreeId = uuid();
             const oneRecord = [{
                 fieldId: '31',
@@ -2694,227 +1514,55 @@ if (global.hasMinio) {
                     });
                 }
 
-                /* 2. create a role for study (it will have 'access study data' privilege - equivalent to PI */
-                {
-                    const roleName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(ADD_NEW_ROLE),
-                        variables: {
-                            roleName,
-                            studyId: createdStudy.id
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
+                /* setup: creating a privileged user */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username,
+                    type: 'STANDARD',
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: `${username}@example.com`,
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'organisation_system',
+                    id: `new_user_id_${username}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
+                };
+                await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
-                    createdRole_study_accessData = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
-                    expect(createdRole_study_accessData).toEqual({
-                        _id: createdRole_study_accessData._id,
-                        id: createdRole_study_accessData.id,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        createdBy: adminId,
-                        users: [],
-                        deleted: null,
-                        metadata: {},
-                        description: ''
-                    });
-                    expect(res.body.data.addRole).toEqual({
-                        id: createdRole_study_accessData.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        users: []
-                    });
-                }
+                const roleId = uuid();
+                newRole = {
+                    id: roleId,
+                    studyId: createdStudy.id,
+                    name: `${roleId}_rolename`,
+                    dataPermissions: [{
+                        fields: ['^.*$'],
+                        dataProperties: {},
+                        includeUnVersioned: true,
+                        permission: 7
+                    }],
+                    studyRole: 'STUDY_MANAGER',
+                    users: [authorisedUserProfile.id],
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: 'admin',
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
+                };
+                await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertOne(newRole);
 
-                /* 3. create an general study user that cannot manage projects (no role yet) */
-                {
-                    const username = uuid();
-                    const newUser: IUser = {
-                        username: username,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${username}_firstname`,
-                        lastname: `${username}_lastname`,
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                        email: `${username}'@user.io'`,
-                        resetPasswordRequests: [],
-                        description: 'I am an authorised study user managing project.',
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        organisation: 'organisation_system',
-                        id: `AuthorisedStudyUserManageProject_${username}`,
-                        expiredAt: 1991134065000,
-                        life: {
-                            createdTime: 1591134065000,
-                            createdUser: enumReservedUsers.SYSTEM,
-                            deletedTime: null,
-                            deletedUser: null
-                        },
-                        metadata: {}
-                    };
-
-                    await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-                    createdUserNoAuthorisedProfile = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
-                }
-
-                /* 3. create an authorised study user that can manage projects (no role yet) */
-                {
-                    const username = uuid();
-                    const newUser: IUser = {
-                        username: username,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${username}_firstname`,
-                        lastname: `${username}_lastname`,
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                        email: `${username}'@user.io'`,
-                        resetPasswordRequests: [],
-                        description: 'I am an authorised study user managing project.',
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        organisation: 'organisation_system',
-                        metadata: {
-                            wp: 'wp5.1'
-                        },
-                        id: `AuthorisedStudyUserManageProject_${username}`,
-                        expiredAt: 1991134065000,
-                        life: {
-                            createdTime: 1591134065000,
-                            createdUser: enumReservedUsers.SYSTEM,
-                            deletedTime: null,
-                            deletedUser: null
-                        }
-                    };
-
-                    await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-                    createdUserAuthorisedProfile = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
-                }
-
-                /* 4. add authorised user to role */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(EDIT_ROLE),
-                        variables: {
-                            roleId: createdRole_study_accessData.id,
-                            userChanges: {
-                                add: [createdUserAuthorisedProfile.id],
-                                remove: []
-                            },
-                            permissionChanges: {
-                                data: {
-                                    fieldIds: ['^.*$'],
-                                    hasVersioned: true,
-                                    uploaders: ['^.*$'],
-                                    operations: [atomicOperation.READ, atomicOperation.WRITE],
-                                    subjectIds: ['^.*$'],
-                                    visitIds: ['^.*$']
-                                },
-                                manage: {
-                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                    [IPermissionManagementOptions.role]: [],
-                                    [IPermissionManagementOptions.job]: [],
-                                    [IPermissionManagementOptions.query]: [],
-                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ, atomicOperation.WRITE]
-                                }
-                            }
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.editRole).toEqual({
-                        id: createdRole_study_accessData.id,
-                        name: createdRole_study_accessData.name,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        description: '',
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: true,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ, atomicOperation.WRITE],
-                                subjectIds: ['^.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ, atomicOperation.WRITE]
-                            }
-                        },
-                        users: [{
-                            id: createdUserAuthorisedProfile.id,
-                            organisation: 'organisation_system',
-                            firstname: createdUserAuthorisedProfile.firstname,
-                            lastname: createdUserAuthorisedProfile.lastname
-                        }]
-                    });
-                    const resUser = await admin.post('/graphql').send({
-                        query: print(GET_USERS),
-                        variables: {
-                            fetchDetailsAdminOnly: false,
-                            userId: createdUserAuthorisedProfile.id,
-                            fetchAccessPrivileges: true
-                        }
-                    });
-                    expect(resUser.status).toBe(200);
-                    expect(resUser.body.errors).toBeUndefined();
-                    expect(resUser.body.data.getUsers).toHaveLength(1);
-                    expect(resUser.body.data.getUsers[0]).toEqual({
-                        id: createdUserAuthorisedProfile.id,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${createdUserAuthorisedProfile.username}_firstname`,
-                        lastname: `${createdUserAuthorisedProfile.username}_lastname`,
-                        organisation: 'organisation_system',
-                        access: {
-                            id: `user_access_obj_user_id_${createdUserAuthorisedProfile.id}`,
-                            projects: [],
-                            studies: [{
-                                id: createdStudy.id,
-                                name: createdStudy.name
-                            }]
-                        }
-                    });
-                }
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* 5. Insert field for data uploading later */
                 mockDataVersion = {
@@ -2931,6 +1579,13 @@ if (global.hasMinio) {
                         fieldName: 'Age',
                         dataType: enumDataTypes.INTEGER,
                         categoricalOptions: [],
+                        properties: [{
+                            name: 'm_subjectId',
+                            required: true
+                        }, {
+                            name: 'm_visitId',
+                            required: true
+                        }],
                         unit: 'person',
                         comments: 'mockComments1',
                         dataVersion: 'mockDataVersionId',
@@ -2949,6 +1604,13 @@ if (global.hasMinio) {
                         fieldName: 'Sex',
                         dataType: enumDataTypes.STRING,
                         categoricalOptions: [],
+                        properties: [{
+                            name: 'm_subjectId',
+                            required: true
+                        }, {
+                            name: 'm_visitId',
+                            required: true
+                        }],
                         unit: 'person',
                         comments: 'mockComments2',
                         dataVersion: 'mockDataVersionId',
@@ -2967,6 +1629,13 @@ if (global.hasMinio) {
                         fieldName: 'DeviceTest',
                         dataType: enumDataTypes.FILE,
                         categoricalOptions: [],
+                        properties: [{
+                            name: 'm_subjectId',
+                            required: true
+                        }, {
+                            name: 'm_visitId',
+                            required: true
+                        }],
                         unit: 'person',
                         comments: 'mockComments3',
                         dataVersion: 'mockDataVersionId',
@@ -2979,6 +1648,7 @@ if (global.hasMinio) {
                         metadata: {}
                     }
                 ];
+                await db.collections.field_dictionary_collection.insertMany(mockFields);
                 await db.collections.studies_collection.updateOne({ id: createdStudy.id }, {
                     $push: { dataVersions: mockDataVersion },
                     $inc: { currentDataVersion: 1 },
@@ -3016,332 +1686,23 @@ if (global.hasMinio) {
                     }
                 });
 
-                /* 2. create projects for the study */
-                {
-                    const projectName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(CREATE_PROJECT),
-                        variables: {
-                            studyId: createdStudy.id,
-                            projectName: projectName,
-                            dataVersion: mockDataVersion.id
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    createdProject = await mongoClient.collection<IProject>(config.database.collections.projects_collection).findOne({ name: projectName });
-                    expect(res.body.data.createProject).toEqual({
-                        id: createdProject.id,
-                        studyId: createdStudy.id,
-                        name: projectName
-                    });
-                }
-
-                /* 5. create an authorised project user (no role yet) */
-                {
-                    const username = uuid();
-                    const newUser: IUser = {
-                        username: username,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${username}_firstname`,
-                        lastname: `${username}_lastname`,
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                        email: `${username}@user.io`,
-                        resetPasswordRequests: [],
-                        description: 'I am an authorised project user.',
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        organisation: 'organisation_system',
-                        metadata: {
-                            wp: 'wp5.2'
-                        },
-                        id: `AuthorisedProjectUser_${username}`,
-                        expiredAt: 1991134065000,
-                        life: {
-                            createdTime: 1591134065000,
-                            createdUser: enumReservedUsers.SYSTEM,
-                            deletedTime: null,
-                            deletedUser: null
-                        }
-                    };
-                    await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
-                    createdUserAuthorisedProject = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
-                }
-
-                /* 4. create roles for project */
-                {
-                    const roleName = uuid();
-                    const res = await admin.post('/graphql').send({
-                        query: print(ADD_NEW_ROLE),
-                        variables: {
-                            roleName,
-                            studyId: createdStudy.id,
-                            projectId: createdProject.id
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    createdRole_project = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
-                    expect(createdRole_project).toEqual({
-                        _id: createdRole_project._id,
-                        id: createdRole_project.id,
-                        projectId: createdProject.id,
-                        studyId: createdStudy.id,
-                        name: roleName,
-                        description: '',
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        createdBy: adminId,
-                        users: [],
-                        deleted: null,
-                        metadata: {}
-                    });
-                    expect(res.body.data.addRole).toEqual({
-                        id: createdRole_project.id,
-                        name: roleName,
-                        permissions: {
-                            data: {
-                                fieldIds: [],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [],
-                                subjectIds: [],
-                                visitIds: []
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id,
-                        users: []
-                    });
-                }
-
-                /* 6. add authorised user to role */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(EDIT_ROLE),
-                        variables: {
-                            roleId: createdRole_project.id,
-                            userChanges: {
-                                add: [createdUserAuthorisedProject.id],
-                                remove: []
-                            },
-                            permissionChanges: {
-                                data: {
-                                    fieldIds: ['^.*$'],
-                                    hasVersioned: false,
-                                    uploaders: ['^.*$'],
-                                    operations: [atomicOperation.READ],
-                                    subjectIds: ['^.*$'],
-                                    visitIds: ['^.*$']
-                                },
-                                manage: {
-                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                    [IPermissionManagementOptions.role]: [],
-                                    [IPermissionManagementOptions.job]: [],
-                                    [IPermissionManagementOptions.query]: [],
-                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                                }
-                            }
-                        }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.editRole).toEqual({
-                        id: createdRole_project.id,
-                        name: createdRole_project.name,
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id,
-                        description: '',
-                        permissions: {
-                            data: {
-                                fieldIds: ['^.*$'],
-                                hasVersioned: false,
-                                uploaders: ['^.*$'],
-                                operations: [atomicOperation.READ],
-                                subjectIds: ['^.*$'],
-                                visitIds: ['^.*$']
-                            },
-                            manage: {
-                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
-                                [IPermissionManagementOptions.role]: [],
-                                [IPermissionManagementOptions.job]: [],
-                                [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
-                            }
-                        },
-                        users: [{
-                            id: createdUserAuthorisedProject.id,
-                            organisation: 'organisation_system',
-                            firstname: createdUserAuthorisedProject.firstname,
-                            lastname: createdUserAuthorisedProject.lastname
-                        }]
-                    });
-                    const resUser = await admin.post('/graphql').send({
-                        query: print(GET_USERS),
-                        variables: {
-                            fetchDetailsAdminOnly: false,
-                            userId: createdUserAuthorisedProject.id,
-                            fetchAccessPrivileges: true
-                        }
-                    });
-                    expect(resUser.status).toBe(200);
-                    expect(resUser.body.errors).toBeUndefined();
-                    expect(resUser.body.data.getUsers).toHaveLength(1);
-                    expect(resUser.body.data.getUsers[0]).toEqual({
-                        id: createdUserAuthorisedProject.id,
-                        type: enumUserTypes.STANDARD,
-                        firstname: `${createdUserAuthorisedProject.username}_firstname`,
-                        lastname: `${createdUserAuthorisedProject.username}_lastname`,
-                        organisation: 'organisation_system',
-                        access: {
-                            id: `user_access_obj_user_id_${createdUserAuthorisedProject.id}`,
-                            projects: [{
-                                id: createdProject.id,
-                                name: createdProject.name,
-                                studyId: createdStudy.id
-                            }],
-                            studies: []
-                        }
-                    });
-                }
-
-                /* 7. Create an ontologytree */
-                {
-                    await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
-                        $set: {
-                            ontologyTrees: [{
-                                id: uuid(),
-                                name: 'testOntologyTree',
-                                routes: [
-                                    { path: ['DM'], name: 'AGE', field: ['$31'], visitRange: [], id: uuid() },
-                                    { path: ['DM'], name: 'SEX', field: ['$32'], visitRange: [], id: uuid() }
-                                ],
-                                dataVersion: mockDataVersion.id,
-                                deleted: null
-                            }]
-                        }
-                    });
-                }
-                const study_role_id = `metadata.${'role:'.concat(createdRole_study_accessData?.id)}`;
-                const project_role_id = `metadata.${'role:'.concat(createdRole_project?.id)}`;
-                await db.collections.field_dictionary_collection.updateMany({ studyId: createdStudy.id }, {
-                    $set: {
-                        [study_role_id]: true,
-                        [project_role_id]: true
-                    }
-                });
-
-                /* Connect users */
-                authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, createdUserAuthorisedProfile.username, 'admin', createdUserAuthorisedProfile.otpSecret);
-                unauthorisedUser = request.agent(app);
-                await connectAgent(unauthorisedUser, createdUserNoAuthorisedProfile.username, 'admin', createdUserNoAuthorisedProfile.otpSecret);
-                authorisedProjectUser = request.agent(app);
-                await connectAgent(authorisedProjectUser, createdUserAuthorisedProject.username, 'admin', createdUserAuthorisedProject.otpSecret);
-
             });
 
             afterAll(async () => {
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(DELETE_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.deleteStudy).toEqual({
-                        id: createdStudy.id,
-                        successful: true
-                    });
-                }
-
-                {
-                    const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                    expect(res.body.data.whoAmI).toEqual({
-                        username: 'admin',
-                        type: enumUserTypes.ADMIN,
-                        firstname: 'Fadmin',
-                        lastname: 'Ladmin',
-                        organisation: 'organisation_system',
-                        email: 'admin@example.com',
-                        description: 'I am an admin user.',
-                        id: adminId,
-                        access: {
-                            id: `user_access_obj_user_id_${adminId}`,
-                            projects: [],
-                            studies: []
-                        },
-                        emailNotificationsActivated: true,
-                        emailNotificationsStatus: { expiringNotification: false },
-                        createdAt: 1591134065000,
-                        expiredAt: 1991134065000,
-                        metadata: {}
-                    });
-
-                    // study data is NOT deleted for audit purposes - unless explicitly requested separately
-                    const roles = await db.collections.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const projects = await db.collections.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                    const study = await db.collections.studies_collection.findOne({ 'id': createdStudy.id, 'life.deletedTime': null });
-                    expect(roles).toEqual([]);
-                    expect(projects).toEqual([]);
-                    expect(study).toBe(null);
-                }
-
-                /* cannot get study from api anymore */
-                {
-                    const res = await admin.post('/graphql').send({
-                        query: print(GET_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                    expect(res.body.data.getStudy).toBe(null);
-                }
-
-                await db.collections.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
+                /* cleanup: delete study */
+                await db.collections.studies_collection.deleteMany({});
+                await db.collections.data_collection.deleteMany({});
+                await db.collections.field_dictionary_collection.deleteMany({});
+                await db.collections.users_collection.deleteMany({});
+                await db.collections.files_collection.deleteMany({});
+                await db.collections.roles_collection.deleteMany({});
+                await db.collections.projects_collection.deleteMany({});
             });
 
             beforeEach(async () => {
-                await db.collections.field_dictionary_collection.insertMany(mockFields);
-            });
-
-            afterEach(async () => {
                 await db.collections.data_collection.deleteMany({});
-                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
-                    $set: {
-                        dataVersions: [{
-                            id: 'mockDataVersionId',
-                            contentId: 'mockContentId',
-                            version: '0.0.1',
-                            updateDate: '5000000'
-                        }], currentDataVersion: 0
-                    }
-                });
-                await db.collections.field_dictionary_collection.deleteMany({});
+                await db.collections.field_dictionary_collection.deleteMany({ fieldId: { $nin: mockFields.map(el => el.fieldId) } });
+                await db.collections.studies_collection.updateOne({ id: createdStudy.id }, { $set: { currentDataVersion: 0, dataVersions: [mockDataVersion], ontologyTrees: [] } });
             });
 
             test('Upload a data record to study (authorised user)', async () => {
@@ -3401,12 +1762,12 @@ if (global.hasMinio) {
                     { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.', id: null, successful: false }
                 ]);
 
-                const dataInDb = await db.collections.data_collection.find({ 'life.deletedTime': null }).toArray();
+                const dataInDb = await db.collections.data_collection.find({ deleted: null }).toArray();
                 expect(dataInDb).toHaveLength(3);
             });
 
             test('Upload a data record to study (unauthorised user)', async () => {
-                const res = await unauthorisedUser.post('/graphql').send({
+                const res = await user.post('/graphql').send({
                     query: print(UPLOAD_DATA_IN_ARRAY),
                     variables: { studyId: createdStudy.id, data: oneRecord }
                 });
@@ -3460,7 +1821,7 @@ if (global.hasMinio) {
             });
 
             test('Create New data version with data only (user with study privilege)', async () => {
-                const res = await admin.post('/graphql').send({
+                const res = await authorisedUser.post('/graphql').send({
                     query: print(UPLOAD_DATA_IN_ARRAY),
                     variables: { studyId: createdStudy.id, data: multipleRecords }
                 });
@@ -3483,7 +1844,7 @@ if (global.hasMinio) {
             });
 
             test('Create New data version with field only (user with study privilege)', async () => {
-                const res = await admin.post('/graphql').send({
+                const res = await authorisedUser.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
                         studyId: createdStudy.id, fieldInput: {
@@ -3513,7 +1874,7 @@ if (global.hasMinio) {
             });
 
             test('Create New data version with field and data (user with study privilege)', async () => {
-                await admin.post('/graphql').send({
+                await authorisedUser.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
                         studyId: createdStudy.id, fieldInput: {
@@ -3524,7 +1885,7 @@ if (global.hasMinio) {
                         }
                     }
                 });
-                await admin.post('/graphql').send({
+                await authorisedUser.post('/graphql').send({
                     query: print(UPLOAD_DATA_IN_ARRAY),
                     variables: {
                         studyId: createdStudy.id,
@@ -3552,23 +1913,6 @@ if (global.hasMinio) {
                 expect(dataInDb).toHaveLength(7);
                 const fieldsInDb = await db.collections.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
                 expect(fieldsInDb).toHaveLength(4);
-            });
-
-            test('Create New data version (authorised user) should fail', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-
-                const createRes = await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_NEW_DATA_VERSION),
-                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: [], withUnversionedData: true }
-                });
-                expect(createRes.status).toBe(200);
-                expect(createRes.body.errors).toHaveLength(1);
-                expect(createRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
             });
 
             test('Delete data records: (unauthorised user) should fail', async () => {
@@ -3607,7 +1951,8 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }]);
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
+                ]);
             });
 
             test('Delete data records: visitId (admin)', async () => {
@@ -3618,23 +1963,16 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
 
-                const deleteRes = await authorisedUser.post('/graphql').send({
+                const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
                     variables: { studyId: createdStudy.id, visitIds: ['2'] }
                 });
                 expect(deleteRes.status).toBe(200);
-                expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-33 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
-                ]);
+                expect(deleteRes.body.errors).toHaveLength(1);
+                expect(deleteRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
             });
 
-            test('Delete data records: studyId (admin)', async () => {
+            test('Delete data records: studyId (authorised user)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(UPLOAD_DATA_IN_ARRAY),
                     variables: { studyId: createdStudy.id, data: multipleRecords }
@@ -3649,7 +1987,7 @@ if (global.hasMinio) {
                     { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
                     { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
                 ]);
-                const deleteRes = await admin.post('/graphql').send({
+                const deleteRes = await authorisedUser.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
                     variables: { studyId: createdStudy.id }
                 });
@@ -3667,9 +2005,10 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }]);
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
+                ]);
                 const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
-                expect(dataInDb).toHaveLength(18); // 2 visits * 2 subjects * 3 fields + 6 (original records) = 18 records
+                expect(dataInDb).toHaveLength(18); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) + 6 (original records) = 22 records
             });
 
             test('Delete data records: records not exist', async () => {
@@ -3687,7 +2026,7 @@ if (global.hasMinio) {
                     { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
                     { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
                 ]);
-                const deleteRes = await admin.post('/graphql').send({
+                const deleteRes = await authorisedUser.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
                     variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'], visitIds: ['1', '2'] }
                 });
@@ -3699,9 +2038,10 @@ if (global.hasMinio) {
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
                     { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
-                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }]);
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' }
+                ]);
                 const dataInDb = await db.collections.data_collection.find({}).sort({ 'life.createdTime': -1 }).toArray();
-                expect(dataInDb).toHaveLength(12); // 1 subject * 3 fields * 2visits +  6 original records
+                expect(dataInDb).toHaveLength(12); // 8 deleted records and 6 original records
             });
 
             test('Get data records (user with study privilege)', async () => {
@@ -3726,7 +2066,7 @@ if (global.hasMinio) {
                         ]
                     }
                 });
-                const getRes = await admin.post('/graphql').send({
+                const getRes = await authorisedUser.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {
                         studyId: createdStudy.id,
@@ -3742,414 +2082,10 @@ if (global.hasMinio) {
                 expect(getRes.body.errors).toBeUndefined();
                 expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
             });
-
-            test('Create an ontology tree (authorised user)', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: 'Q1',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                const study = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.createOntologyTree).toEqual({
-                    id: study.ontologyTrees[1].id,
-                    name: 'fakeTree',
-                    routes: [
-                        {
-                            id: study.ontologyTrees[1].routes[0].id,
-                            path: ['DM', 'm_subjectId', 'm_visitId'],
-                            name: 'AGE',
-                            field: ['$100'],
-                            visitRange: []
-                        },
-                        {
-                            id: study.ontologyTrees[1].routes[1].id,
-                            path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                            name: 'Q1',
-                            field: ['$200'],
-                            visitRange: []
-                        }
-                    ],
-                    metadata: null
-                });
-                // clear ontologyTrees
-                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
-                    $set: {
-                        ontologyTrees: []
-                    }
-                });
-            });
-
-            test('Create an ontology tree (unauthorised user), should fail', async () => {
-                const res = await user.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.data.createOntologyTree).toBe(null);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            });
-
-            test('Delete an ontology tree (authorised user)', async () => {
-                await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                await admin.post('/graphql').send({
-                    query: print(CREATE_NEW_DATA_VERSION),
-                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-                });
-                const study: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(DELETE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        treeName: study.ontologyTrees[0].name
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.data.deleteOntologyTree).toEqual({
-                    id: study.ontologyTrees[0].name,
-                    successful: true
-                });
-                const updatedStudy: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                expect(updatedStudy.ontologyTrees.length).toBe(2); // both records
-                // clear study
-                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
-                    $set: {
-                        dataVersions: [],
-                        currentDataVersion: -1,
-                        ontologyTrees: []
-                    }
-                });
-            });
-
-            test('Delete an ontology tree (unauthorised user), should fail', async () => {
-                await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                const study: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                const res = await user.post('/graphql').send({
-                    query: print(DELETE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        treeName: study.ontologyTrees[0].name
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.data.deleteOntologyTree).toBe(null);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                await db.collections.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
-                    $set: {
-                        ontologyTrees: []
-                    }
-                });
-            });
-
-            test('Get an ontology tree with versioning (authorised user)', async () => {
-                await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                await admin.post('/graphql').send({
-                    query: print(CREATE_NEW_DATA_VERSION),
-                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-                });
-                await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGEnew',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                const study: IStudy = await db.collections.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                const resWithoutVersion = await authorisedUser.post('/graphql').send({
-                    query: print(GET_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        treeName: null
-                    }
-                });
-                expect(resWithoutVersion.status).toBe(200);
-                expect(resWithoutVersion.body.data.getOntologyTree).toHaveLength(1);
-                expect(resWithoutVersion.body.data.getOntologyTree[0]).toEqual({
-                    id: study.ontologyTrees[0].id,
-                    name: 'fakeTree',
-                    routes: [
-                        {
-                            id: study.ontologyTrees[0].routes[0].id,
-                            path: ['DM', 'm_subjectId', 'm_visitId'],
-                            name: 'AGE',
-                            field: ['$100'],
-                            visitRange: []
-                        },
-                        {
-                            id: study.ontologyTrees[0].routes[1].id,
-                            path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                            name: '',
-                            field: ['$200'],
-                            visitRange: []
-                        }
-                    ],
-                    metadata: null
-                });
-                const resWithVersion = await authorisedUser.post('/graphql').send({
-                    query: print(GET_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        treeName: null,
-                        versionId: null
-                    }
-                });
-                expect(resWithVersion.status).toBe(200);
-                expect(resWithVersion.body.data.getOntologyTree).toHaveLength(1);
-                expect(resWithVersion.body.data.getOntologyTree[0]).toEqual({
-                    id: study.ontologyTrees[1].id,
-                    name: 'fakeTree',
-                    routes: [
-                        {
-                            id: study.ontologyTrees[1].routes[0].id,
-                            path: ['DM', 'm_subjectId', 'm_visitId'],
-                            name: 'AGEnew',
-                            field: ['$100'],
-                            visitRange: []
-                        },
-                        {
-                            id: study.ontologyTrees[1].routes[1].id,
-                            path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                            name: '',
-                            field: ['$200'],
-                            visitRange: []
-                        }
-                    ],
-                    metadata: null
-                });
-                // clear study
-                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
-                    $set: {
-                        dataVersions: [],
-                        currentDataVersion: -1,
-                        ontologyTrees: []
-                    }
-                });
-            });
-
-            test('Get an ontology tree from project (authorised user)', async () => {
-                await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                await admin.post('/graphql').send({
-                    query: print(CREATE_NEW_DATA_VERSION),
-                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-                });
-                const res = await user.post('/graphql').send({
-                    query: print(GET_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdProject.studyId,
-                        projectId: createdProject.id,
-                        treeName: null
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.data.getOntologyTree).toBe(null);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                // clear study
-                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
-                    $set: {
-                        dataVersions: [],
-                        currentDataVersion: -1,
-                        ontologyTrees: []
-                    }
-                });
-            });
-
-            test('Get an ontology tree (unauthorised user), should fail', async () => {
-                await authorisedUser.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$100'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$200'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
-                    }
-                });
-                await admin.post('/graphql').send({
-                    query: print(CREATE_NEW_DATA_VERSION),
-                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-                });
-                const res = await user.post('/graphql').send({
-                    query: print(GET_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdProject.studyId,
-                        projectId: createdProject.id,
-                        treeName: null
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.data.getOntologyTree).toBe(null);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                // clear study
-                await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
-                    $set: {
-                        dataVersions: [],
-                        currentDataVersion: -1,
-                        ontologyTrees: []
-                    }
-                });
-            });
         });
     });
-} else
+} else {
     test(`${__filename.split(/[\\/]/).pop()} skipped because it requires Minio on Docker`, () => {
         expect(true).toBe(true);
     });
+}

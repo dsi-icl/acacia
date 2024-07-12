@@ -17,8 +17,8 @@ export interface IField extends IBase {
 
 export interface IFieldProperty {
     name: string;
-    verifier: IValueVerifier[][] | null;
-    description: string | null;
+    verifier?: IValueVerifier[][];
+    description?: string;
     required: boolean;
 }
 
