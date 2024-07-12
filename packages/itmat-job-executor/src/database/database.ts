@@ -1,4 +1,4 @@
-import type { IFile, IJobEntry, IProject, IQueryEntry, IDataEntry, IField } from '@itmat-broker/itmat-types';
+import type { IFile, IJobEntry, IProject, IQueryEntry, IField, IData } from '@itmat-broker/itmat-types';
 import { Database as DatabaseBase, IDatabaseBaseConfig } from '@itmat-broker/itmat-commons';
 import type { Collection } from 'mongodb';
 
@@ -17,7 +17,7 @@ export interface IDatabaseCollectionConfig {
     jobs_collection: Collection<IJobEntry>,
     field_dictionary_collection: Collection<IField>,
     files_collection: Collection<IFile>,
-    data_collection: Collection<IDataEntry>,
+    data_collection: Collection<IData>,
     queries_collection: Collection<IQueryEntry>,
     projects_collection: Collection<IProject>
 }

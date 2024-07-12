@@ -1,6 +1,6 @@
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 import { DBType } from '../database/database';
-import { CoreError, FileUpload, IFile, IStudy, IStudyDataVersion, IUserWithoutToken, enumConfigType, enumCoreErrors, enumFileCategories, enumFileTypes, enumStudyRoles, enumUserTypes } from '@itmat-broker/itmat-types';
+import { CoreError, FileUpload, IData, IFile, IStudy, IStudyDataVersion, IUserWithoutToken, enumCacheStatus, enumConfigType, enumCoreErrors, enumFileCategories, enumFileTypes, enumStudyRoles, enumUserTypes } from '@itmat-broker/itmat-types';
 import { Filter, UpdateFilter } from 'mongodb';
 import { TRPCPermissionCore } from './permissionCore';
 import { v4 as uuid } from 'uuid';
@@ -360,19 +360,48 @@ export class TRPCStudyCore {
             }
         });
 
-        // TODO: invalidate hash
-        // await this.db.collections.cache_collection.updateMany({
-        //     'keys.studyId': studyId
-        // }, {
-        //     $set: {
-        //         status: enumCacheStatus.OUTDATED
-        //     }
-        // });
+        // TODO: invalidate cache
+        await this.db.collections.cache_collection.updateMany({
+            'keys.studyId': studyId
+        }, {
+            $set: {
+                status: enumCacheStatus.OUTDATED
+            }
+        });
 
         // TODO: update stds, ontologies
 
         // TODO: update cold storage
-
+        const unversionedDocuments = await this.db.collections.data_collection.find({ studyId: studyId, dataVersion: newDataVersionId }).toArray();
+        let bulkOperation = this.db.collections.colddata_collection.initializeUnorderedBulkOp();
+        for (const doc of unversionedDocuments) {
+            const filters: Filter<IData> = {
+                studyId: studyId,
+                fieldId: doc.fieldId,
+                properties: doc.properties
+            };
+            bulkOperation.find(filters).upsert().update({
+                $set: {
+                    id: uuid(),
+                    value: doc.value,
+                    dataVersion: newDataVersionId,
+                    life: {
+                        createdTime: Date.now(),
+                        createdUser: requester.id,
+                        deletedTime: null,
+                        deletedUser: null
+                    },
+                    metadata: {}
+                }
+            });
+            if (bulkOperation.batches.length > 999) {
+                await bulkOperation.execute();
+                bulkOperation = this.db.collections.colddata_collection.initializeUnorderedBulkOp();
+            }
+        }
+        if (bulkOperation.batches.length > 0) {
+            await bulkOperation.execute();
+        }
 
         const newDataVersion: IStudyDataVersion = {
             id: newDataVersionId,
@@ -397,6 +426,8 @@ export class TRPCStudyCore {
                 enumCoreErrors.UNQUALIFIED_ERROR,
                 'Nothing to update.'
             );
+        } else {
+            return newDataVersion;
         }
     }
 

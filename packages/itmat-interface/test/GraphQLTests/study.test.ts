@@ -33,7 +33,6 @@ import {
     enumUserTypes,
     studyType,
     enumDataTypes,
-    IDataEntry,
     IUser,
     IFile,
     IField,
@@ -1815,7 +1814,7 @@ if (global.hasMinio) {
                 expect(res.body.errors).toBeUndefined();
                 // check both data collection and file collection
                 const fileFirst = await db.collections.files_collection.findOne<IFile>({ 'studyId': createdStudy.id, 'life.deletedTime': null });
-                const dataFirst = await db.collections.data_collection.findOne<IDataEntry>({ 'studyId': createdStudy.id, 'properties.m_visitId': '1', 'fieldId': '33' });
+                const dataFirst = await db.collections.data_collection.findOne<IData>({ 'studyId': createdStudy.id, 'properties.m_visitId': '1', 'fieldId': '33' });
                 expect(dataFirst?.value).toBe(fileFirst.id);
                 expect(dataFirst?.life.deletedTime).toBe(null);
             });

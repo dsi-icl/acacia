@@ -279,7 +279,8 @@ export class Router {
                                 createReadStream: () => fileStream,
                                 filename: file.originalname,
                                 mimetype: file.mimetype,
-                                encoding: file.encoding
+                                encoding: file.encoding,
+                                fieldName: file.fieldname
                             });
                         }
                         req.body.files = transformedFiles; // Attach the transformed files to the request body for later use

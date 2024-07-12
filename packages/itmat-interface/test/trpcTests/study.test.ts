@@ -14,7 +14,7 @@ import { Db, MongoClient } from 'mongodb';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
-import { enumUserTypes, enumStudyRoles, IUser, IRole } from '@itmat-broker/itmat-types';
+import { enumUserTypes, enumStudyRoles, IUser, IRole, enumDataTypes } from '@itmat-broker/itmat-types';
 import path from 'path';
 import { encodeQueryParams } from './helper';
 if (global.hasMinio) {
@@ -200,9 +200,7 @@ if (global.hasMinio) {
                 .field('name', 'Test Study')
                 .field('description', '');
             const response1 = await request;
-
             await db.collections.roles_collection.updateMany({}, { $set: { studyId: response1.body.result.data.id } });
-
             const request2 = authorisedUser.post('/trpc/study.editStudy')
                 .field('studyId', response1.body.result.data.id)
                 .attach('profile', filePath)
@@ -374,453 +372,512 @@ if (global.hasMinio) {
             expect(response2.status).toBe(200);
             expect(response2.body.result.data).toHaveLength(0);
         });
-        // test('Create a new data version', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     await db.collections.roles_collection.updateMany({}, { $set: { studyId: response1.body.result.data.id } });
-        //     await user.post('/trpc/data.createStudyField')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             fieldName: 'Test Field 1',
-        //             fieldId: '1',
-        //             description: '',
-        //             dataType: enumDataTypes.INTEGER
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '10'
-        //             }]
-        //         });
-        //     const response2 = await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     expect(response2.status).toBe(200);
-        //     expect(response2.body.result.data.version).toBe('1.0');
-        //     const data = await db.collections.data_collection.findOne({});
-        //     const field = await db.collections.field_dictionary_collection.findOne({});
-        //     const study = await db.collections.studies_collection.findOne({});
-        //     expect(field?.dataVersion).toBe(response2.body.result.data.id);
-        //     expect(data?.dataVersion).toBe(response2.body.result.data.id);
-        //     expect(study?.currentDataVersion).toBe(0);
-        //     expect(study?.dataVersions).toHaveLength(1);
-        //     expect(study?.dataVersions[0].id).toBe(response2.body.result.data.id);
-        // });
-        // test('Create a new data version (no permission)', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     const fullPermissionRole = {
-        //         id: 'full_permission_role_id',
-        //         studyId: response1.body.result.data.id,
-        //         name: 'Full Permissison Role',
-        //         description: '',
-        //         // data permissions for studyId
-        //         dataPermissions: [{
-        //             fields: ['^1.*$'],
-        //             dataProperties: {
-        //             },
-        //             permission: parseInt('110', 2)
-        //         }],
-        //         studyRole: enumStudyRoles.STUDY_USER,
-        //         users: [userProfile.id],
-        //         groups: []
-        //     };
-        //     await db.collections.roles_collection.insertOne(fullPermissionRole);
-        //     await user.post('/trpc/data.createStudyField')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             fieldName: 'Test Field 1',
-        //             fieldId: '1',
-        //             description: '',
-        //             dataType: enumDataTypes.INTEGER
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '10'
-        //             }]
-        //         });
-        //     const response2 = await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     expect(response2.status).toBe(400);
-        //     expect(response2.body.error.message).toBe(errorCodes.NO_PERMISSION_ERROR);
-        // });
-        // test('Create a new data version (version is not float string)', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     const fullPermissionRole = {
-        //         id: 'full_permission_role_id',
-        //         studyId: response1.body.result.data.id,
-        //         name: 'Full Permissison Role',
-        //         description: '',
-        //         // data permissions for studyId
-        //         dataPermissions: [{
-        //             fields: ['^1.*$'],
-        //             dataProperties: {
-        //             },
-        //             permission: parseInt('110', 2)
-        //         }],
-        //         studyRole: enumStudyRoles.STUDY_MANAGER,
-        //         users: [userProfile.id],
-        //         groups: []
-        //     };
-        //     await db.collections.roles_collection.insertOne(fullPermissionRole);
-        //     await user.post('/trpc/data.createStudyField')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             fieldName: 'Test Field 1',
-        //             fieldId: '1',
-        //             description: '',
-        //             dataType: enumDataTypes.INTEGER
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '10'
-        //             }]
-        //         });
-        //     const response2 = await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0.5',
-        //             tag: '1.0'
-        //         });
-        //     expect(response2.status).toBe(400);
-        //     expect(response2.body.error.message).toBe('Version must be a float number.');
-        // });
-        // test('Create a new data version (duplicate versions)', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     const fullPermissionRole = {
-        //         id: 'full_permission_role_id',
-        //         studyId: response1.body.result.data.id,
-        //         name: 'Full Permissison Role',
-        //         description: '',
-        //         // data permissions for studyId
-        //         dataPermissions: [{
-        //             fields: ['^1.*$'],
-        //             dataProperties: {
-        //             },
-        //             permission: parseInt('110', 2)
-        //         }],
-        //         studyRole: enumStudyRoles.STUDY_MANAGER,
-        //         users: [userProfile.id],
-        //         groups: []
-        //     };
-        //     await db.collections.roles_collection.insertOne(fullPermissionRole);
-        //     await user.post('/trpc/data.createStudyField')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             fieldName: 'Test Field 1',
-        //             fieldId: '1',
-        //             description: '',
-        //             dataType: enumDataTypes.INTEGER
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '10'
-        //             }]
-        //         });
-        //     await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '11'
-        //             }]
-        //         });
-        //     const response2 = await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     expect(response2.status).toBe(400);
-        //     expect(response2.body.error.message).toBe('Version has been used.');
-        // });
-        // test('Create a new data version (nothing update)', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     const fullPermissionRole = {
-        //         id: 'full_permission_role_id',
-        //         studyId: response1.body.result.data.id,
-        //         name: 'Full Permissison Role',
-        //         description: '',
-        //         // data permissions for studyId
-        //         dataPermissions: [{
-        //             fields: ['^1.*$'],
-        //             dataProperties: {
-        //             },
-        //             permission: parseInt('110', 2)
-        //         }],
-        //         studyRole: enumStudyRoles.STUDY_MANAGER,
-        //         users: [userProfile.id],
-        //         groups: []
-        //     };
-        //     await db.collections.roles_collection.insertOne(fullPermissionRole);
-        //     const response = await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     expect(response.status).toBe(400);
-        //     expect(response.body.error.message).toBe('Nothing to update.');
-        // });
-        // test('Set to a previous data version', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     const fullPermissionRole = {
-        //         id: 'full_permission_role_id',
-        //         studyId: response1.body.result.data.id,
-        //         name: 'Full Permissison Role',
-        //         description: '',
-        //         // data permissions for studyId
-        //         dataPermissions: [{
-        //             fields: ['^1.*$'],
-        //             dataProperties: {
-        //             },
-        //             permission: parseInt('110', 2)
-        //         }],
-        //         studyRole: enumStudyRoles.STUDY_MANAGER,
-        //         users: [userProfile.id],
-        //         groups: []
-        //     };
-        //     await db.collections.roles_collection.insertOne(fullPermissionRole);
-        //     await user.post('/trpc/data.createStudyField')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             fieldName: 'Test Field 1',
-        //             fieldId: '1',
-        //             description: '',
-        //             dataType: enumDataTypes.INTEGER
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '10'
-        //             }]
-        //         });
-        //     const response2 = await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '11'
-        //             }]
-        //         });
-        //     await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.1',
-        //             tag: '1.1'
-        //         });
-        //     const response3 = await user.post('/trpc/study.setDataversionAsCurrent')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersionId: response2.body.result.data.id
-        //         });
-        //     expect(response3.status).toBe(200);
-        //     expect(response3.body.result.data.successful).toBe(true);
-        //     const study = await db.collections.studies_collection.findOne({});
-        //     expect(study?.currentDataVersion).toBe(0);
-        //     expect(study?.dataVersions).toHaveLength(2);
-        // });
-        // test('Set to a previous data version (no permission)', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     const fullPermissionRole = {
-        //         id: 'full_permission_role_id',
-        //         studyId: response1.body.result.data.id,
-        //         name: 'Full Permissison Role',
-        //         description: '',
-        //         // data permissions for studyId
-        //         dataPermissions: [{
-        //             fields: ['^1.*$'],
-        //             dataProperties: {
-        //             },
-        //             permission: parseInt('110', 2)
-        //         }],
-        //         studyRole: enumStudyRoles.STUDY_MANAGER,
-        //         users: [userProfile.id],
-        //         groups: []
-        //     };
-        //     await db.collections.roles_collection.insertOne(fullPermissionRole);
-        //     await user.post('/trpc/data.createStudyField')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             fieldName: 'Test Field 1',
-        //             fieldId: '1',
-        //             description: '',
-        //             dataType: enumDataTypes.INTEGER
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '10'
-        //             }]
-        //         });
-        //     const response2 = await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '11'
-        //             }]
-        //         });
-        //     await db.collections?.roles_collection.updateOne({}, {
-        //         $set: {
-        //             studyRole: enumStudyRoles.STUDY_USER
-        //         }
-        //     });
-        //     await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.1',
-        //             tag: '1.1'
-        //         });
-        //     const response3 = await user.post('/trpc/study.setDataversionAsCurrent')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersionId: response2.body.result.data.id
-        //         });
-        //     expect(response3.status).toBe(400);
-        //     expect(response3.body.error.message).toBe(errorCodes.NO_PERMISSION_ERROR);
-        // });
-        // test('Set to a previous data version (version id not exist)', async () => {
-        //     const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
-        //     const request = admin.post('/trpc/study.createStudy');
-        //     request.attach('profile', filePath);
-        //     request.field('name', 'Test Study');
-        //     request.field('description', '');
-        //     const response1 = await request;
-        //     const fullPermissionRole = {
-        //         id: 'full_permission_role_id',
-        //         studyId: response1.body.result.data.id,
-        //         name: 'Full Permissison Role',
-        //         description: '',
-        //         // data permissions for studyId
-        //         dataPermissions: [{
-        //             fields: ['^1.*$'],
-        //             dataProperties: {
-        //             },
-        //             permission: parseInt('110', 2)
-        //         }],
-        //         studyRole: enumStudyRoles.STUDY_MANAGER,
-        //         users: [userProfile.id],
-        //         groups: []
-        //     };
-        //     await db.collections.roles_collection.insertOne(fullPermissionRole);
-        //     await user.post('/trpc/data.createStudyField')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             fieldName: 'Test Field 1',
-        //             fieldId: '1',
-        //             description: '',
-        //             dataType: enumDataTypes.INTEGER
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '10'
-        //             }]
-        //         });
-        //     await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.0',
-        //             tag: '1.0'
-        //         });
-        //     await user.post('/trpc/data.uploadStudyData')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             data: [{
-        //                 fieldId: '1',
-        //                 value: '11'
-        //             }]
-        //         });
-        //     await user.post('/trpc/study.createDataVersion')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersion: '1.1',
-        //             tag: '1.1'
-        //         });
-        //     const response3 = await user.post('/trpc/study.setDataversionAsCurrent')
-        //         .send({
-        //             studyId: response1.body.result.data.id,
-        //             dataVersionId: 'random'
-        //         });
-        //     expect(response3.status).toBe(400);
-        //     expect(response3.body.error.message).toBe('Data version does not exist.');
-        // });
+        test('Create a new data version', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            await db.collections.roles_collection.updateMany({}, { $set: { studyId: response1.body.result.data.id } });
+            await authorisedUser.post('/trpc/data.createStudyField')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    fieldName: 'Test Field 1',
+                    fieldId: '1',
+                    description: '',
+                    dataType: enumDataTypes.INTEGER
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '10'
+                    }]
+                });
+            const response2 = await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            expect(response2.status).toBe(200);
+            expect(response2.body.result.data.version).toBe('1.0');
+            const data = await db.collections.data_collection.findOne({});
+            const field = await db.collections.field_dictionary_collection.findOne({});
+            const study = await db.collections.studies_collection.findOne({});
+            expect(field?.dataVersion).toBe(response2.body.result.data.id);
+            expect(data?.dataVersion).toBe(response2.body.result.data.id);
+            expect(study?.currentDataVersion).toBe(0);
+            expect(study?.dataVersions).toHaveLength(1);
+            expect(study?.dataVersions[0].id).toBe(response2.body.result.data.id);
+            // check cold storage
+            const colddata = await db.collections.colddata_collection.findOne({});
+            expect(colddata?.dataVersion).toBe(response2.body.result.data.id);
+        });
+        test('Create a new data version (no permission)', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            const fullPermissionRole: IRole = {
+                id: 'full_permission_role_id',
+                studyId: response1.body.result.data.id,
+                name: 'Full Permissison Role',
+                description: '',
+                // data permissions for studyId
+                dataPermissions: [{
+                    fields: ['^1.*$'],
+                    dataProperties: {
+                    },
+                    permission: parseInt('110', 2)
+                }],
+                studyRole: enumStudyRoles.STUDY_MANAGER,
+                users: [authorisedUserProfile.id],
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+            await db.collections.roles_collection.insertOne(fullPermissionRole);
+            await user.post('/trpc/data.createStudyField')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    fieldName: 'Test Field 1',
+                    fieldId: '1',
+                    description: '',
+                    dataType: enumDataTypes.INTEGER
+                });
+            await user.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '10'
+                    }]
+                });
+            const response2 = await user.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            expect(response2.status).toBe(400);
+            expect(response2.body.error.message).toBe('Only admin or study manager can create a study version.');
+            // clear database
+            await db.collections.roles_collection.deleteMany({ id: fullPermissionRole.id });
+        });
+        test('Create a new data version (version is not float string)', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            const fullPermissionRole: IRole = {
+                id: 'full_permission_role_id',
+                studyId: response1.body.result.data.id,
+                name: 'Full Permissison Role',
+                description: '',
+                // data permissions for studyId
+                dataPermissions: [{
+                    fields: ['^1.*$'],
+                    dataProperties: {
+                    },
+                    permission: parseInt('110', 2)
+                }],
+                studyRole: enumStudyRoles.STUDY_MANAGER,
+                users: [authorisedUserProfile.id],
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+            await db.collections.roles_collection.insertOne(fullPermissionRole);
+            await authorisedUser.post('/trpc/data.createStudyField')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    fieldName: 'Test Field 1',
+                    fieldId: '1',
+                    description: '',
+                    dataType: enumDataTypes.INTEGER
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '10'
+                    }]
+                });
+            const response2 = await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0.5',
+                    tag: '1.0'
+                });
+            expect(response2.status).toBe(400);
+            expect(response2.body.error.message).toBe('Version must be a float number.');
+            // clear database
+            await db.collections.roles_collection.deleteMany({ id: fullPermissionRole.id });
+        });
+        test('Create a new data version (duplicate versions)', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            const fullPermissionRole: IRole = {
+                id: 'full_permission_role_id',
+                studyId: response1.body.result.data.id,
+                name: 'Full Permissison Role',
+                description: '',
+                // data permissions for studyId
+                dataPermissions: [{
+                    fields: ['^1.*$'],
+                    dataProperties: {
+                    },
+                    permission: parseInt('110', 2)
+                }],
+                studyRole: enumStudyRoles.STUDY_MANAGER,
+                users: [authorisedUserProfile.id],
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+            await db.collections.roles_collection.insertOne(fullPermissionRole);
+            await authorisedUser.post('/trpc/data.createStudyField')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    fieldName: 'Test Field 1',
+                    fieldId: '1',
+                    description: '',
+                    dataType: enumDataTypes.INTEGER
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '10'
+                    }]
+                });
+            await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '11'
+                    }]
+                });
+            const response2 = await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            expect(response2.status).toBe(400);
+            expect(response2.body.error.message).toBe('Version has been used.');
+            // clear database
+            await db.collections.roles_collection.deleteMany({ id: fullPermissionRole.id });
+        });
+        test('Create a new data version (nothing update)', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            const fullPermissionRole: IRole = {
+                id: 'full_permission_role_id',
+                studyId: response1.body.result.data.id,
+                name: 'Full Permissison Role',
+                description: '',
+                // data permissions for studyId
+                dataPermissions: [{
+                    fields: ['^1.*$'],
+                    dataProperties: {
+                    },
+                    permission: parseInt('110', 2)
+                }],
+                studyRole: enumStudyRoles.STUDY_MANAGER,
+                users: [authorisedUserProfile.id],
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+            await db.collections.roles_collection.insertOne(fullPermissionRole);
+            const response = await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            expect(response.status).toBe(400);
+            expect(response.body.error.message).toBe('Nothing to update.');
+            // clear database
+            await db.collections.roles_collection.deleteMany({ id: fullPermissionRole.id });
+        });
+        test('Set to a previous data version', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            const fullPermissionRole: IRole = {
+                id: 'full_permission_role_id',
+                studyId: response1.body.result.data.id,
+                name: 'Full Permissison Role',
+                description: '',
+                // data permissions for studyId
+                dataPermissions: [{
+                    fields: ['^1.*$'],
+                    dataProperties: {
+                    },
+                    permission: parseInt('110', 2)
+                }],
+                studyRole: enumStudyRoles.STUDY_MANAGER,
+                users: [authorisedUserProfile.id],
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+            await db.collections.roles_collection.insertOne(fullPermissionRole);
+            await authorisedUser.post('/trpc/data.createStudyField')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    fieldName: 'Test Field 1',
+                    fieldId: '1',
+                    description: '',
+                    dataType: enumDataTypes.INTEGER
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '10'
+                    }]
+                });
+            const response2 = await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '11'
+                    }]
+                });
+            await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.1',
+                    tag: '1.1'
+                });
+            const response3 = await authorisedUser.post('/trpc/study.setDataversionAsCurrent')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersionId: response2.body.result.data.id
+                });
+            expect(response3.status).toBe(200);
+            expect(response3.body.result.data.successful).toBe(true);
+            const study = await db.collections.studies_collection.findOne({});
+            expect(study?.currentDataVersion).toBe(0);
+            expect(study?.dataVersions).toHaveLength(2);
+            // clear database
+            await db.collections.roles_collection.deleteMany({ id: fullPermissionRole.id });
+        });
+        test('Set to a previous data version (no permission)', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            const fullPermissionRole: IRole = {
+                id: 'full_permission_role_id',
+                studyId: response1.body.result.data.id,
+                name: 'Full Permissison Role',
+                description: '',
+                // data permissions for studyId
+                dataPermissions: [{
+                    fields: ['^1.*$'],
+                    dataProperties: {
+                    },
+                    permission: parseInt('110', 2)
+                }],
+                studyRole: enumStudyRoles.STUDY_MANAGER,
+                users: [authorisedUserProfile.id],
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+            await db.collections.roles_collection.insertOne(fullPermissionRole);
+            await authorisedUser.post('/trpc/data.createStudyField')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    fieldName: 'Test Field 1',
+                    fieldId: '1',
+                    description: '',
+                    dataType: enumDataTypes.INTEGER
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '10'
+                    }]
+                });
+            const response2 = await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '11'
+                    }]
+                });
+            await db.collections?.roles_collection.updateOne({}, {
+                $set: {
+                    studyRole: enumStudyRoles.STUDY_USER
+                }
+            });
+            await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.1',
+                    tag: '1.1'
+                });
+            const response3 = await user.post('/trpc/study.setDataversionAsCurrent')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersionId: response2.body.result.data.id
+                });
+            expect(response3.status).toBe(400);
+            expect(response3.body.error.message).toBe('Only admin or study manager can set a study version.');
+            // clear database
+            await db.collections.roles_collection.deleteMany({ id: fullPermissionRole.id });
+        });
+        test('Set to a previous data version (version id not exist)', async () => {
+            const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
+            const request = admin.post('/trpc/study.createStudy')
+                .attach('profile', filePath)
+                .field('name', 'Test Study')
+                .field('description', '');
+            const response1 = await request;
+            const fullPermissionRole: IRole = {
+                id: 'full_permission_role_id',
+                studyId: response1.body.result.data.id,
+                name: 'Full Permissison Role',
+                description: '',
+                // data permissions for studyId
+                dataPermissions: [{
+                    fields: ['^1.*$'],
+                    dataProperties: {
+                    },
+                    permission: parseInt('110', 2)
+                }],
+                studyRole: enumStudyRoles.STUDY_MANAGER,
+                users: [authorisedUserProfile.id],
+                life: {
+                    createdTime: 1591134065000,
+                    createdUser: 'admin',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            };
+            await db.collections.roles_collection.insertOne(fullPermissionRole);
+            await authorisedUser.post('/trpc/data.createStudyField')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    fieldName: 'Test Field 1',
+                    fieldId: '1',
+                    description: '',
+                    dataType: enumDataTypes.INTEGER
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '10'
+                    }]
+                });
+            await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.0',
+                    tag: '1.0'
+                });
+            await authorisedUser.post('/trpc/data.uploadStudyData')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    data: [{
+                        fieldId: '1',
+                        value: '11'
+                    }]
+                });
+            await authorisedUser.post('/trpc/study.createDataVersion')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersion: '1.1',
+                    tag: '1.1'
+                });
+            const response3 = await authorisedUser.post('/trpc/study.setDataversionAsCurrent')
+                .send({
+                    studyId: response1.body.result.data.id,
+                    dataVersionId: 'random'
+                });
+            expect(response3.status).toBe(400);
+            expect(response3.body.error.message).toBe('Data version does not exist.');
+            // clear database
+            await db.collections.roles_collection.deleteMany({ id: fullPermissionRole.id });
+        });
     });
 } else {
     test(`${__filename.split(/[\\/]/).pop()} skipped because it requires Minio on Docker`, () => {
