@@ -1184,7 +1184,7 @@ export class StudyCore {
                             error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
                             break;
                         }
-                        if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
+                        if (!/^-?\d+(\.\d+)?$/.test(dataClip.value)) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
                             break;
                         }

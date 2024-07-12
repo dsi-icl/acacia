@@ -573,7 +573,7 @@ export class TRPCDataCore {
                             error = makeGenericReponse(counter.toString(), false, enumCoreErrors.CLIENT_MALFORMED_INPUT, `Field ${dataClip.fieldId}: Cannot parse as decimal.`);
                             break;
                         }
-                        if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
+                        if (!/^-?\d+(\.\d+)?$/.test(dataClip.value)) {
                             error = makeGenericReponse(counter.toString(), false, enumCoreErrors.CLIENT_MALFORMED_INPUT, `Field ${dataClip.fieldId}: Cannot parse as decimal.`);
                             break;
                         }
