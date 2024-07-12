@@ -1,5 +1,7 @@
-import { IData, IField, IUserWithoutToken, enumDataAtomicPermissions, permissionString } from '@itmat-broker/itmat-types';
+import { CoreError, IData, IDataPermission, IField, IRole, IUserWithoutToken, enumCoreErrors, enumDataAtomicPermissions, enumStudyRoles, enumUserTypes, permissionString } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
+import { v4 as uuid } from 'uuid';
+import { makeGenericReponse } from '../utils';
 
 export class TRPCPermissionCore {
     db: DBType;
@@ -12,11 +14,62 @@ export class TRPCPermissionCore {
      *
      * @param user
      * @param studyId
-     * @returns
+     *
+     * @returns - IRole[]
      */
-    public async getRolesOfUser(user: IUserWithoutToken, studyId?: string) {
-        return studyId ? await this.db.collections.roles_collection.find({ 'studyId': studyId, 'users': user.id, 'life.deletedTime': null }).toArray() :
-            await this.db.collections.roles_collection.find({ 'users': user.id, 'life.deletedTime': null }).toArray();
+    public async getRolesOfUser(requester: IUserWithoutToken | undefined, userId: string, studyId?: string) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+        // if studyId is provided, only admins, study managers and user him/herself can see the roles
+        // if studyId is not provided, only admins and user him/herself can see the roles
+        if (studyId) {
+            const requesterRoles = await this.db.collections.roles_collection.find({ 'studyId': studyId, 'users': requester.id, 'life.deletedTime': null }).toArray();
+            if (requester.type !== enumUserTypes.ADMIN && requesterRoles.every(role => role.studyRole !== enumStudyRoles.STUDY_MANAGER) && requester.id !== userId) {
+                throw new CoreError(
+                    enumCoreErrors.NO_PERMISSION_ERROR,
+                    enumCoreErrors.NO_PERMISSION_ERROR
+                );
+            }
+            return await this.db.collections.roles_collection.find({ 'studyId': studyId, 'users': userId, 'life.deletedTime': null }).toArray();
+        } else {
+            if (requester.type !== enumUserTypes.ADMIN && requester.id !== userId) {
+                throw new CoreError(
+                    enumCoreErrors.NO_PERMISSION_ERROR,
+                    enumCoreErrors.NO_PERMISSION_ERROR
+                );
+            }
+            return await this.db.collections.roles_collection.find({ 'users': userId, 'life.deletedTime': null }).toArray();
+        }
+    }
+
+    /**
+     * Get the roles of a study.
+     *
+     * @param requester - The requester.
+     * @param studyId - The id of the study.
+     *
+     * @returns - IRole[]
+     */
+    public async getRolesOfStudy(requester: IUserWithoutToken | undefined, studyId: string) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+        const roles = await this.getRolesOfUser(requester, requester.id, studyId);
+        if (requester.type !== enumUserTypes.ADMIN && roles.every(role => role.studyRole !== enumStudyRoles.STUDY_MANAGER)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+
+        return await this.db.collections.roles_collection.find({ 'studyId': studyId, 'life.deletedTime': null }).toArray();
     }
 
     /**
@@ -30,7 +83,7 @@ export class TRPCPermissionCore {
      * @returns boolean
      */
     public async checkFieldOrDataPermission(user: IUserWithoutToken, studyId: string, entry: Partial<IField> | Partial<IData>, permission: enumDataAtomicPermissions) {
-        const roles = await this.getRolesOfUser(user, studyId);
+        const roles = await this.getRolesOfUser(user, user.id, studyId);
         for (const role of roles) {
             const dataPermissions = role.dataPermissions;
             for (const dataPermission of dataPermissions) {
@@ -56,5 +109,149 @@ export class TRPCPermissionCore {
             }
         }
         return true;
+    }
+
+    /**
+     * Create a new role.
+     *
+     * @param requester - The requester.
+     * @param studyId - The id of the study.
+     * @param name - The name of the role.
+     * @param description - The description of the role.
+     * @param dataPermissions - The data permissions of the role.
+     * @param studyRole - The role of the study.
+     * @param users - The users of the role.
+     * @returns IRole
+     */
+    public async createStudyRole(requester: IUserWithoutToken | undefined, studyId: string, name: string, description?: string, dataPermissions?: IDataPermission[], studyRole?: enumStudyRoles, users?: string[]) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+
+        const roles = await this.getRolesOfUser(requester, requester.id, studyId);
+        if (requester.type !== enumUserTypes.ADMIN && roles.every(role => role.studyRole !== enumStudyRoles.STUDY_MANAGER)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+
+        const newRole: IRole = {
+            id: uuid(),
+            studyId: studyId,
+            name: name,
+            description: description,
+            dataPermissions: dataPermissions ?? [{
+                fields: [],
+                dataProperties: {},
+                includeUnVersioned: false,
+                permission: 0
+            }],
+            studyRole: studyRole ?? enumStudyRoles.STUDY_USER,
+            users: users ?? [],
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {}
+        };
+
+        await this.db.collections.roles_collection.insertOne(newRole);
+        return newRole;
+    }
+
+    /**
+     * Edit a role.
+     *
+     * @param requester - The requester.
+     * @param roleId - The id of the role.
+     * @param name - The name of the role.
+     * @param description - The description of the role.
+     * @param dataPermissions - The data permissions of the role.
+     * @param studyRole - The role of the study.
+     * @param users - The users of the role.
+     *
+     * @returns IRole
+     */
+    public async editStudyRole(requester: IUserWithoutToken | undefined, roleId: string, name?: string, description?: string, dataPermissions?: IDataPermission[], studyRole?: enumStudyRoles, users?: string[]) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+
+        const role = await this.db.collections.roles_collection.findOne({ 'id': roleId, 'life.deletedTime': null });
+        if (!role) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+        const roles = await this.getRolesOfUser(requester, requester.id, role.studyId);
+        if (requester.type !== enumUserTypes.ADMIN && roles.every(role => role.studyRole !== enumStudyRoles.STUDY_MANAGER)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+
+        const res = await this.db.collections.roles_collection.findOneAndUpdate({ id: roleId }, {
+            $set: {
+                name: name ?? role.name,
+                description: description ?? role.description,
+                dataPermissions: dataPermissions ?? role.dataPermissions,
+                studyRole: studyRole ?? role.studyRole,
+                users: users ?? role.users
+            }
+        }, {
+            returnDocument: 'after'
+        });
+        return res;
+    }
+
+    /**
+     * Delete a role.
+     *
+     * @param requester - The requester.
+     * @param roleId - The id of the role.
+     * @returns - IGenericResponse
+     */
+    public async deleteStudyRole(requester: IUserWithoutToken | undefined, roleId: string) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+
+        const role = await this.db.collections.roles_collection.findOne({ 'id': roleId, 'life.deletedTime': null });
+        if (!role) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+        const roles = await this.getRolesOfUser(requester, requester.id, role.studyId);
+        if (requester.type !== enumUserTypes.ADMIN && roles.every(role => role.studyRole !== enumStudyRoles.STUDY_MANAGER)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+
+        await this.db.collections.roles_collection.findOneAndUpdate({ id: roleId }, {
+            $set: {
+                'life.deletedTime': Date.now(),
+                'life.deletedUser': requester.id
+            }
+        });
+
+        return makeGenericReponse(roleId, true, undefined, 'Role deleted successfully.');
     }
 }
