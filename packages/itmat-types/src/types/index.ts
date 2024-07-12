@@ -16,7 +16,7 @@ import * as Config from './config';
 import * as ZodSchema from './zod';
 import * as Utils from './utils';
 import * as Drive from './drive';
-import * as Permission  from './permission';
+import * as Permission from './permission';
 
 export * from './field';
 export * from './file';

@@ -18,6 +18,17 @@ import { IOrganisation, enumUserTypes } from '@itmat-broker/itmat-types';
 import { encodeQueryParams } from './helper';
 import { errorCodes } from '@itmat-broker/itmat-cores';
 
+jest.mock('nodemailer', () => {
+    const { TEST_SMTP_CRED, TEST_SMTP_USERNAME } = process.env;
+    if (!TEST_SMTP_CRED || !TEST_SMTP_USERNAME || !config?.nodemailer?.auth?.pass || !config?.nodemailer?.auth?.user)
+        return {
+            createTransport: jest.fn().mockImplementation(() => ({
+                sendMail: jest.fn()
+            }))
+        };
+    return jest.requireActual('nodemailer');
+});
+
 if (global.hasMinio) {
     let app: Express;
     let mongodb: MongoMemoryServer;
@@ -104,9 +115,6 @@ if (global.hasMinio) {
 
     describe('tRPC User APIs', () => {
         test('Create a user', async () => {
-            if (process.env.SKIP_EMAIL_TEST) {
-                return;
-            }
             const response = await admin.post('/trpc/user.createUser')
                 .send({
                     username: 'test',
@@ -121,7 +129,7 @@ if (global.hasMinio) {
             expect(response.body.result.data.username).toBe('test');
             const user = await db.collections.users_collection.findOne({ username: 'test' });
             expect(user).toBeDefined();
-            expect(userProfile.id).toBe(response.body.result.data.id);
+            expect(user.id).toBe(response.body.result.data.id);
         });
         test('Create a user (invalid email format)', async () => {
             const response = await admin.post('/trpc/user.createUser')

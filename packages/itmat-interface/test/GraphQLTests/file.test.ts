@@ -497,8 +497,6 @@ if (global.hasMinio) {
                     createdFile = res.body.data.uploadFile;
                     if (!createdFile)
                         throw 'Test file could not be retreived.';
-
-
                 });
 
                 afterEach(async () => {
