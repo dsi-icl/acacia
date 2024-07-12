@@ -1,15 +1,19 @@
 import { DBType } from '../database/database';
-import { enumUserTypes, enumFileTypes, enumFileCategories, IDrive, enumDriveNodeTypes, IFile, IDrivePermission, FileUpload, CoreError, enumCoreErrors, IUserWithoutToken } from '@itmat-broker/itmat-types';
+import { enumUserTypes, enumFileTypes, enumFileCategories, IDrive, enumDriveNodeTypes, IFile, IDrivePermission, FileUpload, CoreError, enumCoreErrors, IUserWithoutToken, enumConfigType, defaultSettings, IUserConfig } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { TRPCFileCore } from './fileCore';
 import { UpdateFilter } from 'mongodb';
+import { ObjectStore } from '@itmat-broker/itmat-commons';
+import { makeGenericReponse } from '../utils';
 
 export class TRPCDriveCore {
     db: DBType;
     fileCore: TRPCFileCore;
-    constructor(db: DBType, fileCore: TRPCFileCore) {
+    objectStore: ObjectStore;
+    constructor(db: DBType, fileCore: TRPCFileCore, ObjectStore: ObjectStore) {
         this.db = db;
         this.fileCore = fileCore;
+        this.objectStore = ObjectStore;
     }
     /**
      * Create a drive folder.
@@ -395,7 +399,7 @@ export class TRPCDriveCore {
     }
 
     /**
-     * Edit a drive node.
+     * Edit a drive node. Note this could be used for moving a drive node to another parent.
      *
      * @param requester - The requester.
      * @param driveId - The id of the driver.
@@ -454,6 +458,10 @@ export class TRPCDriveCore {
                 );
             }
             setObj['name'] = name;
+        }
+
+        if (description) {
+            setObj['description'] = description;
         }
 
         if (parentId) {
@@ -539,8 +547,8 @@ export class TRPCDriveCore {
                     if (!childNode) {
                         continue;
                     }
+                    // update path
                     const path = childNode.path;
-                    // eslint-disable-next-line no-constant-condition
                     while (path.length) {
                         if (path[0] !== driveId) {
                             path.shift();
@@ -572,6 +580,127 @@ export class TRPCDriveCore {
     }
 
     /**
+     * Copy a drive to another parent.
+     *
+     * @param requester
+     * @param driveId
+     * @param targetParentId
+     * @returns
+     */
+    public async copyDrive(requester: IUserWithoutToken | undefined, driveId: string, targetParentId: string) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+
+        const driveToCopy = await this.db.collections.drives_collection.findOne({ 'id': driveId, 'life.deletedTime': null });
+        if (!driveToCopy || driveToCopy.parent === null || (driveToCopy.managerId !== requester.id && driveToCopy.sharedUsers.filter(el => el.iid === requester.id && el.read === true).length === 0)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+        const targetParentDrive = await this.db.collections.drives_collection.findOne({ 'id': targetParentId, 'life.deletedTime': null });
+        if (!targetParentDrive || (targetParentDrive.managerId !== requester.id && targetParentDrive.sharedUsers.filter(el => el.iid === requester.id && el.write === true).length === 0)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+
+        // get the drive config for the bucket name
+        const userConfig = (await this.db.collections.configs_collection.findOne({ type: enumConfigType.USERCONFIG, key: requester.id }))?.properties ?? defaultSettings.userConfig;
+
+        // update children drive parameters
+        const driveIds: string[] = [];
+        await this.recursiveFindDrives(driveToCopy, [], driveIds);
+        const drives = await this.db.collections.drives_collection.find({ id: { $in: driveIds } }).toArray() ?? [];
+
+        // check the size of the files does not exceed the limit
+        const aggregationResult = await this.db.collections.files_collection.aggregate([
+            {
+                $match: { 'userId': requester.id, 'life.deletedTime': null }
+            },
+            {
+                $group: { _id: '$userId', totalSize: { $sum: '$fileSize' } }
+            }
+        ]).toArray();
+        const totalSize: number = (aggregationResult.length > 0) ? aggregationResult[0]['totalSize'] : 0;
+        const userRepoRemainingSpace = (userConfig as IUserConfig).defaultMaximumFileRepoSize - totalSize;
+        const defaultFileBucketId = (userConfig as IUserConfig).defaultFileBucketId;
+
+        const fileIds = drives
+            .filter(el => (el.type === enumDriveNodeTypes.FILE && el.fileId !== null))
+            .map(el => el.fileId)
+            .filter((id): id is string => id !== null);  // Filter out null values
+
+        const files = await this.db.collections.files_collection.find({ id: { $in: fileIds } }).toArray();
+
+        const totalFilesSize = files.reduce((acc, el) => acc + el.fileSize, 0);
+        if (totalFilesSize > userRepoRemainingSpace) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'User repo size exceeded.'
+            );
+        }
+
+        // List to hold the new drives for database insertion
+        const newDrivesForDatabase: IDrive[] = [];
+
+        const idMap: { [oldId: string]: string } = {};
+        for (const drive of drives) {
+            idMap[drive.id] = uuid();
+        }
+
+        for (const drive of drives) {
+            if (!drive.parent) {
+                continue;
+            }
+            const newId = idMap[drive.id];
+            const newPath = targetParentDrive.path.concat(drive.path.slice(drive.path.indexOf(driveId)).map(el => idMap[el]));
+            const newChildren = drive.children.map(childId => idMap[childId]);
+
+            let newFileUri: string | null = null;
+            if (drive.fileId !== null) {
+                newFileUri = uuid();
+                const file = await this.db.collections.files_collection.findOne({ id: drive.fileId });
+                if (!file) {
+                    continue;
+                }
+                await this.objectStore.copyObject(defaultFileBucketId, file.uri, defaultFileBucketId, newFileUri);
+            }
+
+            const newNode: IDrive = {
+                id: newId,
+                managerId: requester.id,
+                path: newPath,
+                restricted: false,
+                name: drive.name,
+                description: drive.description,
+                fileId: newFileUri,
+                type: drive.type,
+                parent: idMap[drive.parent] ?? targetParentDrive.id,
+                children: newChildren,
+                sharedUsers: [],
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: requester.id,
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: drive.metadata
+            };
+
+            newDrivesForDatabase.push(newNode);
+        }
+
+        await this.db.collections.drives_collection.insertMany(newDrivesForDatabase);
+
+        return makeGenericReponse(driveId, true, undefined, 'Drive copied successfully.');
+    }
+    /**
      * Delete a file node.
      *
      * @param requester - The id of the requester.
@@ -588,10 +717,10 @@ export class TRPCDriveCore {
                 'Drive does not exist.'
             );
         }
-        if (drive.id === null) {
+        if (drive.restricted || drive.parent === null) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
-                'You can not delete root drive.'
+                'You can not delete this drive.'
             );
         }
         const driveIds: string[] = [];

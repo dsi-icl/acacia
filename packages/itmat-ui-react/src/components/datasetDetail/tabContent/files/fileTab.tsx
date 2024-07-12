@@ -638,7 +638,7 @@ const EditableCell: FunctionComponent<EditableCellProps> = ({
                         })
                     ]}
                 >
-                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} disabledDate={(currentDate) => {
+                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ? dayjs(record.startDate) : null, record.endDate ?? null]} disabledDate={(currentDate) => {
                         return dayjs().isBefore(currentDate);
                     }} onCalendarChange={(dates) => {
                         if (dates === null)
