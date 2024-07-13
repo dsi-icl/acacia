@@ -1,5 +1,8 @@
+import { configRouter } from './configProcedure';
 import { dataRouter } from './dataProcedure';
+import { domainRouter } from './domainProcedure';
 import { driveRouter } from './driveProcedure';
+import { logRouter } from './logProcedure';
 import { roleRouter } from './roleProcedure';
 import { studyRouter } from './studyProcedure';
 import { router } from './trpc';
@@ -10,7 +13,10 @@ export const tRPCRouter = router({
     drive: driveRouter,
     study: studyRouter,
     data: dataRouter,
-    role: roleRouter
+    role: roleRouter,
+    config: configRouter,
+    log: logRouter,
+    domain: domainRouter
 });
 
 export type APPTRPCRouter = typeof tRPCRouter;

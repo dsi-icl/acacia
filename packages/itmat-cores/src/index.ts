@@ -18,6 +18,8 @@ export * from './trpcCore/userCore';
 export * from './trpcCore/dataCore';
 export * from './trpcCore/transformationCore';
 export * from './trpcCore/permissionCore';
+export * from './trpcCore/logCore';
+export * from './trpcCore/domainCore';
 export * from './rest/fileDownload';
 export * from './authentication/pubkeyAuthentication';
 export * from './log/logPlugin';

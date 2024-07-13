@@ -111,6 +111,7 @@ if (global.hasMinio) {
             $set: userProfile
         });
         await db.collections.users_collection.deleteMany({ id: { $nin: [adminProfile.id, userProfile.id] } });
+        await db.collections.configs_collection.deleteMany({ key: { $nin: [adminProfile.id, userProfile.id] } });
     });
 
     describe('tRPC User APIs', () => {

@@ -3,10 +3,10 @@ import gql from 'graphql-tag';
 export const GET_LOGS = gql`
     query getLogs(
         $requesterName: String, 
-        $requesterType: USERTYPE,
-        $logType: LOG_TYPE,
-        $actionType: LOG_ACTION,
-        $status: LOG_STATUS 
+        $requesterType: String,
+        $logType: String,
+        $actionType: String,
+        $status: String 
     ) {
         getLogs (
             requesterName: $requesterName,

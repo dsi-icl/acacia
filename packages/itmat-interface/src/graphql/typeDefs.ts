@@ -307,105 +307,16 @@ type Job {
     data: JSON
 }
 
-enum LOG_TYPE {
-   SYSTEM_LOG
-   REQUEST_LOG
-}
-
-enum USER_AGENT {
-    MOZILLA
-    OTHER
-}
-
-enum LOG_STATUS {
-    SUCCESS
-    FAIL
-}
-
-enum LOG_ACTION {
-    # SYSTEM
-    START_SERVER
-    STOP_SERVER
-
-    # USER
-    GET_USERS
-    EDIT_USER
-    DELETE_USER
-    CREATE_USER
-    LOGIN_USER
-    WHO_AM_I
-    LOGOUT
-    REQUEST_USERNAME_OR_RESET_PASSWORD
-    RESET_PASSWORD
-    REQUEST_EXPIRY_DATE
-
-    # KEY
-    REGISTER_PUBKEY
-    ISSUE_ACCESS_TOKEN
-    KEYPAIRGEN_SIGNATURE
-    RSA_SIGNER
-    LINK_USER_PUBKEY
-
-    # ORGANISATION
-    GET_ORGANISATIONS
-    CREATE_ORGANISATION
-    DELETE_ORGANISATION
-
-    # PROJECT
-    GET_PROJECT
-    # GET_PROJECT_PATIENT_MAPPING = 'GET_PROJECT_PATIENT_MAPPING',
-    EDIT_PROJECT_APPROVED_FIELDS
-    EDIT_PROJECT_APPROVED_FILES
-    CREATE_PROJECT
-    DELETE_PROJECT
-    SET_DATAVERSION_AS_CURRENT
-    SUBSCRIBE_TO_JOB_STATUS
-
-    # STUDY | DATASET
-    DELETE_STUDY
-    GET_STUDY
-    GET_STUDY_FIELDS
-    CREATE_STUDY
-    EDIT_STUDY
-    GET_DATA_RECORDS
-    GET_ONTOLOGY_TREE
-    CHECK_DATA_COMPLETE
-    CREATE_NEW_DATA_VERSION
-    UPLOAD_DATA_IN_ARRAY
-    DELETE_DATA_RECORDS
-    CREATE_NEW_FIELD
-    EDIT_FIELD
-    DELETE_FIELD
-    ADD_ONTOLOGY_TREE
-    DELETE_ONTOLOGY_TREE
-
-    # STUDY & PROJECT
-    EDIT_ROLE
-    ADD_NEW_ROLE
-    REMOVE_ROLE
-
-    # FILE
-    UPLOAD_FILE
-    DOWNLOAD_FILE
-    DELETE_FILE
-
-    # QUERY
-    GET_QUERY
-    CREATE_QUERY
-    GET_QUERY_BY_ID
-    CREATE_QUERY_CURATION_JOB
-}
-
 type Log {
     id: String!
     requesterName: String
-    requesterType: USERTYPE
-    userAgent: USER_AGENT
-    logType: LOG_TYPE
-    actionType: LOG_ACTION
+    requesterType: String
+    userAgent: String
+    logType: String
+    actionType: String
     actionData: JSON
     time: Float!
-    status: LOG_STATUS
+    status: String
     error: String
 }
 
@@ -546,7 +457,7 @@ type Query {
     getGrantedPermissions(studyId: String, projectId: String): UserPermissions
 
     # LOG
-    getLogs(requesterName: String, requesterType: USERTYPE, logType: LOG_TYPE, actionType: LOG_ACTION, status: LOG_STATUS): [Log]
+    getLogs(requesterName: String, requesterType: String, logType: String, actionType: String, status: String): [Log]
 }
 
 type Mutation {

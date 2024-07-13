@@ -87,6 +87,11 @@ export class TRPCFileCore {
             fileConfig = config ? config.properties as ISystemConfig : defaultSettings.systemConfig;
             fileSizeLimit = (fileConfig as ISystemConfig).defaultMaximumFileSize;
             defaultFileBucketId = (fileConfig as ISystemConfig).defaultProfileBucketId;
+        } else if (fileCategory === enumFileCategories.DOMAIN_FILE) {
+            const config = await this.db.collections.configs_collection.findOne({ type: enumConfigType.DOMAINCONFIG, key: null });
+            fileConfig = config ? config.properties as IDomainConfig : defaultSettings.domainConfig;
+            fileSizeLimit = (fileConfig as IDomainConfig).defaultMaximumFileSize;
+            defaultFileBucketId = (fileConfig as IDomainConfig).defaultFileBucketId;
         } else {
             throw new CoreError(
                 enumCoreErrors.CLIENT_MALFORMED_INPUT,

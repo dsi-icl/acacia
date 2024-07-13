@@ -13,7 +13,7 @@ import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import { errorCodes, generateTOTP } from '@itmat-broker/itmat-cores';
 import { GET_LOGS, LOGIN, DELETE_USER } from '@itmat-broker/itmat-models';
-import { enumUserTypes, IUser, ILogEntry, LOG_STATUS, LOG_ACTION, LOG_TYPE, USER_AGENT } from '@itmat-broker/itmat-types';
+import { enumUserTypes, IUser, ILogEntry, enumEventType, enumAPIResolver, enumEventStatus, ILog } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 
 let app: Express;
@@ -103,17 +103,12 @@ describe('LOG API', () => {
             const findLogInMongo = await db.collections.log_collection.find({}).toArray();
             const lastLog = findLogInMongo.pop();
             expect(lastLog).toBeDefined();
-            if (!lastLog)
-                return;
-            expect(lastLog.requesterName).toEqual('test_user');
-            expect(lastLog.requesterType).toEqual(enumUserTypes.ADMIN);
-            expect(lastLog.logType).toEqual(LOG_TYPE.REQUEST_LOG);
-            expect(lastLog.actionType).toEqual(LOG_ACTION.login);
-            expect(JSON.parse(lastLog.actionData)).toEqual({
-                username: 'test_user'
-            });
-            expect(lastLog.status).toEqual(LOG_STATUS.SUCCESS);
-            expect(lastLog.errors).toEqual('');
+            expect(lastLog.requester).toEqual('test_user');
+            expect(lastLog.type).toEqual(enumEventType.API_LOG);
+            expect(lastLog.apiResolver).toEqual(enumAPIResolver.GraphQL);
+            expect(lastLog.event).toEqual('login');
+            expect(lastLog.status).toEqual(enumEventStatus.SUCCESS);
+            expect(lastLog.errors).toBe(null);
 
             await admin.post('/graphql').send(
                 {
@@ -129,17 +124,40 @@ describe('LOG API', () => {
     describe('Get logs', () => {
         beforeAll(async () => {
             // write initial data for testing
-            const logSample = [{
-                id: '001',
-                requesterName: enumUserTypes.SYSTEM,
-                requesterType: enumUserTypes.SYSTEM,
-                logType: LOG_TYPE.SYSTEM_LOG,
-                userAgent: USER_AGENT.MOZILLA,
-                actionType: LOG_ACTION.startSERVER,
-                actionData: JSON.stringify({}),
-                time: 100000000,
-                status: LOG_STATUS.SUCCESS,
-                errors: ''
+            const logSample: ILog = [{
+                id: uuid(),
+                requester: 'test_id1',
+                type: enumEventType.API_LOG,
+                apiResolver: enumAPIResolver.GraphQL,
+                event: 'test_event1',
+                parameters: {},
+                status: enumEventStatus.SUCCESS,
+                errors: null,
+                timeConsumed: 100,
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: 'SYSTEMAGENT',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
+            }, {
+                id: uuid(),
+                requester: 'test_id2',
+                type: enumEventType.API_LOG,
+                apiResolver: enumAPIResolver.GraphQL,
+                event: 'test_event2',
+                parameters: {},
+                status: enumEventStatus.FAIL,
+                errors: 'test_error',
+                timeConsumed: 200,
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: 'SYSTEMAGENT',
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {}
             }];
             await db.collections.log_collection.insertMany(logSample);
         });
@@ -156,7 +174,7 @@ describe('LOG API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getLogs.length).toBeGreaterThanOrEqual(1);
+            expect(res.body.data.getLogs.length).toBeGreaterThanOrEqual(2);
         }, 30000);
 
         test('GET log (user) should fail', async () => {

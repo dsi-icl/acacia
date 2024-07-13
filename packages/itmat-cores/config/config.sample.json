@@ -19,7 +19,8 @@
             "pubkeys_collection": "PUBKEY_COLLECTION",
             "standardizations_collection": "STANDARDIZATION_COLLECTION",
             "colddata_collection": "COLDDATA_COLLECTION",
-            "cache_collection": "CACHE_COLLECTION"
+            "cache_collection": "CACHE_COLLECTION",
+            "domains_collection": "DOMAIN_COLLECTION"
         }
     },
     "server": {
