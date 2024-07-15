@@ -153,5 +153,4 @@ export class TRPCUtilsCore {
         const str = JSON.stringify(normalizedObj);
         return crypto.createHash('sha256').update(str).digest('hex');
     }
-
 }

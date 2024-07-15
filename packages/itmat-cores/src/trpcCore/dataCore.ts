@@ -1003,9 +1003,10 @@ export class TRPCDataCore {
             requester,
             studyId,
             fieldIds,
-            availableDataVersions
+            availableDataVersions,
+            undefined,
+            false
         );
-
         if (!Array.isArray(fileDataRecords)) {
             return [];
         }

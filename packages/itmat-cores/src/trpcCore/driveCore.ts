@@ -709,7 +709,14 @@ export class TRPCDriveCore {
      *
      * @return IDrive - The deleted drive.
      */
-    public async deleteDrive(requester: string, driveId: string): Promise<IDrive> {
+    public async deleteDrive(requester: IUserWithoutToken | undefined, driveId: string): Promise<IDrive> {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+
         const drive = await this.db.collections.drives_collection.findOne({ 'id': driveId, 'life.deletedTime': null });
         if (!drive) {
             throw new CoreError(
@@ -723,6 +730,7 @@ export class TRPCDriveCore {
                 'You can not delete this drive.'
             );
         }
+
         const driveIds: string[] = [];
         const driveFileIds: string[] = [];
         await this.recursiveFindDrives(drive, driveFileIds, driveIds);
@@ -730,14 +738,14 @@ export class TRPCDriveCore {
         await this.db.collections.drives_collection.updateMany({ id: { $in: driveIds } }, {
             $set: {
                 'life.deletedTime': Date.now(),
-                'life.deletedUser': requester
+                'life.deletedUser': requester.id
             }
         });
         // delete metadata in file collection
         await this.db.collections.files_collection.updateMany({ id: { $in: driveFileIds } }, {
             $set: {
                 'life.deletedTime': Date.now(),
-                'life.deletedUser': requester
+                'life.deletedUser': requester.id
             }
         });
         await this.db.collections?.files_collection.updateMany({ id: drive.parent ?? '' }, {

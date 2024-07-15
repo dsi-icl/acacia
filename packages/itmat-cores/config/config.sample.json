@@ -46,5 +46,7 @@
         }
     },
     "adminEmail": "admin@example.com",
-    "aeEndpoint": "http://localhost:9090"
+    "aeEndpoint": "http://localhost:9090",
+    "useWebdav": true,
+    "webdavPort": 1900
 }
