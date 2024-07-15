@@ -21,7 +21,8 @@ class DMPWebDav {
         const dataTransformatonCore = new TRPCDataTransformationCore(utilsCore);
         const dataCore = new TRPCDataCore(db, fileCore, premissionCore, utilsCore, dataTransformatonCore);
 
-        webServer.setFileSystem('/DMP', new DMPFileSystem(db, fileCore, driveCore, studyCore, dataCore), (success) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        webServer.setFileSystem('/DMP', new DMPFileSystem(db, fileCore, driveCore, studyCore, dataCore) as any, (success) => {
             webServer.start(() => Logger.log('DMP file system attached: ' + (success ? 'success' : 'failed')));
         });
 

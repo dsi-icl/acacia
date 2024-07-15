@@ -76,7 +76,15 @@ export class DMPFileSystem extends webdav.FileSystem {
                 }
                 const userFileDir: Record<string, IDrive[]> = await this.driveCore.getDrives(user);
                 const ownUserFiles = userFileDir[user.id];
-                const allPaths = ownUserFiles.map((el: { path: string[]; }) => el.path.map((ek: string) => ownUserFiles.filter(es => es.id === ek)[0].name));
+                if (!ownUserFiles) {
+                    callback(false);
+                    return;
+                }
+                const allPaths = ownUserFiles.map((el: { path: string[]; }) =>
+                    el.path
+                        .map((ek: string) => ownUserFiles.filter((es: { id: string; }) => es.id === ek)?.[0]?.name)
+                        .filter((name: string | undefined) => name !== undefined)
+                );
                 callback(isPathIncluded(pathArr, allPaths));
                 return;
             } else if (pathArr[0] === 'Shared') {
@@ -481,7 +489,11 @@ function pathToArray(path: string) {
 }
 
 function convertToWebDAVPaths(ownUserFiles: IDrive[], depth: number, pathStr: string, prefix?: string[]): string[] {
-    const allPaths = ownUserFiles.map((el: { path: string[]; }) => el.path.map((ek: string) => ownUserFiles.filter((es: { id: string; }) => es.id === ek)[0].name));
+    const allPaths = ownUserFiles.map((el: { path: string[]; }) =>
+        el.path
+            .map((ek: string) => ownUserFiles.filter((es: { id: string; }) => es.id === ek)?.[0]?.name)
+            .filter((name: string | undefined) => name !== undefined)
+    );
     const basePath = pathToArray(pathStr);
     if (prefix) {
         const result = allPaths.map((el: ConcatArray<string>) => prefix.concat(el));
