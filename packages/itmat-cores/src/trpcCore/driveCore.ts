@@ -1,19 +1,19 @@
 import { DBType } from '../database/database';
-import { enumUserTypes, enumFileTypes, enumFileCategories, IDrive, enumDriveNodeTypes, IFile, IDrivePermission, FileUpload, CoreError, enumCoreErrors, IUserWithoutToken, IUserConfig, enumConfigType, defaultSettings } from '@itmat-broker/itmat-types';
+import { enumUserTypes, enumFileTypes, enumFileCategories, IDrive, enumDriveNodeTypes, IFile, IDrivePermission, FileUpload, CoreError, enumCoreErrors, IUserWithoutToken, enumConfigType, defaultSettings, IUserConfig } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { TRPCFileCore } from './fileCore';
 import { UpdateFilter } from 'mongodb';
-import { makeGenericReponse } from '../utils';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
+import { makeGenericReponse } from '../utils';
 
 export class TRPCDriveCore {
     db: DBType;
     fileCore: TRPCFileCore;
     objectStore: ObjectStore;
-    constructor(db: DBType, fileCore: TRPCFileCore, objectStore: ObjectStore) {
+    constructor(db: DBType, fileCore: TRPCFileCore, ObjectStore: ObjectStore) {
         this.db = db;
         this.fileCore = fileCore;
-        this.objectStore = objectStore;
+        this.objectStore = ObjectStore;
     }
     /**
      * Create a drive folder.
@@ -399,7 +399,7 @@ export class TRPCDriveCore {
     }
 
     /**
-     * Edit a drive node.
+     * Edit a drive node. Note this could be used for moving a drive node to another parent.
      *
      * @param requester - The requester.
      * @param driveId - The id of the driver.
@@ -458,6 +458,10 @@ export class TRPCDriveCore {
                 );
             }
             setObj['name'] = name;
+        }
+
+        if (description) {
+            setObj['description'] = description;
         }
 
         if (parentId) {
@@ -543,8 +547,8 @@ export class TRPCDriveCore {
                     if (!childNode) {
                         continue;
                     }
+                    // update path
                     const path = childNode.path;
-                    // eslint-disable-next-line no-constant-condition
                     while (path.length) {
                         if (path[0] !== driveId) {
                             path.shift();
@@ -696,7 +700,6 @@ export class TRPCDriveCore {
 
         return makeGenericReponse(driveId, true, undefined, 'Drive copied successfully.');
     }
-
     /**
      * Delete a file node.
      *
@@ -721,11 +724,10 @@ export class TRPCDriveCore {
                 'Drive does not exist.'
             );
         }
-
-        if (drive.managerId != requester.id && drive.sharedUsers.filter(el => el.iid === requester.id && el.delete === true).length === 0) {
+        if (drive.restricted || drive.parent === null) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
-                enumCoreErrors.NO_PERMISSION_ERROR
+                'You can not delete this drive.'
             );
         }
 

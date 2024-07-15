@@ -1,6 +1,7 @@
 # Add files here to ignore them from prettier formatting
 
 /.nx/cache
+/.nx/workspace-dat
 *.json
 *.ts
 *.tsx
@@ -14,3 +15,5 @@
 *.mjsx
 *.cjs
 *.cjsx
+*.yaml
+*.yml

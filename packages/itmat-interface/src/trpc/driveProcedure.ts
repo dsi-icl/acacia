@@ -139,6 +139,20 @@ export const driveRouter = router({
         driveId: z.string()
     })).mutation(async (opts) => {
         return driveCore.deleteDrive(opts.ctx.user, opts.input.driveId);
+    }),
+    /**
+     * Copy a drive node to another parent.
+     *
+     * @param driveId - The id of the drive.
+     * @param targetParentId - The id of the target parent.
+     *
+     * @return IDriveNode
+     */
+    copyDrive: baseProcedure.input(z.object({
+        driveId: z.string(),
+        targetParentId: z.string()
+    })).mutation(async (opts) => {
+        return driveCore.copyDrive(opts.ctx.user, opts.input.driveId, opts.input.targetParentId);
     })
 });
 

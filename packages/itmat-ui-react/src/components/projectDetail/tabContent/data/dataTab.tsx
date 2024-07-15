@@ -778,7 +778,7 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
         <SubsectionWithComment title={<Tooltip title={'The percentage of valid data. The data completeness of a field is calculated by (number of valid data pointes / number of expected data pointes).'}>
             <Text className={css.title}>Data Completeness</Text> <QuestionCircleOutlined />
         </Tooltip >} comment={
-            <Cascader
+            <Cascader<Record<string, string | number>>
                 getPopupContainer={trigger => trigger.parentNode}
                 options={fieldPathOptions}
                 onChange={(value) => setSelectedPath(value)}
