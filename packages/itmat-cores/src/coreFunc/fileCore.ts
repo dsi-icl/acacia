@@ -11,7 +11,7 @@ import { PassThrough } from 'stream';
  * Note that all core functions are should be called by other core functions or resolvers, not by the client.
  * Necessary permission check should be done in the caller functions.
  */
-export class TRPCFileCore {
+export class FileCore {
     db: DBType;
     objStore: ObjectStore;
     constructor(db: DBType, objStore: ObjectStore) {
@@ -53,7 +53,6 @@ export class TRPCFileCore {
                 );
             }
         }
-
         let fileConfig: ISystemConfig | IStudyConfig | IUserConfig | IDocConfig | ICacheConfig | IDomainConfig | null = null;
         let userRepoRemainingSpace = 0;
         let fileSizeLimit: number;

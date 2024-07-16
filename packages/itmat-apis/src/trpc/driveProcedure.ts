@@ -1,6 +1,6 @@
 
 import { FileUploadSchema, enumFileTypes } from '@itmat-broker/itmat-types';
-import { TRPCDriveCore } from '@itmat-broker/itmat-cores';
+import { DriveCore } from '@itmat-broker/itmat-cores';
 import { z } from 'zod';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 
@@ -16,8 +16,8 @@ export const ZDrivePermission = z.object({
 export class DriveRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    driveCore: TRPCDriveCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, driveCore: TRPCDriveCore) {
+    driveCore: DriveCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, driveCore: DriveCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.driveCore = driveCore;
@@ -147,6 +147,20 @@ export class DriveRouter {
                 driveId: z.string()
             })).mutation(async (opts) => {
                 return this.driveCore.deleteDrive(opts.ctx.user, opts.input.driveId);
+            }),
+            /**
+             * Copy a drive node to another parent.
+             *
+             * @param driveId - The id of the drive.
+             * @param targetParentId - The id of the target parent.
+             *
+             * @return IDriveNode
+             */
+            copyDrive: this.baseProcedure.input(z.object({
+                driveId: z.string(),
+                targetParentId: z.string()
+            })).mutation(async (opts) => {
+                return this.driveCore.copyDrive(opts.ctx.user, opts.input.driveId, opts.input.targetParentId);
             })
         });
     }

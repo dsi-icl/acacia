@@ -1,9 +1,9 @@
 import { DMPResolversMap } from './context';
-import { TRPCStandarizationCore } from '@itmat-broker/itmat-cores';
+import { StandarizationCore } from '@itmat-broker/itmat-cores';
 
 export class StandardizationResolvers {
-    standardizationCore: TRPCStandarizationCore;
-    constructor(standardizationCore: TRPCStandarizationCore) {
+    standardizationCore: StandarizationCore;
+    constructor(standardizationCore: StandarizationCore) {
         this.standardizationCore = standardizationCore;
     }
 

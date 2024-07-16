@@ -2,17 +2,17 @@ import { ObjectStore } from '@itmat-broker/itmat-commons';
 import { DBType } from '../database/database';
 import { CoreError, FileUpload, IData, IFile, IStudy, IStudyDataVersion, IUserWithoutToken, enumCacheStatus, enumConfigType, enumCoreErrors, enumFileCategories, enumFileTypes, enumStudyRoles, enumUserTypes } from '@itmat-broker/itmat-types';
 import { Filter, UpdateFilter } from 'mongodb';
-import { TRPCPermissionCore } from './permissionCore';
+import { PermissionCore } from './permissionCore';
 import { v4 as uuid } from 'uuid';
-import { TRPCFileCore } from './fileCore';
+import { FileCore } from './fileCore';
 import { makeGenericReponse } from '../utils';
 
-export class TRPCStudyCore {
+export class StudyCore {
     db: DBType;
     objStore: ObjectStore;
-    permissionCore: TRPCPermissionCore;
-    fileCore: TRPCFileCore;
-    constructor(db: DBType, objStore: ObjectStore, permissionCore: TRPCPermissionCore, fileCore: TRPCFileCore) {
+    permissionCore: PermissionCore;
+    fileCore: FileCore;
+    constructor(db: DBType, objStore: ObjectStore, permissionCore: PermissionCore, fileCore: FileCore) {
         this.db = db;
         this.objStore = objStore;
         this.permissionCore = permissionCore;

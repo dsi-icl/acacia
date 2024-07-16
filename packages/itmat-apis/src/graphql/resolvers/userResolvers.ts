@@ -1,14 +1,14 @@
 import { CoreError, IUserWithoutToken, enumUserTypes } from '@itmat-broker/itmat-types';
-import { DBType, GraphQLErrorDecroator, TRPCPermissionCore, TRPCUserCore, V2CreateUserInput, V2EditUserInput, errorCodes, makeGenericReponse } from '@itmat-broker/itmat-cores';
+import { DBType, GraphQLErrorDecroator, PermissionCore, UserCore, V2CreateUserInput, V2EditUserInput, errorCodes, makeGenericReponse } from '@itmat-broker/itmat-cores';
 import { DMPResolversMap } from './context';
 import { GraphQLError } from 'graphql';
 
 
 export class UserResolvers {
     db: DBType;
-    userCore: TRPCUserCore;
-    permissionCore: TRPCPermissionCore;
-    constructor(db: DBType, userCore: TRPCUserCore, permissionCore: TRPCPermissionCore) {
+    userCore: UserCore;
+    permissionCore: PermissionCore;
+    constructor(db: DBType, userCore: UserCore, permissionCore: PermissionCore) {
         this.db = db;
         this.userCore = userCore;
         this.permissionCore = permissionCore;

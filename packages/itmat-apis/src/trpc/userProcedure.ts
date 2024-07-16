@@ -1,4 +1,4 @@
-import { TRPCUserCore } from '@itmat-broker/itmat-cores';
+import { UserCore } from '@itmat-broker/itmat-cores';
 import { z } from 'zod';
 import { FileUploadSchema, enumUserTypes } from '@itmat-broker/itmat-types';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
@@ -7,8 +7,8 @@ import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 export class UserRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    userCore: TRPCUserCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, userCore: TRPCUserCore) {
+    userCore: UserCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, userCore: UserCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.userCore = userCore;

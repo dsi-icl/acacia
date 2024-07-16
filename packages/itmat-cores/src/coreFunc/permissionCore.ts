@@ -3,7 +3,7 @@ import { DBType } from '../database/database';
 import { v4 as uuid } from 'uuid';
 import { makeGenericReponse } from '../utils';
 
-export class TRPCPermissionCore {
+export class PermissionCore {
     db: DBType;
     constructor(db: DBType) {
         this.db = db;

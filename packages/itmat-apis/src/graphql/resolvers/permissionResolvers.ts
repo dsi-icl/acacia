@@ -1,11 +1,11 @@
 import { IRole } from '@itmat-broker/itmat-types';
 import { DMPResolversMap } from './context';
-import { TRPCPermissionCore } from '@itmat-broker/itmat-cores';
+import { PermissionCore } from '@itmat-broker/itmat-cores';
 
 
 export class PermissionResolvers {
-    permissionCore: TRPCPermissionCore;
-    constructor(permissionCore: TRPCPermissionCore) {
+    permissionCore: PermissionCore;
+    constructor(permissionCore: PermissionCore) {
         this.permissionCore = permissionCore;
     }
 

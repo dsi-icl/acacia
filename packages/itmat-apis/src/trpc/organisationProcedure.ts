@@ -1,13 +1,13 @@
 import { FileUploadSchema } from '@itmat-broker/itmat-types';
 import { z } from 'zod';
-import { TRPCOrganisationCore } from '@itmat-broker/itmat-cores';
+import { OrganisationCore } from '@itmat-broker/itmat-cores';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 
 export class OrganisationRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    organisationCore: TRPCOrganisationCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, organisationCore: TRPCOrganisationCore) {
+    organisationCore: OrganisationCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, organisationCore: OrganisationCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.organisationCore = organisationCore;

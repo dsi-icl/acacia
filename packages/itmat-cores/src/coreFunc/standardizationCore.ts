@@ -5,19 +5,19 @@ import { v4 as uuid } from 'uuid';
 import { makeGenericReponse } from '../utils/responses';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
-import { TRPCPermissionCore } from './permissionCore';
-import { TRPCStudyCore } from './studyCore';
+import { PermissionCore } from './permissionCore';
+import { StudyCore } from './studyCore';
 
 
 /**
  * TODO: This file is not yet implemented. It is a placeholder for the standardization core.
  */
 
-export class TRPCStandarizationCore {
+export class StandarizationCore {
     db: DBType;
-    permissionCore: TRPCPermissionCore;
-    studyCore: TRPCStudyCore;
-    constructor(db: DBType, objStore: ObjectStore, permissionCore: TRPCPermissionCore, studyCore: TRPCStudyCore) {
+    permissionCore: PermissionCore;
+    studyCore: StudyCore;
+    constructor(db: DBType, objStore: ObjectStore, permissionCore: PermissionCore, studyCore: StudyCore) {
         this.db = db;
         this.permissionCore = permissionCore;
         this.studyCore = studyCore;

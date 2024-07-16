@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 type IDataTransformationClip = Record<string, unknown>;
 
-export class TRPCUtilsCore {
+export class UtilsCore {
     /**
      * This function checks scalar data only.
      *

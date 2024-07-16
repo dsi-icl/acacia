@@ -1,6 +1,6 @@
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 import { z } from 'zod';
-import { TRPCConfigCore } from '@itmat-broker/itmat-cores';
+import { ConfigCore } from '@itmat-broker/itmat-cores';
 import { enumConfigType } from '@itmat-broker/itmat-types';
 
 const ZBase = z.object({
@@ -82,8 +82,8 @@ const ZDomainConfig = ZBase.extend({
 export class ConfigRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    configCore: TRPCConfigCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, configCore: TRPCConfigCore) {
+    configCore: ConfigCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, configCore: ConfigCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.configCore = configCore;

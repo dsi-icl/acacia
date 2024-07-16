@@ -2,8 +2,8 @@ import { CoreError, FileUpload, IFile, IPubkey, IResetPasswordRequest, IUser, IU
 import { DBType } from '../database/database';
 import { Logger, Mailer, ObjectStore } from '@itmat-broker/itmat-commons';
 import { IConfiguration, makeGenericReponse, rsakeygen, rsaverifier, tokengen } from '../utils';
-import { TRPCFileCore } from './fileCore';
-import { TRPCConfigCore } from './configCore';
+import { FileCore } from './fileCore';
+import { ConfigCore } from './configCore';
 import { v4 as uuid } from 'uuid';
 import bcrypt from 'bcrypt';
 import * as mfa from '../utils/mfa';
@@ -13,20 +13,20 @@ import { UpdateFilter } from 'mongodb';
 import * as pubkeycrypto from '../utils/pubkeycrypto';
 import crypto from 'crypto';
 
-export class TRPCUserCore {
+export class UserCore {
     db: DBType;
     mailer: Mailer;
     config: IConfiguration;
     objStore: ObjectStore;
-    fileCore: TRPCFileCore;
-    configCore: TRPCConfigCore;
+    fileCore: FileCore;
+    configCore: ConfigCore;
     constructor(db: DBType, mailer: Mailer, config: IConfiguration, objStore: ObjectStore) {
         this.db = db;
         this.mailer = mailer;
         this.config = config;
         this.objStore = objStore;
-        this.fileCore = new TRPCFileCore(db, objStore);
-        this.configCore = new TRPCConfigCore(db);
+        this.fileCore = new FileCore(db, objStore);
+        this.configCore = new ConfigCore(db);
     }
     /**
      * Get a user. One of the parameters should not be null, we will find users by the following order: usreId, username, email.

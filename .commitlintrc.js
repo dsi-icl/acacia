@@ -13,6 +13,7 @@ module.exports = {
             (await getProjects(ctx, projectFilter))
                 .forEach(element => {
                     projectNames.add(element);
+                    projectNames.add(element.replaceAll('itmat-', ''));
                 });
             return [
                 2,

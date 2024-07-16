@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { FileUploadSchema } from '@itmat-broker/itmat-types';
-import { TRPCDomainCore } from '@itmat-broker/itmat-cores';
+import { DomainCore } from '@itmat-broker/itmat-cores';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 
 
@@ -8,8 +8,8 @@ import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 export class DomainRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    domainCore: TRPCDomainCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, domainCore: TRPCDomainCore) {
+    domainCore: DomainCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, domainCore: DomainCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.domainCore = domainCore;

@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { TRPCPermissionCore } from '@itmat-broker/itmat-cores';
+import { PermissionCore } from '@itmat-broker/itmat-cores';
 import { enumStudyRoles } from '@itmat-broker/itmat-types';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 
 export class RoleRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    permissionCore: TRPCPermissionCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, permissionCore: TRPCPermissionCore) {
+    permissionCore: PermissionCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, permissionCore: PermissionCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.permissionCore = permissionCore;

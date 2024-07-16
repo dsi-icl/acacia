@@ -7,7 +7,7 @@ enum JOB_TYPE {
     DATA_EXPORT = 'DATA_EXPORT'
 }
 
-export class TRPCJobCore {
+export class JobCore {
     db: DBType;
     constructor(db: DBType) {
         this.db = db;

@@ -27,6 +27,8 @@ if (global.hasMinio) {
     let user: request.SuperTest<request.Test>;
     let mongoConnection: MongoClient;
     let mongoClient: Db;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    let adminId: string;
 
     afterAll(async () => {
         await db.closeConnection();
@@ -497,8 +499,6 @@ if (global.hasMinio) {
                     createdFile = res.body.data.uploadFile;
                     if (!createdFile)
                         throw 'Test file could not be retreived.';
-
-
                 });
 
                 afterEach(async () => {

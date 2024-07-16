@@ -2,15 +2,15 @@ import { CoreError, FileUpload, IDomain, IUserWithoutToken, enumCoreErrors, enum
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
-import { TRPCFileCore } from './fileCore';
+import { FileCore } from './fileCore';
 import { Filter, UpdateFilter } from 'mongodb';
 import { makeGenericReponse } from '../utils';
 
 
-export class TRPCDomainCore {
+export class DomainCore {
     db: DBType;
-    fileCore: TRPCFileCore;
-    constructor(db: DBType, fileCore: TRPCFileCore) {
+    fileCore: FileCore;
+    constructor(db: DBType, fileCore: FileCore) {
         this.db = db;
         this.fileCore = fileCore;
     }

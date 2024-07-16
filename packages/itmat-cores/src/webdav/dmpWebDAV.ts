@@ -5,11 +5,11 @@ import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import nodeFetch from 'node-fetch';
 import { IDrive, IUserWithoutToken, enumFileTypes } from '@itmat-broker/itmat-types';
-import { TRPCFileCore } from '../trpcCore/fileCore';
-import { TRPCDriveCore } from '../trpcCore/driveCore';
+import { FileCore } from '../coreFunc/fileCore';
+import { DriveCore } from '../coreFunc/driveCore';
 import { DBType } from '../database/database';
-import { TRPCStudyCore } from '../trpcCore/studyCore';
-import { TRPCDataCore } from '../trpcCore/dataCore';
+import { StudyCore } from '../coreFunc/studyCore';
+import { DataCore } from '../coreFunc/dataCore';
 
 
 class DMPFileSystemSerializer implements webdav.FileSystemSerializer {
@@ -37,16 +37,16 @@ export class DMPFileSystem extends webdav.FileSystem {
     isCopying: boolean;
     getFileResults: unknown;
     currentStudy: unknown;
-    fileCore: TRPCFileCore;
-    driveCore: TRPCDriveCore;
-    studyCore: TRPCStudyCore;
-    dataCore: TRPCDataCore;
+    fileCore: FileCore;
+    driveCore: DriveCore;
+    studyCore: StudyCore;
+    dataCore: DataCore;
     db: DBType;
     myDriveDirName: string;
     studyDirName: string;
     sharedDirName: string;
 
-    constructor(db: DBType, fileCore: TRPCFileCore, driveCore: TRPCDriveCore, studyCore: TRPCStudyCore, dataCore: TRPCDataCore) {
+    constructor(db: DBType, fileCore: FileCore, driveCore: DriveCore, studyCore: StudyCore, dataCore: DataCore) {
         super(new DMPFileSystemSerializer());
         this.db = db;
         this.fileCore = fileCore;
@@ -76,7 +76,15 @@ export class DMPFileSystem extends webdav.FileSystem {
                 }
                 const userFileDir: Record<string, IDrive[]> = await this.driveCore.getDrives(user);
                 const ownUserFiles = userFileDir[user.id];
-                const allPaths = ownUserFiles.map((el: { path: string[]; }) => el.path.map((ek: string) => ownUserFiles.filter(es => es.id === ek)[0].name));
+                if (!ownUserFiles) {
+                    callback(false);
+                    return;
+                }
+                const allPaths = ownUserFiles.map((el: { path: string[]; }) =>
+                    el.path
+                        .map((ek: string) => ownUserFiles.filter((es: { id: string; }) => es.id === ek)?.[0]?.name)
+                        .filter((name: string | undefined) => name !== undefined)
+                );
                 callback(isPathIncluded(pathArr, allPaths));
                 return;
             } else if (pathArr[0] === 'Shared') {
@@ -481,7 +489,11 @@ function pathToArray(path: string) {
 }
 
 function convertToWebDAVPaths(ownUserFiles: IDrive[], depth: number, pathStr: string, prefix?: string[]): string[] {
-    const allPaths = ownUserFiles.map((el: { path: string[]; }) => el.path.map((ek: string) => ownUserFiles.filter((es: { id: string; }) => es.id === ek)[0].name));
+    const allPaths = ownUserFiles.map((el: { path: string[]; }) =>
+        el.path
+            .map((ek: string) => ownUserFiles.filter((es: { id: string; }) => es.id === ek)?.[0]?.name)
+            .filter((name: string | undefined) => name !== undefined)
+    );
     const basePath = pathToArray(pathStr);
     if (prefix) {
         const result = allPaths.map((el: ConcatArray<string>) => prefix.concat(el));

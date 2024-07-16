@@ -1,10 +1,10 @@
 import { DMPResolversMap } from './context';
-import { TRPCUserCore } from '@itmat-broker/itmat-cores';
+import { UserCore } from '@itmat-broker/itmat-cores';
 
 
 export class PubkeyResolvers {
-    userCore: TRPCUserCore;
-    constructor(userCore: TRPCUserCore) {
+    userCore: UserCore;
+    constructor(userCore: UserCore) {
         this.userCore = userCore;
     }
 

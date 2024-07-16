@@ -1,7 +1,7 @@
 import { FileUploadSchema, IAST, enumASTNodeTypes, enumConditionOps, enumDataTransformationOperation, enumDataTypes, enumMathOps } from '@itmat-broker/itmat-types';
 import { z } from 'zod';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
-import { TRPCDataCore } from '@itmat-broker/itmat-cores';
+import { DataCore } from '@itmat-broker/itmat-cores';
 
 
 const ZAST: z.ZodType<IAST> = z.lazy(() => z.object({
@@ -56,8 +56,8 @@ const ZDataClipInput = z.object({
 export class DataRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    dataCore: TRPCDataCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, dataCore: TRPCDataCore) {
+    dataCore: DataCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, dataCore: DataCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.dataCore = dataCore;

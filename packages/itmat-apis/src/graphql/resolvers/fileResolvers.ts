@@ -1,12 +1,12 @@
 import { FileUpload } from 'graphql-upload-minimal';
-import { DBType, TRPCDataCore, errorCodes } from '@itmat-broker/itmat-cores';
+import { DBType, DataCore, errorCodes } from '@itmat-broker/itmat-cores';
 import { CoreError, deviceTypes, enumCoreErrors, enumReservedKeys } from '@itmat-broker/itmat-types';
 import { GraphQLError } from 'graphql';
 
 export class FileResolvers {
     db: DBType;
-    dataCore: TRPCDataCore;
-    constructor(db: DBType, dataCore: TRPCDataCore) {
+    dataCore: DataCore;
+    constructor(db: DBType, dataCore: DataCore) {
         this.db = db;
         this.dataCore = dataCore;
     }

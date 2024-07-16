@@ -1,6 +1,6 @@
 import { ConfigRouter, DataRouter, DomainRouter, DriveRouter, FileResolvers, GraphQLResolvers, JobResolvers, LogResolvers, LogRouter, OrganisationResolvers, OrganisationRouter, PermissionResolvers, PubkeyResolvers, RoleRouter, StandardizationResolvers, StudyResolvers, StudyRouter, TRPCAggRouter, UserResolvers, UserRouter, tRPCBaseProcedureMilldeware } from '@itmat-broker/itmat-apis';
 import { db } from '../database/database';
-import { TRPCConfigCore, TRPCDataCore, TRPCDataTransformationCore, TRPCDomainCore, TRPCDriveCore, TRPCFileCore, TRPCLogCore, TRPCOrganisationCore, TRPCPermissionCore, TRPCStandarizationCore, TRPCStudyCore, TRPCUserCore, TRPCUtilsCore } from '@itmat-broker/itmat-cores';
+import { ConfigCore, DataCore, DataTransformationCore, DomainCore, DriveCore, FileCore, LogCore, OrganisationCore, PermissionCore, StandarizationCore, StudyCore, UserCore, UtilsCore } from '@itmat-broker/itmat-cores';
 import { objStore } from '../objStore/objStore';
 import { mailer } from '../emailer/emailer';
 import configManager from '../utils/configManager';
@@ -9,33 +9,33 @@ import { inferAsyncReturnType, initTRPC } from '@trpc/server';
 
 
 export class APICalls {
-    permissionCore: TRPCPermissionCore;
-    fileCore: TRPCFileCore;
-    utilsCore: TRPCUtilsCore;
-    dataTransformationCore: TRPCDataTransformationCore;
-    studyCore: TRPCStudyCore;
-    dataCore: TRPCDataCore;
-    userCore: TRPCUserCore;
-    organisationCore: TRPCOrganisationCore;
-    logCore: TRPCLogCore;
-    standardizationCore: TRPCStandarizationCore;
-    driveCore: TRPCDriveCore;
-    configCore: TRPCConfigCore;
-    domainCore: TRPCDomainCore;
+    permissionCore: PermissionCore;
+    fileCore: FileCore;
+    utilsCore: UtilsCore;
+    dataTransformationCore: DataTransformationCore;
+    studyCore: StudyCore;
+    dataCore: DataCore;
+    userCore: UserCore;
+    organisationCore: OrganisationCore;
+    logCore: LogCore;
+    standardizationCore: StandarizationCore;
+    driveCore: DriveCore;
+    configCore: ConfigCore;
+    domainCore: DomainCore;
     constructor() {
-        this.permissionCore = new TRPCPermissionCore(db);
-        this.fileCore = new TRPCFileCore(db, objStore);
-        this.utilsCore = new TRPCUtilsCore();
-        this.dataTransformationCore = new TRPCDataTransformationCore(this.utilsCore);
-        this.studyCore = new TRPCStudyCore(db, objStore, this.permissionCore, this.fileCore);
-        this.dataCore = new TRPCDataCore(db, this.fileCore, this.permissionCore, this.utilsCore, this.dataTransformationCore);
-        this.userCore = new TRPCUserCore(db, mailer, configManager, objStore);
-        this.organisationCore = new TRPCOrganisationCore(db, this.fileCore);
-        this.logCore = new TRPCLogCore(db);
-        this.standardizationCore = new TRPCStandarizationCore(db, objStore, this.permissionCore, this.studyCore);
-        this.driveCore = new TRPCDriveCore(db, this.fileCore, objStore);
-        this.configCore = new TRPCConfigCore(db);
-        this.domainCore = new TRPCDomainCore(db, this.fileCore);
+        this.permissionCore = new PermissionCore(db);
+        this.fileCore = new FileCore(db, objStore);
+        this.utilsCore = new UtilsCore();
+        this.dataTransformationCore = new DataTransformationCore(this.utilsCore);
+        this.studyCore = new StudyCore(db, objStore, this.permissionCore, this.fileCore);
+        this.dataCore = new DataCore(db, this.fileCore, this.permissionCore, this.utilsCore, this.dataTransformationCore);
+        this.userCore = new UserCore(db, mailer, configManager, objStore);
+        this.organisationCore = new OrganisationCore(db, this.fileCore);
+        this.logCore = new LogCore(db);
+        this.standardizationCore = new StandarizationCore(db, objStore, this.permissionCore, this.studyCore);
+        this.driveCore = new DriveCore(db, this.fileCore, objStore);
+        this.configCore = new ConfigCore(db);
+        this.domainCore = new DomainCore(db, this.fileCore);
     }
 
     _listOfGraphqlResolvers() {

@@ -7,15 +7,15 @@ import {
     CoreError,
     IGroupedData
 } from '@itmat-broker/itmat-types';
-import { DBType, GraphQLErrorDecroator, TRPCDataCore, TRPCPermissionCore, TRPCStudyCore, V2CreateFieldInput, V2EditFieldInput, convertV2CreateFieldInputToV3, convertV2DataClipInputToV3, convertV2EditFieldInputToV3, convertV3FieldToV2Field } from '@itmat-broker/itmat-cores';
+import { DBType, GraphQLErrorDecroator, DataCore, PermissionCore, StudyCore, V2CreateFieldInput, V2EditFieldInput, convertV2CreateFieldInputToV3, convertV2DataClipInputToV3, convertV2EditFieldInputToV3, convertV3FieldToV2Field } from '@itmat-broker/itmat-cores';
 import { DMPResolversMap } from './context';
 
 export class StudyResolvers {
     db: DBType;
-    studyCore: TRPCStudyCore;
-    dataCore: TRPCDataCore;
-    permissionCore: TRPCPermissionCore;
-    constructor(db: DBType, studyCore: TRPCStudyCore, dataCore: TRPCDataCore, permissionCore: TRPCPermissionCore) {
+    studyCore: StudyCore;
+    dataCore: DataCore;
+    permissionCore: PermissionCore;
+    constructor(db: DBType, studyCore: StudyCore, dataCore: DataCore, permissionCore: PermissionCore) {
         this.db = db;
         this.studyCore = studyCore;
         this.dataCore = dataCore;

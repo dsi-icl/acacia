@@ -1,10 +1,10 @@
 import { enumEventStatus, enumEventType, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DMPResolversMap } from './context';
-import { TRPCLogCore } from '@itmat-broker/itmat-cores';
+import { LogCore } from '@itmat-broker/itmat-cores';
 
 export class LogResolvers {
-    logCore: TRPCLogCore;
-    constructor(logCore: TRPCLogCore) {
+    logCore: LogCore;
+    constructor(logCore: LogCore) {
         this.logCore = logCore;
     }
 

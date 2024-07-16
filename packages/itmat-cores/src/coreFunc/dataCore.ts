@@ -1,12 +1,12 @@
 import { IField, enumDataTypes, ICategoricalOption, IValueVerifier, IGenericResponse, enumConfigType, defaultSettings, IAST, enumConditionOps, enumFileTypes, enumFileCategories, IFieldProperty, IFile, IData, enumASTNodeTypes, IRole, IStudyConfig, enumUserTypes, enumCoreErrors, IUserWithoutToken, CoreError, enumDataAtomicPermissions, enumDataTransformationOperation, enumCacheStatus, enumCacheType, FileUpload, enumStudyRoles } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
-import { TRPCFileCore } from './fileCore';
-import { TRPCPermissionCore } from './permissionCore';
+import { FileCore } from './fileCore';
+import { PermissionCore } from './permissionCore';
 import { makeGenericReponse } from '../utils';
-import { TRPCUtilsCore } from './utilsCore';
+import { UtilsCore } from './utilsCore';
 import { Filter } from 'mongodb';
-import { TRPCDataTransformationCore } from './transformationCore';
+import { DataTransformationCore } from './transformationCore';
 import { Readable } from 'stream';
 
 type IDataTransformationClip = Record<string, unknown>;
@@ -46,13 +46,13 @@ interface CreateFieldInput {
 
 type EditFieldInput = CreateFieldInput;
 
-export class TRPCDataCore {
+export class DataCore {
     db: DBType;
-    fileCore: TRPCFileCore;
-    permissionCore: TRPCPermissionCore;
-    utilsCore: TRPCUtilsCore;
-    dataTransformationCore: TRPCDataTransformationCore;
-    constructor(db: DBType, fileCore: TRPCFileCore, permissionCore: TRPCPermissionCore, utilsCore: TRPCUtilsCore, dataTransformationCore: TRPCDataTransformationCore) {
+    fileCore: FileCore;
+    permissionCore: PermissionCore;
+    utilsCore: UtilsCore;
+    dataTransformationCore: DataTransformationCore;
+    constructor(db: DBType, fileCore: FileCore, permissionCore: PermissionCore, utilsCore: UtilsCore, dataTransformationCore: DataTransformationCore) {
         this.db = db;
         this.fileCore = fileCore;
         this.permissionCore = permissionCore;
@@ -572,7 +572,7 @@ export class TRPCDataCore {
                             error = makeGenericReponse(counter.toString(), false, enumCoreErrors.CLIENT_MALFORMED_INPUT, `Field ${dataClip.fieldId}: Cannot parse as decimal.`);
                             break;
                         }
-                        if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
+                        if (!/^-?\d+(\.\d+)?$/.test(dataClip.value)) {
                             error = makeGenericReponse(counter.toString(), false, enumCoreErrors.CLIENT_MALFORMED_INPUT, `Field ${dataClip.fieldId}: Cannot parse as decimal.`);
                             break;
                         }

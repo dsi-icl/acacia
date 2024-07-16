@@ -1,5 +1,5 @@
 import { IAST, IValueVerifier, enumDataTransformationOperation } from '@itmat-broker/itmat-types';
-import { TRPCUtilsCore } from './utilsCore';
+import { UtilsCore } from './utilsCore';
 
 type IDataTransformationClip = Record<string, unknown>;
 
@@ -23,9 +23,9 @@ abstract class DataTransformation {
 class tGrouping extends DataTransformation {
     protected keys: string[];
     protected skipUnmatch: boolean;
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { keys: string[], skipUnmatch: boolean }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { keys: string[], skipUnmatch: boolean }, utilsCore: UtilsCore) {
         super();
         this.keys = params.keys;
         this.skipUnmatch = params.skipUnmatch;
@@ -107,9 +107,9 @@ class tAffine extends DataTransformation {
     protected removedKeys?: string[];
     protected addedKeyRules?: Array<{ key: IAST, value: IAST }>;
     protected rules?: Record<string, IAST>;
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { removedKeys: string[], rules: Record<string, IAST>, addedKeyRules: Array<{ key: IAST, value: IAST }> }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { removedKeys: string[], rules: Record<string, IAST>, addedKeyRules: Array<{ key: IAST, value: IAST }> }, utilsCore: UtilsCore) {
         super();
         this.removedKeys = params.removedKeys;
         this.addedKeyRules = params.addedKeyRules;
@@ -171,9 +171,9 @@ class tAffine extends DataTransformation {
 class tLeaveOne extends DataTransformation {
     protected scoreFormula: IAST;
     protected isDescend: boolean;
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { scoreFormula: IAST, isDescend: boolean }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { scoreFormula: IAST, isDescend: boolean }, utilsCore: UtilsCore) {
         super();
         this.scoreFormula = params.scoreFormula;
         this.isDescend = params.isDescend;
@@ -202,9 +202,9 @@ class tLeaveOne extends DataTransformation {
 
 class tJoin extends DataTransformation {
     protected reservedKeys: string[];
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { reservedKeys: string[] }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { reservedKeys: string[] }, utilsCore: UtilsCore) {
         super();
         this.reservedKeys = params.reservedKeys;
         this.utilsCore = utilsCore;
@@ -232,9 +232,9 @@ class tJoin extends DataTransformation {
 
 class tConcat extends DataTransformation {
     protected concatKeys: string[];
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { concatKeys: string[] }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { concatKeys: string[] }, utilsCore: UtilsCore) {
         super();
         this.concatKeys = params.concatKeys;
         this.utilsCore = utilsCore;
@@ -280,9 +280,9 @@ class tConcat extends DataTransformation {
 class tDeconcat extends DataTransformation {
     protected deconcatKeys: string[];
     protected matchMode: 'combinations' | 'sequential';
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { deconcatKeys: string[], matchMode?: 'combinations' | 'sequential' }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { deconcatKeys: string[], matchMode?: 'combinations' | 'sequential' }, utilsCore: UtilsCore) {
         super();
         this.deconcatKeys = params.deconcatKeys;
         this.matchMode = params.matchMode || 'combinations';
@@ -352,9 +352,9 @@ class tDeconcat extends DataTransformation {
  */
 class tFilter extends DataTransformation {
     protected filters: Record<string, IValueVerifier[]>;
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { filters: Record<string, IValueVerifier[]> }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { filters: Record<string, IValueVerifier[]> }, utilsCore: UtilsCore) {
         super();
         this.filters = params.filters;
         this.utilsCore = utilsCore;
@@ -388,9 +388,9 @@ class tFilter extends DataTransformation {
  */
 class tCount extends DataTransformation {
     protected addedKeyRules?: Array<{ key: IAST, value: IAST }>;
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { addedKeyRules: Array<{ key: IAST, value: IAST }> }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { addedKeyRules: Array<{ key: IAST, value: IAST }> }, utilsCore: UtilsCore) {
         super();
         this.addedKeyRules = params.addedKeyRules;
         this.utilsCore = utilsCore;
@@ -426,9 +426,9 @@ class tCount extends DataTransformation {
 class tDegroup extends DataTransformation {
     protected sharedKeys: string[];
     protected targetKeyGroups: string[][];
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { sharedKeys: string[], targetKeyGroups: string[][] }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { sharedKeys: string[], targetKeyGroups: string[][] }, utilsCore: UtilsCore) {
         super();
         this.sharedKeys = params.sharedKeys;
         this.targetKeyGroups = params.targetKeyGroups;
@@ -472,9 +472,9 @@ class tFlatten extends DataTransformation {
     protected keepFlattened: boolean;
     protected flattenedKey: string;
     protected keepFlattenedKey: boolean;
-    protected utilsCore: TRPCUtilsCore;
+    protected utilsCore: UtilsCore;
 
-    constructor(params: { keepFlattened: boolean, flattenedKey: string, keepFlattenedKey: boolean }, utilsCore: TRPCUtilsCore) {
+    constructor(params: { keepFlattened: boolean, flattenedKey: string, keepFlattenedKey: boolean }, utilsCore: UtilsCore) {
         super();
         this.keepFlattened = params.keepFlattened;
         this.flattenedKey = params.flattenedKey;
@@ -516,9 +516,9 @@ class tFlatten extends DataTransformation {
 
 
 
-export class TRPCDataTransformationCore {
-    protected utilsCore: TRPCUtilsCore;
-    constructor(utilsCore: TRPCUtilsCore) {
+export class DataTransformationCore {
+    protected utilsCore: UtilsCore;
+    constructor(utilsCore: UtilsCore) {
         this.utilsCore = utilsCore;
     }
 

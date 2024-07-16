@@ -1,14 +1,14 @@
 import { v4 as uuid } from 'uuid';
 import { CoreError, FileUpload, IFile, IOrganisation, IUserWithoutToken, enumCoreErrors, enumFileCategories, enumFileTypes, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
-import { TRPCFileCore } from './fileCore';
+import { FileCore } from './fileCore';
 import { UpdateFilter } from 'mongodb';
 import { makeGenericReponse } from '../utils';
 
-export class TRPCOrganisationCore {
+export class OrganisationCore {
     db: DBType;
-    fileCore: TRPCFileCore;
-    constructor(db: DBType, fileCore: TRPCFileCore) {
+    fileCore: FileCore;
+    constructor(db: DBType, fileCore: FileCore) {
         this.db = db;
         this.fileCore = fileCore;
     }

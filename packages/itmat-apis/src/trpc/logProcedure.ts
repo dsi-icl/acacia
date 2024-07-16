@@ -1,14 +1,14 @@
 import { enumAPIResolver, enumEventStatus, enumEventType } from '@itmat-broker/itmat-types';
 import { z } from 'zod';
-import { TRPCLogCore } from '@itmat-broker/itmat-cores';
+import { LogCore } from '@itmat-broker/itmat-cores';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 
 
 export class LogRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    logCore: TRPCLogCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, logCore: TRPCLogCore) {
+    logCore: LogCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, logCore: LogCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.logCore = logCore;

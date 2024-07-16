@@ -1,14 +1,14 @@
 import { IUser, FileUploadSchema } from '@itmat-broker/itmat-types';
 import { z } from 'zod';
-import { TRPCStudyCore } from '@itmat-broker/itmat-cores';
+import { StudyCore } from '@itmat-broker/itmat-cores';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 
 
 export class StudyRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
-    studyCore: TRPCStudyCore;
-    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, studyCore: TRPCStudyCore) {
+    studyCore: StudyCore;
+    constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, studyCore: StudyCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.studyCore = studyCore;

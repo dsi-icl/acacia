@@ -1,10 +1,10 @@
-import { TRPCOrganisationCore } from '@itmat-broker/itmat-cores';
+import { OrganisationCore } from '@itmat-broker/itmat-cores';
 import { DMPResolversMap } from './context';
 
 
 export class OrganisationResolvers {
-    organisationCore: TRPCOrganisationCore;
-    constructor(organisationCore: TRPCOrganisationCore) {
+    organisationCore: OrganisationCore;
+    constructor(organisationCore: OrganisationCore) {
         this.organisationCore = organisationCore;
     }
 

@@ -4,16 +4,16 @@ import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
-import { TRPCPermissionCore } from '../trpcCore/permissionCore';
+import { PermissionCore } from '../coreFunc/permissionCore';
 
 export class FileDownloadController {
-    private _permissionCore: TRPCPermissionCore;
+    private _permissionCore: PermissionCore;
     private _db: DBType;
     private _objStore: ObjectStore;
 
     constructor(db: DBType, objStore: ObjectStore) {
         this._db = db;
-        this._permissionCore = new TRPCPermissionCore(db);
+        this._permissionCore = new PermissionCore(db);
         this._objStore = objStore;
     }
 

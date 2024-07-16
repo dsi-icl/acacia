@@ -2,7 +2,7 @@ import { CoreError, ILog, IUserWithoutToken, enumAPIResolver, enumCoreErrors, en
 import { DBType } from '../database/database';
 import { Filter } from 'mongodb';
 
-export class TRPCLogCore {
+export class LogCore {
     db: DBType;
     constructor(db: DBType) {
         this.db = db;
