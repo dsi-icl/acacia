@@ -1,8 +1,7 @@
 import { v2 as webdav } from 'webdav-server';
-import { DMPFileSystem, DMPWebDAVAuthentication, IConfiguration, TRPCDataCore, TRPCDataTransformationCore, TRPCDriveCore, TRPCFileCore, TRPCPermissionCore, TRPCStudyCore } from '@itmat-broker/itmat-cores';
+import { DMPFileSystem, DMPWebDAVAuthentication, IConfiguration, DataCore, DataTransformationCore, DriveCore, FileCore, PermissionCore, StudyCore, UtilsCore } from '@itmat-broker/itmat-cores';
 import { objStore } from '../objStore/objStore';
 import { db } from '../database/database';
-import { TRPCUtilsCore } from 'packages/itmat-cores/src/trpcCore/utilsCore';
 import { Logger } from '@itmat-broker/itmat-commons';
 
 class DMPWebDav {
@@ -13,13 +12,13 @@ class DMPWebDav {
             httpAuthentication: httpAuthentication as webdav.HTTPAuthentication
         });
 
-        const fileCore = new TRPCFileCore(db, objStore);
-        const driveCore = new TRPCDriveCore(db, fileCore, objStore);
-        const premissionCore = new TRPCPermissionCore(db);
-        const studyCore = new TRPCStudyCore(db, objStore, premissionCore, fileCore);
-        const utilsCore = new TRPCUtilsCore();
-        const dataTransformatonCore = new TRPCDataTransformationCore(utilsCore);
-        const dataCore = new TRPCDataCore(db, fileCore, premissionCore, utilsCore, dataTransformatonCore);
+        const fileCore = new FileCore(db, objStore);
+        const driveCore = new DriveCore(db, fileCore, objStore);
+        const premissionCore = new PermissionCore(db);
+        const studyCore = new StudyCore(db, objStore, premissionCore, fileCore);
+        const utilsCore = new UtilsCore();
+        const dataTransformatonCore = new DataTransformationCore(utilsCore);
+        const dataCore = new DataCore(db, fileCore, premissionCore, utilsCore, dataTransformatonCore);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         webServer.setFileSystem('/DMP', new DMPFileSystem(db, fileCore, driveCore, studyCore, dataCore) as any, (success) => {

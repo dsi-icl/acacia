@@ -186,7 +186,7 @@ if (global.hasMinio) {
                 permission: parseInt('111', 2),
                 includeUnVersioned: true
             }],
-            studyRole: enumStudyRoles.STUDY_USER,
+            studyRole: enumStudyRoles.STUDY_MANAGER,
             users: [authorisedUserProfile.id],
             groups: [],
             life: {
@@ -1236,7 +1236,7 @@ if (global.hasMinio) {
             const data = await db.collections.data_collection.find({ studyId: study.id }).toArray();
             expect(data).toHaveLength(2);
             expect(data[0].life.deletedTime).toBeNull();
-            expect(data[1].life.deletedTime).toBeNull();
+            expect(data[1].life.deletedTime).not.toBeNull();
         });
         test('Delete a data clip (study does not exist)', async () => {
             await authorisedUser.post('/trpc/data.createStudyField')
@@ -1261,7 +1261,7 @@ if (global.hasMinio) {
                     fieldId: '1'
                 });
             expect(response2.status).toBe(400);
-            expect(response2.body.error.message).toBe('Study does not exist.');
+            expect(response2.body.error.message).toBe(enumCoreErrors.NO_PERMISSION_ERROR);
         });
         test('Delete a data clip (delete twice)', async () => {
             await authorisedUser.post('/trpc/data.createStudyField')

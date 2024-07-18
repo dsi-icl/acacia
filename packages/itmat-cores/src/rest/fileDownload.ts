@@ -1,12 +1,10 @@
 import { Request, Response } from 'express';
-import { IUserWithoutToken } from '@itmat-broker/itmat-types';
+import { CoreError, IUserWithoutToken, enumCoreErrors } from '@itmat-broker/itmat-types';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
-import { GraphQLError } from 'graphql';
-import { PermissionCore } from '../GraphQLCore/permissionCore';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
+import { PermissionCore } from '../coreFunc/permissionCore';
 
 export class FileDownloadController {
     private _permissionCore: PermissionCore;
@@ -33,12 +31,18 @@ export class FileDownloadController {
                 if (decodedPayload !== null && !(typeof decodedPayload === 'string')) {
                     pubkey = decodedPayload['publicKey'];
                 } else {
-                    throw new GraphQLError('JWT verification failed.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+                    throw new CoreError(
+                        enumCoreErrors.AUTHENTICATION_ERROR,
+                        'JWT verification failed.'
+                    );
                 }
                 // verify the JWT
                 jwt.verify(token, pubkey, function (error) {
                     if (error) {
-                        throw new GraphQLError('JWT verification failed.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
+                        throw new CoreError(
+                            enumCoreErrors.AUTHENTICATION_ERROR,
+                            'JWT verification failed.'
+                        );
                     }
                 });
                 associatedUser = await userRetrieval(this._db, pubkey);
@@ -48,14 +52,14 @@ export class FileDownloadController {
             }
             try {
                 /* download file */
-                const file = await this._db.collections.files_collection.findOne({ id: requestedFile, deleted: null });
+                const file = await this._db.collections.files_collection.findOne({ 'id': requestedFile, 'life.deletedTime': null });
                 if (!file || !file.studyId) {
                     res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
                     return;
                 }
 
                 // check target field exists
-                const roles = await this._permissionCore.getRolesOfUser(associatedUser, file.studyId);
+                const roles = await this._permissionCore.getRolesOfUser(associatedUser, associatedUser.id, file.studyId);
                 if (!roles.length) {
                     res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
                     return;
@@ -68,6 +72,7 @@ export class FileDownloadController {
                 stream.pipe(res, { end: true });
                 return;
             } catch (e) {
+                console.log(e);
                 res.status(500).json(e);
                 return;
             }

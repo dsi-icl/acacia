@@ -19,9 +19,11 @@
             "pubkeys_collection": "PUBKEY_COLLECTION",
             "standardizations_collection": "STANDARDIZATION_COLLECTION",
             "configs_collection": "CONFIG_COLLECTION",
+            "ontologies_collection": "ONTOLOGY_COLLECTION",
+            "docs_collection": "DOC_COLLECTION",
+            "cache_collection": "CACHE_COLLECTION",
             "drives_collection": "DRIVE_COLLECTION",
             "colddata_collection": "COLDDATA_COLLECTION",
-            "cache_collection": "CACHE_COLLECTION",
             "domains_collection": "DOMAIN_COLLECTION"
         }
     },

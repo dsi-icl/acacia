@@ -41,7 +41,7 @@ export interface IProject {
 
 export interface IDataClip {
     fieldId: string;
-    value?: string;
+    value: string;
     subjectId: string;
     visitId: string;
     file?: FileUpload;

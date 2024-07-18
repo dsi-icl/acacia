@@ -15,9 +15,9 @@ export interface IDocumentLevelPermission {
 // study manager in addition can manage the study data and study itself, e.g., editing study metadata
 // study user only have access to data filtered by dataPermissions
 export enum enumStudyRoles {
-    STUDY_MANAGER = 'STUDY MANAGER',
-    STUDY_ASSISTANT = 'STUDY ASSISTANT',
-    STUDY_USER = 'STUDY USER'
+    STUDY_MANAGER = 'STUDY_MANAGER',
+    STUDY_ASSISTANT = 'STUDY_ASSISTANT',
+    STUDY_USER = 'STUDY_USER'
 }
 
 export interface IDataPermission {

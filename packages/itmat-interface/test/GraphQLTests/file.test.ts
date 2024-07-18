@@ -350,7 +350,7 @@ if (global.hasMinio) {
                     expect(res.status).toBe(200);
 
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe('File hash not match');
+                    expect(res.body.errors[0].message).toBe('File hash not match.');
                     expect(res.body.data.uploadFile).toEqual(null);
                 });
 
@@ -371,7 +371,7 @@ if (global.hasMinio) {
 
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe('File size mismatch');
+                    expect(res.body.errors[0].message).toBe('File size mismatch.');
                     expect(res.body.data.uploadFile).toEqual(null);
                 });
             });
@@ -745,7 +745,7 @@ if (global.hasMinio) {
                     });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                    expect(res.body.errors[0].message).toBe('Data entry not found.');
                     expect(res.body.data.deleteFile).toBe(null);
                 });
 
@@ -756,7 +756,7 @@ if (global.hasMinio) {
                     });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                    expect(res.body.errors[0].message).toBe('Data entry not found.');
                     expect(res.body.data.deleteFile).toBe(null);
                 });
             });

@@ -5,11 +5,11 @@ import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import nodeFetch from 'node-fetch';
 import { IDrive, IUserWithoutToken, enumFileTypes } from '@itmat-broker/itmat-types';
-import { TRPCFileCore } from '../trpcCore/fileCore';
-import { TRPCDriveCore } from '../trpcCore/driveCore';
+import { FileCore } from '../coreFunc/fileCore';
+import { DriveCore } from '../coreFunc/driveCore';
 import { DBType } from '../database/database';
-import { TRPCStudyCore } from '../trpcCore/studyCore';
-import { TRPCDataCore } from '../trpcCore/dataCore';
+import { StudyCore } from '../coreFunc/studyCore';
+import { DataCore } from '../coreFunc/dataCore';
 
 
 class DMPFileSystemSerializer implements webdav.FileSystemSerializer {
@@ -37,16 +37,16 @@ export class DMPFileSystem extends webdav.FileSystem {
     isCopying: boolean;
     getFileResults: unknown;
     currentStudy: unknown;
-    fileCore: TRPCFileCore;
-    driveCore: TRPCDriveCore;
-    studyCore: TRPCStudyCore;
-    dataCore: TRPCDataCore;
+    fileCore: FileCore;
+    driveCore: DriveCore;
+    studyCore: StudyCore;
+    dataCore: DataCore;
     db: DBType;
     myDriveDirName: string;
     studyDirName: string;
     sharedDirName: string;
 
-    constructor(db: DBType, fileCore: TRPCFileCore, driveCore: TRPCDriveCore, studyCore: TRPCStudyCore, dataCore: TRPCDataCore) {
+    constructor(db: DBType, fileCore: FileCore, driveCore: DriveCore, studyCore: StudyCore, dataCore: DataCore) {
         super(new DMPFileSystemSerializer());
         this.db = db;
         this.fileCore = fileCore;

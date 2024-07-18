@@ -104,6 +104,12 @@ const collections = {
             { key: { type: 1, key: 1 }, unique: true }
         ]
     },
+    ontologies_collection: {
+        name: 'ONTOLOGY_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true }
+        ]
+    },
     drives_collection: {
         name: 'DRIVE_COLLECTION',
         indexes: [
@@ -130,14 +136,20 @@ const collections = {
             { key: { id: 1 }, unique: true },
             { key: { domainPath: 1 }, unique: true }
         ]
+    },
+    docs_collection: {
+        name: 'DOC_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true }
+        ]
     }
 };
 
 export async function setupDatabase(mongostr: string, databaseName: string): Promise<void> {
+    console.log('Setting up database');
     const conn = await mongo.MongoClient.connect(mongostr);
     const db = conn.db(databaseName);
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
-
     /* creating collections and indexes */
     for (const each of Object.keys(collections) as Array<keyof typeof collections>) {
         if (existingCollections.includes(collections[each].name)) {
