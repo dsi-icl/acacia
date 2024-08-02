@@ -8,6 +8,7 @@ import { RoleRouter } from './roleProcedure';
 import { StudyRouter } from './studyProcedure';
 import { TRPCRouter } from './trpc';
 import { UserRouter } from './userProcedure';
+import { WebAuthnRouter } from './webauthnProcedure';
 
 export class TRPCAggRouter {
     router: TRPCRouter;
@@ -20,7 +21,8 @@ export class TRPCAggRouter {
     logRouter: LogRouter;
     domainRouter: DomainRouter;
     organisationRouter: OrganisationRouter;
-    constructor(router: TRPCRouter, userRouter: UserRouter, driveRouter: DriveRouter, studyRouter: StudyRouter, dataRouter: DataRouter, roleRouter: RoleRouter, configRouter: ConfigRouter, logRouter: LogRouter, domainRouter: DomainRouter, organisationRouter: OrganisationRouter) {
+    webAuthnRouter: WebAuthnRouter;
+    constructor(router: TRPCRouter, userRouter: UserRouter, driveRouter: DriveRouter, studyRouter: StudyRouter, dataRouter: DataRouter, roleRouter: RoleRouter, configRouter: ConfigRouter, logRouter: LogRouter, domainRouter: DomainRouter, organisationRouter: OrganisationRouter, webAuthnRouter: WebAuthnRouter) {
         this.router = router;
         this.userRouter = userRouter;
         this.driveRouter = driveRouter;
@@ -31,6 +33,7 @@ export class TRPCAggRouter {
         this.logRouter = logRouter;
         this.domainRouter = domainRouter;
         this.organisationRouter = organisationRouter;
+        this.webAuthnRouter = webAuthnRouter;
     }
 
     _routers() {
@@ -43,10 +46,11 @@ export class TRPCAggRouter {
             config: this.configRouter._router(),
             log: this.logRouter._router(),
             domain: this.domainRouter._router(),
-            organisation: this.organisationRouter._router()
+            organisation: this.organisationRouter._router(),
+            webauthn: this.webAuthnRouter._router()
         });
     }
 }
 
 
-export type APPTRPCRouter = typeof TRPCAggRouter.prototype._routers;
+export type APPTRPCRouter = ReturnType<TRPCAggRouter['_routers']>;

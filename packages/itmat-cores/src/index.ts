@@ -22,3 +22,5 @@ export * from './database/database';
 export * from './utils';
 // webdav
 export * from './webdav/dmpWebDAV';
+// webauthn
+export * from './coreFunc/webauthnCore';

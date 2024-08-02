@@ -1,7 +1,7 @@
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 import { z } from 'zod';
 import { ConfigCore } from '@itmat-broker/itmat-cores';
-import { enumConfigType } from '@itmat-broker/itmat-types';
+import { enumConfigType, enumStudyBlockColumnValueType } from '@itmat-broker/itmat-types';
 
 const ZBase = z.object({
     id: z.string(),
@@ -32,15 +32,16 @@ const ZStudyConfig = ZBase.extend({
     defaultStudyProfile: z.string().nullable(),
     defaultMaximumFileSize: z.number(),
     defaultRepresentationForMissingValue: z.string(),
-    defaultFileColumns: z.array(z.object({
+    defaultFileBlocks: z.array(z.object({
         title: z.string(),
-        type: z.string()
+        fieldIds: z.array(z.string()),
+        defaultFileColumns: z.array(z.object({
+            title: z.string(),
+            property: z.string(),
+            type: z.nativeEnum(enumStudyBlockColumnValueType)
+        })),
+        defaultFileColumnsPropertyColor: z.string()
     })),
-    defaultFileColumnsPropertyColor: z.string().nullable(),
-    defaultFileDirectoryStructure: z.object({
-        pathLabels: z.array(z.string()),
-        description: z.string().nullable()
-    }),
     defaultVersioningKeys: z.array(z.string())
 });
 

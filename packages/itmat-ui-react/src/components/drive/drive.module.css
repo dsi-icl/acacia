@@ -1,0 +1,172 @@
+.page_container {
+    height: 100%;
+    position: relative;
+    overflow-y: scroll;
+    display: grid;
+    justify-content: space-between;
+    grid-template-areas:
+        "FILE FILE"
+        "SHARED SHARED";
+    grid-template-columns: 40% 60%;
+    grid-template-rows: 750px 1fr;
+    overflow: auto;
+    padding: 2rem;
+}
+
+.file_wrapper {
+    grid-area: FILE;
+    padding: 20px;
+    background-color: white;
+}
+
+/* Assuming this is named FileManager.module.css */
+
+/* Styles for the table cell with the ellipsis */
+.ellipsisStyle {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+}
+
+/* This will be for the text and icon */
+.textAndIcon {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Styles for the action elements in the table cell */
+.cellIcons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    /* Prevent icons from shrinking */
+}
+
+.cellIcon {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    margin-left: 16px;
+    /* Space between icons */
+}
+
+.ellipsisStyle:hover .cellIcon {
+    opacity: 1;
+}
+
+/* Styles for the action element in the table cell */
+.cellAction {
+    position: absolute;
+    right: 16px;
+    /* Adjust the spacing as needed */
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+}
+
+/* Hover state for the ellipsis action to be visible */
+.ellipsisStyle:hover .cellAction {
+    display: block;
+}
+
+/* Styles for the folder and file names */
+.customTextHover {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Hover effects for the folder and file names */
+.customTextHover:hover {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* Styles for the dropdown enu */
+.dropdownMenu {
+    cursor: pointer;
+    font-size: 24px;
+    /* Adjust the font size as desired */
+    display: inline-block;
+    line-height: 1;
+    /* Ensure the icon is vertically centered */
+}
+
+.shared_container {
+    width: 100%;
+    grid-area: SHARED;
+}
+
+.ellipsis-style {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    /* Adjust this width based on your requirement */
+    display: block;
+}
+
+.group_wrapper {
+    grid-area: GROUP;
+    padding: 20px;
+    background-color: white;
+}
+
+.overview-header {
+    display: flex;
+    align-items: center;
+    /* This will vertically center align the icon and the title */
+    /* If there is still a misalignment, you may adjust by adding 'align-self' to the children */
+    font-size: 20px;
+    font-weight: 500;
+    overflow: auto;
+}
+
+.overview-icon {
+    background-color: #000;
+    /* Or any color you prefer */
+    width: 4px;
+    /* Thickness of the line */
+    height: 24px;
+    /* Height of the line, adjust as needed */
+    margin-right: 16px;
+    /* Space between the line and the text */
+    /* Adjust 'margin-top' if the line is not aligned with the text */
+}
+
+.overview-title {
+    /* Style for your title */
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.overview-content {
+    /* Style for your content */
+    text-indent: 30px;
+    /* Adjust the indent as needed */
+}
+
+.key_wrapper {
+    grid-area: KEY;
+    padding: 20px;
+    background-color: white;
+}
+
+.ant-table table {
+    font-size: 10px;
+}
+
+.breadcrumbContainer {
+    display: flex;
+    /* This will align the breadcrumb items inline */
+    align-items: center;
+    /* This will vertically align them in the middle */
+    flex-wrap: wrap;
+    /* This allows the breadcrumb items to wrap */
+    text-align: left;
+    /* Align text to the left */
+}

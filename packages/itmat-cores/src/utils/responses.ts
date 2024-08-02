@@ -5,7 +5,7 @@ export interface IGenericResponse {
     description?: string;
 }
 
-export function makeGenericReponse(id?: string, successful?: boolean, code?: string, description?: string): IGenericResponse {
+export function makeGenericResponse(id?: string, successful?: boolean, code?: string, description?: string): IGenericResponse {
     const res: IGenericResponse = {
         id: id ?? undefined,
         successful: successful ?? true,

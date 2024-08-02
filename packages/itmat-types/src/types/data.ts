@@ -28,3 +28,24 @@ export enum enumDataTransformationOperation {
     FLATTEN = 'FLATTEN',
     COUNT = 'COUNT'
 }
+
+export interface IDataSetSummary {
+    numberOfDataRecords: number;
+    numberOfDataAdds: number;
+    numberOfDataDeletes: number;
+
+    numberOfVersionedRecords: number;
+    numberOfVersionedAdds: number;
+    numberOfVersionedDeletes: number;
+
+    numberOfUnversionedRecords: number;
+    numberOfUnversionedAdds: number;
+    numberOfUnversionedDeletes: number;
+
+    numberOfFields: number;
+    numberOfVersionedFields: number;
+    numberOfUnversionedFields: number;
+
+    dataByUploaders: Array<{ userId: string, count: number }>;
+    dataByUsers: Array<{ userId: string, count: number }>;
+}

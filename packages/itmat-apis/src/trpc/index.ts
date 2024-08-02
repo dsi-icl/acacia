@@ -10,3 +10,4 @@ export * from './studyProcedure';
 export * from './trpc';
 export * from './tRPCRouter';
 export * from './userProcedure';
+export * from './webauthnProcedure';

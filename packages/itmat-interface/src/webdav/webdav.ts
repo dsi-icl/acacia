@@ -18,7 +18,7 @@ class DMPWebDav {
         const studyCore = new StudyCore(db, objStore, premissionCore, fileCore);
         const utilsCore = new UtilsCore();
         const dataTransformatonCore = new DataTransformationCore(utilsCore);
-        const dataCore = new DataCore(db, fileCore, premissionCore, utilsCore, dataTransformatonCore);
+        const dataCore = new DataCore(db, objStore, fileCore, premissionCore, utilsCore, dataTransformatonCore);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         webServer.setFileSystem('/DMP', new DMPFileSystem(db, fileCore, driveCore, studyCore, dataCore) as any, (success) => {

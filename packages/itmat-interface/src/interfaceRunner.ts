@@ -4,8 +4,6 @@ import { objStore } from './objStore/objStore';
 import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
 import { Runner } from './server/server';
-import { pubsub } from '@itmat-broker/itmat-apis';
-import { subscriptionEvents } from '@itmat-broker/itmat-cores';
 import { dmpWebDav } from './webdav/webdav';
 
 class ITMATInterfaceRunner extends Runner {
@@ -29,26 +27,6 @@ class ITMATInterfaceRunner extends Runner {
                 .then(async () => objStore.connect(this.config.objectStore))
                 .then(async () => this.config?.useWebdav && dmpWebDav.connect(this.config))
                 .then(async () => {
-
-                    const jobChangestream = db.collections.jobs_collection.watch([
-                        { $match: { operationType: { $in: ['update', 'insert'] } } }
-                    ], { fullDocument: 'updateLookup' });
-                    jobChangestream.on('change', data => {
-                        if (data.operationType === 'update' &&
-                            data.updateDescription &&
-                            data.updateDescription.updatedFields &&
-                            data.updateDescription.updatedFields.status
-                        ) {
-                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, {
-                                subscribeToJobStatusChange: {
-                                    jobId: data.fullDocument?.id,
-                                    studyId: data.fullDocument?.studyId,
-                                    newStatus: data.fullDocument?.status,
-                                    errors: data.fullDocument?.status === 'ERROR' ? data.fullDocument.error : null
-                                }
-                            }).catch(() => { return; });
-                        }
-                    });
                     _this.router = new Router(this.config);
                     await _this.router.init();
 

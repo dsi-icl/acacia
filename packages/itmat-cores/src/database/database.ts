@@ -1,4 +1,4 @@
-import type { IField, IFile, IJobEntry, ILog, IOrganisation, IProject, IPubkey, IQueryEntry, IRole, IStudy, IUser, IStandardization, IConfig, IData, IDrive, ICache, IDomain, IOntologyTree, IBase } from '@itmat-broker/itmat-types';
+import type { IField, IFile, IJobEntry, ILog, IOrganisation, IProject, IPubkey, IQueryEntry, IRole, IStudy, IUser, IStandardization, IConfig, IData, IDrive, ICache, IDomain, IOntologyTree, IBase, IWebAuthn } from '@itmat-broker/itmat-types';
 import { Database as DatabaseBase, IDatabaseBaseConfig } from '@itmat-broker/itmat-commons';
 import type { Collection } from 'mongodb';
 
@@ -23,7 +23,8 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
         colddata_collection: string,
         cache_collection: string,
         domains_collection: string,
-        doc_collection: string
+        doc_collection: string,
+        webauthn_collection: string
     };
 }
 
@@ -49,5 +50,6 @@ export interface IDatabaseCollectionConfig {
     domains_collection: Collection<IDomain>,
     // TODO: Implemet doc feature
     docs_collection: Collection<IBase>
+    webauthn_collection: Collection<IWebAuthn>
 }
 export type DBType = DatabaseBase<IDatabaseBaseConfig, IDatabaseCollectionConfig>;

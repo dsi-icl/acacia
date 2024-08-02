@@ -64,6 +64,7 @@ export const seedConfigs = [{
         defaultBackgroundColor: '#FFFFFF',
         defaultMaximumFileSize: 1 * 1024 * 1024 * 1024, // 1 GB
         defaultFileBucketId: 'system',
+        defaultProfileFileBucketId: 'profile',
         defaultProfileBucketId: 'profile',
         logoLink: null,
         logoSize: ['24px', '24px'],

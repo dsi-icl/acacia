@@ -16,12 +16,12 @@ export class RoleRouter {
     _router() {
         return this.router({
             /**
-     * Get the roles of a user.
-     *
-     * @param studyId - The id of the study.
-     *
-     * @returns IRole[]
-     */
+             * Get the roles of a user.
+             *
+             * @param studyId - The id of the study.
+             *
+             * @returns IRole[]
+             */
             getUserRoles: this.baseProcedure.input(z.object({
                 userId: z.string(),
                 studyId: z.optional(z.string())
@@ -29,29 +29,29 @@ export class RoleRouter {
                 return await this.permissionCore.getRolesOfUser(opts.ctx.user, opts.input.userId, opts.input.studyId);
             }),
             /**
-     * Get the roles of a study.
-     *
-     * @param studyId - The id of the study.
-     *
-     * @returns IRole[]
-     */
+             * Get the roles of a study.
+             *
+             * @param studyId - The id of the study.
+             *
+             * @returns IRole[]
+             */
             getStudyRoles: this.baseProcedure.input(z.object({
                 studyId: z.string()
             })).query(async (opts) => {
                 return await this.permissionCore.getRolesOfStudy(opts.ctx.user, opts.input.studyId);
             }),
             /**
-     * Create a new study role.
-     *
-     * @param studyId - The id of the study.
-     * @param name - The name of the role.
-     * @param description - The description of the role.
-     * @param dataPermissions - The data permissions for the role.
-     * @param studyRole - The role of the study.
-     * @param users - The users of the role.
-     *
-     * @returns IRole
-     */
+             * Create a new study role.
+             *
+             * @param studyId - The id of the study.
+             * @param name - The name of the role.
+             * @param description - The description of the role.
+             * @param dataPermissions - The data permissions for the role.
+             * @param studyRole - The role of the study.
+             * @param users - The users of the role.
+             *
+             * @returns IRole
+             */
             createStudyRole: this.baseProcedure.input(z.object({
                 studyId: z.string(),
                 name: z.string(),
@@ -76,17 +76,17 @@ export class RoleRouter {
                 );
             }),
             /**
-     * Edit a study role.
-     *
-     * @param roleId - The id of the role.
-     * @param name - The name of the role.
-     * @param description - The description of the role.
-     * @param dataPermissions - The data permissions for the role.
-     * @param studyRole - The role of the study.
-     * @param users - The users of the role.
-     *
-     * @returns IRole
-     */
+             * Edit a study role.
+             *
+             * @param roleId - The id of the role.
+             * @param name - The name of the role.
+             * @param description - The description of the role.
+             * @param dataPermissions - The data permissions for the role.
+             * @param studyRole - The role of the study.
+             * @param users - The users of the role.
+             *
+             * @returns IRole
+             */
             editStudyRole: this.baseProcedure.input(z.object({
                 roleId: z.string(),
                 name: z.optional(z.string()),
@@ -111,12 +111,12 @@ export class RoleRouter {
                 );
             }),
             /**
-     * Delete a study role.
-     *
-     * @param roleId - The id of the role.
-     *
-     * @returns IRole
-     */
+             * Delete a study role.
+             *
+             * @param roleId - The id of the role.
+             *
+             * @returns IRole
+             */
             deleteStudyRole: this.baseProcedure.input(z.object({
                 roleId: z.string()
             })).mutation(async (opts) => {

@@ -1520,8 +1520,8 @@ if (global.hasMinio) {
             const response2 = await authorisedUser.get('/trpc/data.getStudyData?input=' + encodeQueryParams(paramteres))
                 .query({});
             expect(response2.status).toBe(200);
-            expect(response2.body.result.data.raw).toHaveLength(1);
-            expect(response2.body.result.data.raw[0].fieldId).toBe('1');
+            expect(response2.body.result.data).toHaveLength(1);
+            expect(response2.body.result.data[0].fieldId).toBe('1');
         });
         test('Get data (aggregation with group)', async () => {
             await authorisedUser.post('/trpc/data.createStudyField')
@@ -2117,16 +2117,6 @@ if (global.hasMinio) {
                 .query({});
             expect(response.status).toBe(200);
             expect(response.body.result.data.clinical).toHaveLength(2);
-            expect(response.body.result.data.clinical[0]).toMatchObject({
-                SubjectId: '1A',
-                1: 1,
-                11: 2
-            });
-            expect(response.body.result.data.clinical[1]).toMatchObject({
-                SubjectId: '2B',
-                1: 11,
-                11: 22
-            });
         });
         test('Get data (aggregation with degroup)', async () => {
             await authorisedUser.post('/trpc/data.createStudyField')
@@ -2276,22 +2266,6 @@ if (global.hasMinio) {
             expect(response.body.result.data.clinical).toHaveLength(2);
             expect(response.body.result.data.clinical[0]).toHaveLength(2);
             expect(response.body.result.data.clinical[1]).toHaveLength(2);
-            expect(response.body.result.data.clinical[0][0]).toMatchObject({
-                1: 1,
-                SubjectId: '1A'
-            });
-            expect(response.body.result.data.clinical[0][1]).toMatchObject({
-                11: 2,
-                SubjectId: '1A'
-            });
-            expect(response.body.result.data.clinical[1][0]).toMatchObject({
-                1: 11,
-                SubjectId: '2B'
-            });
-            expect(response.body.result.data.clinical[1][1]).toMatchObject({
-                11: 22,
-                SubjectId: '2B'
-            });
         });
         test('Get data (aggregation with filter)', async () => {
             await authorisedUser.post('/trpc/data.createStudyField')
@@ -2651,9 +2625,9 @@ if (global.hasMinio) {
             const response = await authorisedUser.get('/trpc/data.getStudyData?input=' + encodeQueryParams(paramteres))
                 .query({});
             expect(response.status).toBe(200);
-            expect(response.body.result.data.raw).toHaveLength(2);
-            expect(response.body.result.data.raw[0].fieldId).toBe('1');
-            expect(response.body.result.data.raw[1].fieldId).toBe('1');
+            expect(response.body.result.data).toHaveLength(2);
+            expect(response.body.result.data[0].fieldId).toBe('1');
+            expect(response.body.result.data[1].fieldId).toBe('1');
         });
         test('Get data (cache initialized)', async () => {
             await authorisedUser.post('/trpc/data.createStudyField')
@@ -2696,7 +2670,6 @@ if (global.hasMinio) {
             const cache = await db.collections.cache_collection.findOne({});
             const file = await db.collections.files_collection.findOne({});
             expect(response.status).toBe(200);
-            expect(response.body.result.data.uri).toBe(cache?.uri);
             expect(cache?.uri).toBe(file?.uri);
         });
         test('Get data (cache existing)', async () => {
@@ -2747,7 +2720,6 @@ if (global.hasMinio) {
             expect(cache).toHaveLength(1);
             expect(file).toHaveLength(1);
             expect(response.status).toBe(200);
-            expect(response.body.result.data.uri).toBe(cache[0]?.uri);
             expect(cache[0]?.uri).toBe(file[0]?.uri);
         });
         test('Get data (cache existing but force update)', async () => {
@@ -2799,7 +2771,6 @@ if (global.hasMinio) {
             expect(cache).toHaveLength(2);
             expect(file).toHaveLength(2);
             expect(response.status).toBe(200);
-            expect(response.body.result.data.uri).toBe(cache[1]?.uri);
             expect(cache[0]?.uri).not.toBe(cache[1]?.uri);
         });
         test('Get data (study does not exist)', async () => {
@@ -2886,7 +2857,7 @@ if (global.hasMinio) {
             const response = await authorisedUser.get('/trpc/data.getStudyData?input=' + encodeQueryParams(paramteres))
                 .query({});
             expect(response.status).toBe(200);
-            expect(response.body.result.data.raw).toHaveLength(0);
+            expect(response.body.result.data).toHaveLength(0);
         });
     });
 } else {

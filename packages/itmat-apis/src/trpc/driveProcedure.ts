@@ -63,9 +63,9 @@ export class DriveRouter {
                 files: z.object({
                     files: z.array(FileUploadSchema)
                 }),
-                paths: z.array(z.array(z.string()))
+                paths: z.union([z.array(z.array(z.string())), z.string()])
             })).mutation(async (opts) => {
-                return await this.driveCore.createRecursiveDrives(opts.ctx.user, opts.input.parentId, opts.input.files.files, opts.input.paths);
+                return await this.driveCore.createRecursiveDrives(opts.ctx.user, opts.input.parentId, opts.input.files.files, typeof opts.input.paths === 'string' ? JSON.parse(opts.input.paths) : opts.input.paths);
             }),
             /**
              * Get the drive nodes of a user, including own drives and shared drives.

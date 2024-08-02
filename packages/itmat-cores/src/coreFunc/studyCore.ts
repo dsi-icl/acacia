@@ -1,11 +1,11 @@
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 import { DBType } from '../database/database';
-import { CoreError, FileUpload, IData, IFile, IStudy, IStudyDataVersion, IUserWithoutToken, enumCacheStatus, enumConfigType, enumCoreErrors, enumFileCategories, enumFileTypes, enumStudyRoles, enumUserTypes } from '@itmat-broker/itmat-types';
+import { CoreError, FileUpload, IFile, IStudy, IStudyDataVersion, IUserWithoutToken, enumCacheStatus, enumConfigType, enumCoreErrors, enumFileCategories, enumFileTypes, enumStudyRoles, enumUserTypes } from '@itmat-broker/itmat-types';
 import { Filter, UpdateFilter } from 'mongodb';
 import { PermissionCore } from './permissionCore';
 import { v4 as uuid } from 'uuid';
 import { FileCore } from './fileCore';
-import { makeGenericReponse } from '../utils';
+import { makeGenericResponse } from '../utils';
 
 export class StudyCore {
     db: DBType;
@@ -38,9 +38,14 @@ export class StudyCore {
                 await this.db.collections.studies_collection.find({ 'life.deletedTime': null }).toArray();
         } else {
             const roleStudyIds = (await this.permissionCore.getRolesOfUser(requester, requester.id)).map(role => role.studyId);
-
             const query: Filter<IStudy> = { 'life.deletedTime': null };
             if (studyId) {
+                if (!roleStudyIds.includes(studyId)) {
+                    throw new CoreError(
+                        enumCoreErrors.NO_PERMISSION_ERROR,
+                        'No permission to access the study.'
+                    );
+                }
                 query.id = studyId;
             } else {
                 query.id = { $in: roleStudyIds };
@@ -49,8 +54,8 @@ export class StudyCore {
         }
         if (studies.length === 0 && studyId) {
             throw new CoreError(
-                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
-                'Study does not exist.'
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'No permission to access the study.'
             );
         }
         return studies;
@@ -106,6 +111,35 @@ export class StudyCore {
             },
             metadata: {}
         };
+        // create a default study config
+        await this.db.collections.configs_collection.insertOne({
+            id: uuid(),
+            type: enumConfigType.STUDYCONFIG,
+            key: studyEntry.id,
+            properties: {
+                id: uuid(),
+                life: {
+                    createdTime: Date.now(),
+                    createdUser: requester.id,
+                    deletedTime: null,
+                    deletedUser: null
+                },
+                metadata: {},
+                defaultStudyProfile: null,
+                defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
+                defaultRepresentationForMissingValue: '99999',
+                defaultFileBlocks: [],
+                defaultVersioningKeys: []
+            },
+            life: {
+                createdTime: Date.now(),
+                createdUser: requester.id,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {}
+        });
+
         await this.db.collections.studies_collection.insertOne(studyEntry);
         let fileEntry: IFile | null = null;
         if (profile) {
@@ -124,39 +158,6 @@ export class StudyCore {
                 returnDocument: 'after'
             });
 
-            // create a default study config
-            await this.db.collections.configs_collection.insertOne({
-                id: uuid(),
-                type: enumConfigType.STUDYCONFIG,
-                key: studyEntry.id,
-                properties: {
-                    id: uuid(),
-                    life: {
-                        createdTime: Date.now(),
-                        createdUser: requester.id,
-                        deletedTime: null,
-                        deletedUser: null
-                    },
-                    metadata: {},
-                    defaultStudyProfile: null,
-                    defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
-                    defaultRepresentationForMissingValue: '99999',
-                    defaultFileColumns: [],
-                    defaultFileColumnsPropertyColor: 'black',
-                    defaultFileDirectoryStructure: {
-                        pathLabels: [],
-                        description: null
-                    },
-                    defaultVersioningKeys: []
-                },
-                life: {
-                    createdTime: Date.now(),
-                    createdUser: requester.id,
-                    deletedTime: null,
-                    deletedUser: null
-                },
-                metadata: {}
-            });
             return {
                 ...studyEntry,
                 profile: fileEntry.id
@@ -273,9 +274,6 @@ export class StudyCore {
         /* delete the study */
         await this.db.collections.studies_collection.findOneAndUpdate({ 'id': studyId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': timestamp, 'life.deletedUser': requester } });
 
-        /* delete all projects related to the study */
-        await this.db.collections.projects_collection.updateMany({ 'studyId': studyId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': timestamp, 'life.deletedUser': requester } });
-
         /* delete all roles related to the study */
         // await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
 
@@ -291,7 +289,7 @@ export class StudyCore {
         /* delete all config belong to the study*/
         await this.db.collections.configs_collection.updateMany({ 'type': enumConfigType.STUDYCONFIG, 'key': studyId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': timestamp, 'life.deletedUser': requester } });
 
-        return makeGenericReponse(studyId, true, undefined, `Study ${study.name} has been deleted.`);
+        return makeGenericResponse(studyId, true, undefined, `Study ${study.name} has been deleted.`);
     }
     /**
      * Create a new data version of the study.
@@ -303,7 +301,7 @@ export class StudyCore {
      *
      * @return IGenericResponse - The object of IGenericResponse.
      */
-    public async createDataVersion(requester: IUserWithoutToken | undefined, studyId: string, tag: string, dataVersion: string) {
+    public async createDataVersion(requester: IUserWithoutToken | undefined, studyId: string, tag: string, dataVersion: string, syncCold?: boolean) {
         if (!requester) {
             throw new CoreError(
                 enumCoreErrors.NOT_LOGGED_IN,
@@ -376,35 +374,52 @@ export class StudyCore {
         // TODO: update stds, ontologies
 
         // TODO: update cold storage
-        const unversionedDocuments = await this.db.collections.data_collection.find({ studyId: studyId, dataVersion: newDataVersionId }).toArray();
-        let bulkOperation = this.db.collections.colddata_collection.initializeUnorderedBulkOp();
-        for (const doc of unversionedDocuments) {
-            const filters: Filter<IData> = {
-                studyId: studyId,
-                fieldId: doc.fieldId,
-                properties: doc.properties
-            };
-            bulkOperation.find(filters).upsert().update({
-                $set: {
-                    id: uuid(),
-                    value: doc.value,
-                    dataVersion: newDataVersionId,
-                    life: {
-                        createdTime: Date.now(),
-                        createdUser: requester.id,
-                        deletedTime: null,
-                        deletedUser: null
-                    },
-                    metadata: {}
+        if (syncCold) {
+            const batchSize = 1000; // Define the batch size for processing
+            const cursor = this.db.collections.data_collection.find({ studyId: studyId, dataVersion: newDataVersionId }).batchSize(batchSize);
+
+            let bulkOperation = this.db.collections.colddata_collection.initializeUnorderedBulkOp();
+            let documentCount = 0;
+
+            while (await cursor.hasNext()) {
+                const doc = await cursor.next();
+                if (!doc) {
+                    break;
                 }
-            });
-            if (bulkOperation.batches.length > 999) {
-                await bulkOperation.execute();
-                bulkOperation = this.db.collections.colddata_collection.initializeUnorderedBulkOp();
+                const filters = {
+                    studyId: studyId,
+                    fieldId: doc.fieldId,
+                    properties: doc.properties
+                };
+
+                bulkOperation.find(filters).upsert().update({
+                    $set: {
+                        id: uuid(),
+                        value: doc.value,
+                        dataVersion: newDataVersionId,
+                        life: {
+                            createdTime: Date.now(),
+                            createdUser: requester.id,
+                            deletedTime: null,
+                            deletedUser: null
+                        },
+                        metadata: {}
+                    }
+                });
+
+                documentCount++;
+
+                // Execute batch if it reaches 1000 operations or if batch size limit is hit
+                if (documentCount % 1000 === 0) {
+                    await bulkOperation.execute();
+                    bulkOperation = this.db.collections.colddata_collection.initializeUnorderedBulkOp(); // Re-initialize bulk operation
+                }
             }
-        }
-        if (bulkOperation.batches.length > 0) {
-            await bulkOperation.execute();
+
+            // Execute any remaining operations in bulk
+            if (documentCount % 1000 !== 0) {
+                await bulkOperation.execute();
+            }
         }
 
         const newDataVersion: IStudyDataVersion = {
@@ -485,6 +500,6 @@ export class StudyCore {
             returnDocument: 'after'
         });
 
-        return makeGenericReponse(studyId, true, undefined, `Data version ${dataVersionId} has been set as the current version of study ${study.name}.`);
+        return makeGenericResponse(studyId, true, undefined, `Data version ${dataVersionId} has been set as the current version of study ${study.name}.`);
     }
 }

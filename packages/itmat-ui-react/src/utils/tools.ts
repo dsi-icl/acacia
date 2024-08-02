@@ -1,5 +1,6 @@
 import jStat from 'jstat';
-import { IField, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
+import { IField, IOntologyTree, IOntologyRoute, enumStudyBlockColumnValueType } from '@itmat-broker/itmat-types';
+import { RcFile, UploadFile } from 'antd/es/upload';
 
 export function get_t_test(t_array1: number[], t_array2: number[], digits: number) {
     if (t_array1.length <= 1 || t_array2.length <= 1) {
@@ -257,4 +258,87 @@ export function findDmField(ontologyTree: IOntologyTree, fields: IField[], key: 
         ...field,
         visitRange: node.visitRange
     } : null;
+}
+
+export function formatBytes(bytes: number | undefined, decimals = 2): string {
+    if (!bytes) {
+        return '';
+    }
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+export function stringCompareFunc(a, b) {
+    // Convert both strings to lowercase for case-insensitive comparison
+    const lowerA = a.toLowerCase();
+    const lowerB = b.toLowerCase();
+
+    // Compare the strings
+    if (lowerA < lowerB) {
+        return -1; // a comes before b
+    }
+    if (lowerA > lowerB) {
+        return 1; // a comes after b
+    }
+    return 0; // a and b are equal
+}
+
+export const getBase64 = async (file: RcFile): Promise<string> =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
+
+export const convertFileListToApiFormat = async (fileList: UploadFile[], fieldName: string) => {
+    if (fileList.length === 0) {
+        return [];
+    }
+    const files = fileList.map(file => {
+        const fileObj = file as unknown as File;
+        if (!fileObj || !(fileObj instanceof File)) {
+            console.error('File is not an instance of File:', fileObj);
+            throw new Error('File object is not valid');
+        }
+
+        return {
+            fieldname: fieldName,
+            originalname: file.name,
+            mimetype: file.type,
+            encoding: '7bit', // or any actual encoding type
+            stream: fileObj
+        };
+    });
+
+    return files;
+};
+
+export function tableColumnRender(data, bcolumn) {
+    if (bcolumn.type === enumStudyBlockColumnValueType.STRING) {
+        return data.properties[bcolumn.property] ?? 'NA';
+    } else if (bcolumn.type === enumStudyBlockColumnValueType.TIME) {
+        const input = data.properties[bcolumn.property];
+        const date = new Date(input);
+        const value = isNaN(date.getTime()) ? 'NA' : date.toLocaleDateString();
+        return value;
+    }
+    return data.properties[bcolumn.property] ?? 'NA';
+}
+
+export function convertMillisecondsToPeriod(ms) {
+    const seconds = ms / 1000;
+    const days = Math.floor(seconds / (24 * 3600));
+    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    return { days, hours, minutes, seconds: secs };
 }

@@ -296,16 +296,12 @@ if (global.hasMinio) {
                             deletedTime: null,
                             deletedUser: null
                         },
+                        defaultFileBucketId: 'system',
                         metadata: {},
                         defaultStudyProfile: null,
                         defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
                         defaultRepresentationForMissingValue: '99999',
-                        defaultFileColumns: [],
-                        defaultFileColumnsPropertyColor: 'black',
-                        defaultFileDirectoryStructure: {
-                            pathLabels: [],
-                            description: null
-                        },
+                        defaultFileBlocks: [],
                         defaultVersioningKeys: []
                     }
                 });

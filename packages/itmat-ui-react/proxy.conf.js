@@ -11,6 +11,12 @@ module.exports = {
         secure: false,
         changeOrigin: true
     },
+    '/webdav': {
+        target: API_SERVER,
+        secure: false,
+        changeOrigin: true,
+        autoRewrite: true
+    },
     '/file': {
         target: API_SERVER,
         secure: false,

@@ -62,7 +62,7 @@ export class LogCore {
         }
         let logs: ILog[];
         if (indexRange) {
-            logs = await this.db.collections.log_collection.find(filters).skip(indexRange[0]).limit(indexRange[1] - indexRange[0]).toArray();
+            logs = await this.db.collections.log_collection.find(filters).sort({ 'life.createdTime': -1 }).skip(indexRange[0]).limit(indexRange[1] - indexRange[0]).toArray();
         } else {
             logs = await this.db.collections.log_collection.find(filters).toArray();
         }
@@ -76,21 +76,23 @@ export class LogCore {
      *
      */
     public async getLogsSummary() {
-        const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
-        const startTime = Date.now() - oneWeekInMilliseconds;
+        const thirtyDaysInMilliseconds = 30 * 24 * 60 * 60 * 1000;
+        const startTime = Date.now() - thirtyDaysInMilliseconds;
+
         const eventStatistics = await this.db.collections.log_collection.aggregate([
             {
                 $match: {
-                    'life.createdTime': { $gte: startTime }
+                    'life.createdTime': { $gte: startTime },
+                    'timeConsumed': { $ne: null } // Skip documents with null timeConsumed
                 }
             },
             {
                 $addFields: {
-                    hourIndex: {
+                    dayIndex: {
                         $trunc: {
                             $divide: [
                                 { $subtract: ['$life.createdTime', startTime] },
-                                3600000
+                                86400000  // Milliseconds in a day
                             ]
                         }
                     }
@@ -98,8 +100,8 @@ export class LogCore {
             },
             {
                 $group: {
-                    _id: { event: '$event', hourIndex: '$hourIndex' },
-                    countPerHour: { $sum: 1 },
+                    _id: { event: '$event', dayIndex: '$dayIndex' },
+                    countPerDay: { $sum: 1 },
                     avgTimeConsumed: { $avg: '$timeConsumed' },
                     stdDevTimeConsumed: { $stdDevSamp: '$timeConsumed' }
                 }
@@ -107,11 +109,11 @@ export class LogCore {
             {
                 $group: {
                     _id: '$_id.event',
-                    totalEventCount: { $sum: '$countPerHour' },
+                    totalEventCount: { $sum: '$countPerDay' },
                     data: {
                         $push: {
-                            hourIndex: '$_id.hourIndex',
-                            count: '$countPerHour'
+                            dayIndex: '$_id.dayIndex',
+                            count: '$countPerDay'
                         }
                     },
                     avgTimeConsumed: { $avg: '$avgTimeConsumed' },
@@ -123,20 +125,20 @@ export class LogCore {
                     _id: 0,
                     event: '$_id',
                     count: '$totalEventCount',
-                    hourlyCounts: {
+                    dailyCounts: {
                         $map: {
-                            input: { $range: [0, 168] },
-                            as: 'hourIndex',
+                            input: { $range: [0, 30] },  // From 0 to 29 (inclusive)
+                            as: 'dayIndex',
                             in: {
                                 $let: {
                                     vars: {
-                                        matchingHourData: {
+                                        matchingDayData: {
                                             $arrayElemAt: [
                                                 {
                                                     $filter: {
                                                         input: '$data',
                                                         as: 'd',
-                                                        cond: { $eq: ['$$d.hourIndex', '$$hourIndex'] }
+                                                        cond: { $eq: ['$$d.dayIndex', '$$dayIndex'] }
                                                     }
                                                 },
                                                 0
@@ -144,89 +146,8 @@ export class LogCore {
                                         }
                                     },
                                     in: {
-                                        hourIndex: '$$hourIndex',
-                                        count: { $ifNull: ['$$matchingHourData.count', 0] }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    avgTimeConsumed: 1,
-                    stdDevTimeConsumed: 1
-                }
-            },
-            {
-                $sort: { count: -1 }
-            }
-        ]).toArray();
-        const requesterStatistics = await this.db.collections.log_collection.aggregate([
-            {
-                $match: {
-                    'life.createdTime': { $gte: startTime }
-                }
-            },
-            {
-                $addFields: {
-                    hourIndex: {
-                        $trunc: {
-                            $divide: [
-                                { $subtract: ['$life.createdTime', startTime] },
-                                3600000
-                            ]
-                        }
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: { requester: '$requester', hourIndex: '$hourIndex' },
-                    countPerHour: { $sum: 1 },
-                    avgTimeConsumed: { $avg: '$timeConsumed' },
-                    stdDevTimeConsumed: { $stdDevSamp: '$timeConsumed' }
-                }
-            },
-            {
-                $group: {
-                    _id: '$_id.requester',
-                    totalRequesterCount: { $sum: '$countPerHour' },
-                    data: {
-                        $push: {
-                            hourIndex: '$_id.hourIndex',
-                            count: '$countPerHour'
-                        }
-                    },
-                    avgTimeConsumed: { $avg: '$avgTimeConsumed' },
-                    stdDevTimeConsumed: { $avg: '$stdDevTimeConsumed' }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    requester: '$_id',
-                    count: '$totalRequesterCount',
-                    hourlyCounts: {
-                        $map: {
-                            input: { $range: [0, 168] },
-                            as: 'hourIndex',
-                            in: {
-                                $let: {
-                                    vars: {
-                                        matchingHourData: {
-                                            $arrayElemAt: [
-                                                {
-                                                    $filter: {
-                                                        input: '$data',
-                                                        as: 'd',
-                                                        cond: { $eq: ['$$d.hourIndex', '$$hourIndex'] }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    },
-                                    in: {
-                                        hourIndex: '$$hourIndex',
-                                        count: { $ifNull: ['$$matchingHourData.count', 0] }
+                                        dayIndex: { $subtract: ['$$dayIndex', 29] }, // Shift to correct day range
+                                        count: { $ifNull: ['$$matchingDayData.count', 0] }
                                     }
                                 }
                             }
@@ -241,7 +162,90 @@ export class LogCore {
             }
         ]).toArray();
 
-        return { eventStatistics: eventStatistics, requesterStatistics: requesterStatistics };
+        const requesterStatistics = await this.db.collections.log_collection.aggregate([
+            {
+                $match: {
+                    'life.createdTime': { $gte: startTime },
+                    'timeConsumed': { $ne: null } // Skip documents with null timeConsumed
+                }
+            },
+            {
+                $addFields: {
+                    dayIndex: {
+                        $trunc: {
+                            $divide: [
+                                { $subtract: ['$life.createdTime', startTime] },
+                                86400000  // Milliseconds in a day
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { requester: '$requester', dayIndex: '$dayIndex' },
+                    countPerDay: { $sum: 1 },
+                    avgTimeConsumed: { $avg: '$timeConsumed' },
+                    stdDevTimeConsumed: { $stdDevSamp: '$timeConsumed' }
+                }
+            },
+            {
+                $group: {
+                    _id: '$_id.requester',
+                    totalRequesterCount: { $sum: '$countPerDay' },
+                    data: {
+                        $push: {
+                            dayIndex: '$_id.dayIndex',
+                            count: '$countPerDay'
+                        }
+                    },
+                    avgTimeConsumed: { $avg: '$avgTimeConsumed' },
+                    stdDevTimeConsumed: { $avg: '$stdDevTimeConsumed' }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    requester: '$_id',
+                    count: '$totalRequesterCount',
+                    dailyCounts: {
+                        $map: {
+                            input: { $range: [0, 30] },  // From 0 to 29 (inclusive)
+                            as: 'dayIndex',
+                            in: {
+                                $let: {
+                                    vars: {
+                                        matchingDayData: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$data',
+                                                        as: 'd',
+                                                        cond: { $eq: ['$$d.dayIndex', '$$dayIndex'] }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    },
+                                    in: {
+                                        dayIndex: { $subtract: ['$$dayIndex', 29] }, // Shift to correct day range
+                                        count: { $ifNull: ['$$matchingDayData.count', 0] }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    avgTimeConsumed: 1,
+                    stdDevTimeConsumed: 1
+                }
+            },
+            {
+                $sort: { count: -1 }
+            }
+        ]).toArray();
+
+        return { eventStatistics, requesterStatistics };
     }
 }
 

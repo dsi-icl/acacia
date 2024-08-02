@@ -1,7 +1,7 @@
 import { CoreError, FileUpload, IFile, IPubkey, IResetPasswordRequest, IUser, IUserWithoutToken, defaultSettings, enumConfigType, enumCoreErrors, enumDriveNodeTypes, enumFileCategories, enumFileTypes, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
 import { Logger, Mailer, ObjectStore } from '@itmat-broker/itmat-commons';
-import { IConfiguration, makeGenericReponse, rsakeygen, rsaverifier, tokengen } from '../utils';
+import { IConfiguration, makeGenericResponse, rsakeygen, rsaverifier, tokengen } from '../utils';
 import { FileCore } from './fileCore';
 import { ConfigCore } from './configCore';
 import { v4 as uuid } from 'uuid';
@@ -81,13 +81,20 @@ export class UserCore {
      * @return IUserWithoutToken[] - The list of users.
      */
     public async getUsers(requester: IUserWithoutToken | undefined, includeDeleted?: boolean): Promise<IUserWithoutToken[]> {
-        if (!requester || requester.type !== enumUserTypes.ADMIN) {
+        if (!requester) {
             throw new CoreError(
-                enumCoreErrors.NO_PERMISSION_ERROR,
-                enumCoreErrors.NO_PERMISSION_ERROR
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
             );
         }
-        return includeDeleted ? await this.db.collections.users_collection.find({}).toArray() : await this.db.collections.users_collection.find({ 'life.deletedTime': null }).toArray();
+
+        if (requester?.type === enumUserTypes.ADMIN) {
+            return includeDeleted ? await this.db.collections.users_collection.find({}).toArray() : await this.db.collections.users_collection.find({ 'life.deletedTime': null }).toArray();
+        } else {
+            // we return users who share files to this user
+            const userIds = Array.from(new Set((await this.db.collections.drives_collection.find({ 'sharedUsers.iid': requester?.id }).toArray()).map(el => el.managerId)));
+            return await this.db.collections.users_collection.find({ id: { $in: userIds } }).toArray();
+        }
     }
 
     /**
@@ -132,7 +139,7 @@ export class UserCore {
                 'User does not exist.'
             );
         }
-        return makeGenericReponse(user.id, true);
+        return makeGenericResponse(user.id, true);
     }
 
     /**
@@ -361,10 +368,10 @@ export class UserCore {
             );
         }
 
-        if (requester.type !== enumUserTypes.ADMIN && (type || expiredAt || organisation)) {
+        if (requester.type !== enumUserTypes.ADMIN && (type || expiredAt)) {
             throw new CoreError(
                 enumCoreErrors.NO_PERMISSION_ERROR,
-                'Standard user can not change their type, expiration time and organisation. Please contact admins for help.'
+                'Standard user can not change their type, expiration time. Please contact admins for help.'
             );
         }
 
@@ -576,7 +583,7 @@ export class UserCore {
 
             await session.commitTransaction();
             await session.endSession();
-            return makeGenericReponse(userId, true, undefined, `User ${user.username} has been deleted.`);
+            return makeGenericResponse(userId, true, undefined, `User ${user.username} has been deleted.`);
         } catch (error) {
             // If an error occurred, abort the whole transaction and
             // undo any changes that might have happened
@@ -666,7 +673,7 @@ export class UserCore {
      *
      * @return IPubkey - The object of ther registered key.
      */
-    public async registerPubkey(requester: IUserWithoutToken | undefined, pubkey: string, signature: string, associatedUserId: string): Promise<IPubkey> {
+    public async registerPubkey(requester: IUserWithoutToken | undefined, pubkey: string, hashedPrivateKey: string | undefined, associatedUserId: string): Promise<IPubkey> {
         if (!requester) {
             throw new CoreError(
                 enumCoreErrors.NOT_LOGGED_IN,
@@ -698,28 +705,13 @@ export class UserCore {
             );
         }
 
-        /* Validate the signature with the public key */
-        try {
-            const signature_verifier = await rsaverifier(pubkey, signature);
-            if (!signature_verifier) {
-                throw new CoreError(
-                    enumCoreErrors.CLIENT_MALFORMED_INPUT,
-                    'Signature vs Public-key mismatched.'
-                );
-            }
-        } catch (__unused__exception) {
-            throw new CoreError(
-                enumCoreErrors.CLIENT_MALFORMED_INPUT,
-                'Error: Signature or Public-key is incorrect.'
-            );
-        }
-
         /* Generate a public key-pair for generating and authenticating JWT access token later */
         const keypair = rsakeygen();
 
         const entry: IPubkey = {
             id: uuid(),
             pubkey: pubkey,
+            hashedPrivateKey: hashedPrivateKey,
             associatedUserId: associatedUserId,
             jwtPubkey: keypair.publicKey,
             jwtSeckey: keypair.privateKey,
@@ -730,173 +722,111 @@ export class UserCore {
                 deletedTime: null,
                 deletedUser: null
             },
+            challenge: null,
+            lastUsedTime: null,
             metadata: {}
         };
 
         await this.db.collections.pubkeys_collection.insertOne(entry);
-
-        await this.mailer.sendMail({
-            from: `${this.config.appName} <${this.config.nodemailer.auth.user}>`,
-            to: user.email,
-            subject: `[${this.config.appName}] Public-key Registration!`,
-            html: `
-                <p>
-                    Dear ${user.firstname},
-                <p>
-                <p>
-                    You have successfully registered your public-key "${pubkey}" on ${this.config.appName}!<br/>
-                    You will need to keep your private key secretly. <br/>
-                    You will also need to sign a message (using your public-key) to authenticate the owner of the public key. <br/>
-                </p>
-                
-                <br/>
-                <p>
-                    The ${this.config.appName} Team.
-                </p>
-            `
-        });
         return entry;
     }
-
     /**
-     * Delete a pubkey.
+     * Generate a random challenge.
      *
-     * @param requester - The requester.
-     * @param userId - The id of the user.
-     * @param keyId - The id of the key.
-     * @returns IGenericResponse
+     * @param length - The length of the challenge.
+     * @returns - The challenge.
      */
-    public async deletePubkey(requester: IUserWithoutToken | undefined, associatedUserId: string, keyId: string) {
-        if (!requester) {
-            throw new CoreError(
-                enumCoreErrors.NOT_LOGGED_IN,
-                enumCoreErrors.NOT_LOGGED_IN
-            );
-        }
-        if (requester.type !== enumUserTypes.ADMIN && requester.id !== associatedUserId) {
-            throw new CoreError(
-                enumCoreErrors.NO_PERMISSION_ERROR,
-                'User can only delete his/her own public key.'
-            );
-        }
-        const key = await this.db.collections.pubkeys_collection.findOne({
-            'id': keyId,
-            'associatedUserId': associatedUserId,
-            'life.deletedTime': null
-        });
-        if (!key) {
-            throw new CoreError(
-                enumCoreErrors.CLIENT_MALFORMED_INPUT,
-                'Key does not exist.'
-            );
-        }
-        if (key.associatedUserId !== associatedUserId) {
-            throw new CoreError(
-                enumCoreErrors.NO_PERMISSION_ERROR,
-                'The key does not match the user.'
-            );
-        }
-
-        await this.db.collections.pubkeys_collection.findOneAndUpdate({ id: keyId }, {
-            $set: {
-                'life.deletedTime': Date.now(),
-                'life.deletedUser': requester
-            }
-        });
-
-        return makeGenericReponse(keyId, true, undefined, undefined);
+    public generateChallenge(length) {
+        // Generate a random buffer of the desired byte length
+        const randomBytes = crypto.randomBytes(length / 2); // `length / 2` to get a hex string of desired length
+        // Convert the buffer to a hex string and return it
+        return randomBytes.toString('hex').slice(0, length);
     }
 
     /**
-     * Add a reset password request to the user.
+     * Request an access token.
      *
-     * @param userId - The id of the user.
-     * @param resetPasswordRequest - The reset password request.
-     * @returns IGenericResponse
+     * @param username - The username.
+     * @param pubkeyKey - The public key.
+     * @returns - The challenge.
      */
-    public async addResetPasswordRequest(userId: string, resetPasswordRequest: IResetPasswordRequest) {
-        const invalidateAllTokens = await this.db.collections.users_collection.findOneAndUpdate(
-            { id: userId },
-            {
-                $set: {
-                    'resetPasswordRequests.$[].used': true
-                }
-            }
-        );
-        if (!invalidateAllTokens) {
-            throw new CoreError(
-                enumCoreErrors.DATABASE_ERROR,
-                enumCoreErrors.DATABASE_ERROR
-            );
-        }
-        const updateResult = await this.db.collections.users_collection.findOneAndUpdate(
-            { id: userId },
-            {
-                $push: {
-                    resetPasswordRequests: resetPasswordRequest
-                }
-            }
-        );
-        if (!updateResult) {
-            throw new CoreError(
-                enumCoreErrors.DATABASE_ERROR,
-                enumCoreErrors.DATABASE_ERROR
-            );
-        }
-
-        return makeGenericReponse(resetPasswordRequest.id, true, undefined, undefined);
-    }
-
-    public async processResetPasswordRequest(token: string, email: string, password: string) {
-        /* check whether username and token is valid */
-        /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
-        const TIME_NOW = new Date().valueOf();
-        const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
-        const user = await this.db.collections.users_collection.findOne({
-            email,
-            'resetPasswordRequests': {
-                $elemMatch: {
-                    id: token,
-                    timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
-                    used: false
-                }
-            },
-            'life.deletedTime': null
-        });
+    public async requestAccessToken(username: string, hashedPrivateKey: string) {
+        const user = await this.db.collections.users_collection.findOne({ 'username': username, 'life.deletedTime': null });
         if (!user) {
             throw new CoreError(
-                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
-                'User does not exist.'
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'This public-key has not been registered yet.'
             );
         }
+        const pubkeyrec = await this.db.collections.pubkeys_collection.findOne({ 'associatedUserId': user.id, 'hashedPrivateKey': hashedPrivateKey, 'life.deletedTime': null });
 
-        /* randomly generate a secret for Time-based One Time Password*/
-        const otpSecret = mfa.generateSecret();
-
-        /* all ok; change the user's password */
-        const hashedPw = await bcrypt.hash(password, this.config.bcrypt.saltround);
-        const updateResult = await this.db.collections.users_collection.findOneAndUpdate(
-            {
-                id: user.id,
-                resetPasswordRequests: {
-                    $elemMatch: {
-                        id: token,
-                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
-                        used: false
-                    }
-                }
-            },
-            { $set: { 'password': hashedPw, 'otpSecret': otpSecret, 'resetPasswordRequests.$.used': true } });
-        if (!updateResult) {
+        if (!pubkeyrec) {
             throw new CoreError(
-                enumCoreErrors.DATABASE_ERROR,
-                enumCoreErrors.DATABASE_ERROR
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'This public-key has not been registered yet.'
             );
         }
-
-        return updateResult;
+        const challenge = this.generateChallenge(128);
+        const hashedChallenge = crypto.createHash('sha256').update(challenge).digest('hex');
+        await this.db.collections.pubkeys_collection.findOneAndUpdate({ id: pubkeyrec.id }, { $set: { challenge: hashedChallenge } });
+        return { challenge: hashedChallenge };
     }
 
+    /**
+     * Get an access token.
+     *
+     * @param username - The username.
+     * @param pubkeyKey - The public key.
+     * @param signature - The signature.
+     * @param life - The life of the token.
+     * @returns - The token.
+     */
+    public async getAccessToken(username: string, hashedPrivateKey: string, signature: string, life = 12000) {
+        const user = await this.db.collections.users_collection.findOne({ 'username': username, 'life.deletedTime': null });
+        if (!user) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'This public-key has not been registered yet.'
+            );
+        }
+        const pubkeyrec = await this.db.collections.pubkeys_collection.findOne({ 'associatedUserId': user.id, 'hashedPrivateKey': hashedPrivateKey, 'life.deletedTime': null });
+        if (!pubkeyrec) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'This public-key has not been registered yet.'
+            );
+        }
+
+        if (!pubkeyrec.challenge) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'Please request a challenge first.'
+            );
+        }
+        const isVerified = crypto.verify(
+            null,  // No hash algorithm because the challenge is already hashed
+            Buffer.from(pubkeyrec.challenge, 'hex'),  // Convert the hex-encoded challenge to binary
+            {
+                key: pubkeyrec.pubkey,
+                padding: crypto.constants.RSA_PKCS1_PSS_PADDING
+            },
+            Buffer.from(signature, 'hex')  // Decode the Base64-encoded signature
+        );
+
+        if (!isVerified) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'Signature is not correct.'
+            );
+        }
+        const token = tokengen({
+            username: user.username,
+            publicKey: pubkeyrec.jwtPubkey
+        }, pubkeyrec.jwtSeckey, undefined, undefined, life);
+
+        await this.db.collections.pubkeys_collection.findOneAndUpdate({ id: pubkeyrec.id }, { $set: { lastUsedTime: Date.now() } });
+        return token;
+    }
     /**
      * Issue an access token.
      *
@@ -953,6 +883,145 @@ export class UserCore {
     }
 
     /**
+     * Delete a pubkey.
+     *
+     * @param requester - The requester.
+     * @param userId - The id of the user.
+     * @param keyId - The id of the key.
+     * @returns IGenericResponse
+     */
+    public async deletePubkey(requester: IUserWithoutToken | undefined, associatedUserId: string, keyId: string) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+        if (requester.type !== enumUserTypes.ADMIN && requester.id !== associatedUserId) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'User can only delete his/her own public key.'
+            );
+        }
+        const key = await this.db.collections.pubkeys_collection.findOne({
+            'id': keyId,
+            'associatedUserId': associatedUserId,
+            'life.deletedTime': null
+        });
+        if (!key) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'Key does not exist.'
+            );
+        }
+        if (key.associatedUserId !== associatedUserId) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'The key does not match the user.'
+            );
+        }
+
+        await this.db.collections.pubkeys_collection.findOneAndUpdate({ id: keyId }, {
+            $set: {
+                'life.deletedTime': Date.now(),
+                'life.deletedUser': requester.id
+            }
+        });
+
+        return makeGenericResponse(keyId, true, undefined, undefined);
+    }
+
+    /**
+     * Add a reset password request to the user.
+     *
+     * @param userId - The id of the user.
+     * @param resetPasswordRequest - The reset password request.
+     * @returns IGenericResponse
+     */
+    public async addResetPasswordRequest(userId: string, resetPasswordRequest: IResetPasswordRequest) {
+        const invalidateAllTokens = await this.db.collections.users_collection.findOneAndUpdate(
+            { id: userId },
+            {
+                $set: {
+                    'resetPasswordRequests.$[].used': true
+                }
+            }
+        );
+        if (!invalidateAllTokens) {
+            throw new CoreError(
+                enumCoreErrors.DATABASE_ERROR,
+                enumCoreErrors.DATABASE_ERROR
+            );
+        }
+        const updateResult = await this.db.collections.users_collection.findOneAndUpdate(
+            { id: userId },
+            {
+                $push: {
+                    resetPasswordRequests: resetPasswordRequest
+                }
+            }
+        );
+        if (!updateResult) {
+            throw new CoreError(
+                enumCoreErrors.DATABASE_ERROR,
+                enumCoreErrors.DATABASE_ERROR
+            );
+        }
+
+        return makeGenericResponse(resetPasswordRequest.id, true, undefined, undefined);
+    }
+
+    public async processResetPasswordRequest(token: string, email: string, password: string) {
+        /* check whether username and token is valid */
+        /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
+        const TIME_NOW = new Date().valueOf();
+        const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
+        const user = await this.db.collections.users_collection.findOne({
+            email,
+            'resetPasswordRequests': {
+                $elemMatch: {
+                    id: token,
+                    timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                    used: false
+                }
+            },
+            'life.deletedTime': null
+        });
+        if (!user) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'User does not exist.'
+            );
+        }
+
+        /* randomly generate a secret for Time-based One Time Password*/
+        const otpSecret = mfa.generateSecret();
+
+        /* all ok; change the user's password */
+        const hashedPw = await bcrypt.hash(password, this.config.bcrypt.saltround);
+        const updateResult = await this.db.collections.users_collection.findOneAndUpdate(
+            {
+                id: user.id,
+                resetPasswordRequests: {
+                    $elemMatch: {
+                        id: token,
+                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                        used: false
+                    }
+                }
+            },
+            { $set: { 'password': hashedPw, 'otpSecret': otpSecret, 'resetPasswordRequests.$.used': true } });
+        if (!updateResult) {
+            throw new CoreError(
+                enumCoreErrors.DATABASE_ERROR,
+                enumCoreErrors.DATABASE_ERROR
+            );
+        }
+
+        return updateResult;
+    }
+
+    /**
      * Ask for a request to extend account expiration time. Send notifications to user and admin.
      *
      * @param email - The email of the user.
@@ -971,7 +1040,7 @@ export class UserCore {
         if (!user || !user.email || !user.username) {
             /* even user is null. send successful response: they should know that a user doesn't exist */
             await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
-            return makeGenericReponse(email, false, undefined, 'User information is not correct.');
+            return makeGenericResponse(email, false, undefined, 'User information is not correct.');
         }
         /* send email to the DMP admin mailing-list */
         await this.mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
@@ -987,7 +1056,7 @@ export class UserCore {
             username: user.username
         }));
 
-        return makeGenericReponse(email, true, undefined, 'Request successfully sent.');
+        return makeGenericResponse(email, true, undefined, 'Request successfully sent.');
     }
 
     /**
@@ -1021,7 +1090,7 @@ export class UserCore {
         if (!user) {
             /* even user is null. send successful response: they should know that a user doesn't exist */
             await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
-            return makeGenericReponse(undefined, true, undefined, enumCoreErrors.UNQUALIFIED_ERROR);
+            return makeGenericResponse(undefined, true, undefined, enumCoreErrors.UNQUALIFIED_ERROR);
         }
 
         if (forgotPassword) {
@@ -1051,7 +1120,7 @@ export class UserCore {
                 username: user.username ?? ''
             }));
         }
-        return makeGenericReponse(user.id, true, undefined, 'Request of resetting password successfully sent.');
+        return makeGenericResponse(user.id, true, undefined, 'Request of resetting password successfully sent.');
     }
 
     /**
@@ -1140,7 +1209,7 @@ export class UserCore {
 
     public async logout(requester: IUserWithoutToken | undefined, req: Express.Request) {
         if (!requester) {
-            return makeGenericReponse(undefined, false, undefined, 'Requester not known.');
+            return makeGenericResponse(undefined, false, undefined, 'Requester not known.');
         }
         return new Promise((resolve) => {
             req.logout((err) => {
@@ -1151,7 +1220,7 @@ export class UserCore {
                         'Cannot log out. Please try again later.'
                     );
                 } else {
-                    resolve(makeGenericReponse(requester.id));
+                    resolve(makeGenericResponse(requester.id));
                 }
             });
         });
@@ -1245,7 +1314,7 @@ export class UserCore {
             attachments: attachments
         });
         tmpobj.removeCallback();
-        return makeGenericReponse();
+        return makeGenericResponse();
     }
 
     /**
@@ -1254,7 +1323,7 @@ export class UserCore {
      * @returns - IGenericResponse
      */
     public async recoverSessionExpireTime() {
-        return makeGenericReponse();
+        return makeGenericResponse();
     }
 
 
@@ -1316,7 +1385,7 @@ function formatEmailForFogettenUsername({ config, username, to }: { config: ICon
     });
 }
 
-function formatEmailRequestExpiryDatetoClient({ config, username, to }: { config: IConfiguration, username: string, to: string }) {
+export function formatEmailRequestExpiryDatetoClient({ config, username, to }: { config: IConfiguration, username: string, to: string }) {
     return ({
         from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
@@ -1337,7 +1406,7 @@ function formatEmailRequestExpiryDatetoClient({ config, username, to }: { config
     });
 }
 
-function formatEmailRequestExpiryDatetoAdmin({ config, username, userEmail }: { config: IConfiguration, username: string, userEmail: string }) {
+export function formatEmailRequestExpiryDatetoAdmin({ config, username, userEmail }: { config: IConfiguration, username: string, userEmail: string }) {
     return ({
         from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to: `${config.adminEmail}`,

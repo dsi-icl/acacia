@@ -29,16 +29,23 @@ export interface ISystemConfig extends IBase {
     defaultUserExpireDays: number;
 }
 
+export enum enumStudyBlockColumnValueType {
+    STRING = 'STRING',
+    TIME = 'TIME'
+}
+
+export interface IStudyFileBlock {
+    title: string;
+    fieldIds: string[];
+    defaultFileColumns: Array<{ title: string, property: string, type: enumStudyBlockColumnValueType }>;
+    defaultFileColumnsPropertyColor?: string;
+}
+
 export interface IStudyConfig extends IBase {
     defaultStudyProfile: string | null;
     defaultMaximumFileSize: number;
     defaultRepresentationForMissingValue: string;
-    defaultFileColumns: Array<{ title: string, type: string }>;
-    defaultFileColumnsPropertyColor: string | null;
-    defaultFileDirectoryStructure: {
-        pathLabels: string[],
-        description: string | null
-    },
+    defaultFileBlocks: IStudyFileBlock[];
     defaultVersioningKeys: string[]; // data clips with same values of such keys will be considered as the same values with different versions
 }
 
@@ -126,12 +133,7 @@ export class DefaultSettings implements IDefaultSettings {
         defaultStudyProfile: null,
         defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
         defaultRepresentationForMissingValue: '99999',
-        defaultFileColumns: [],
-        defaultFileColumnsPropertyColor: 'black',
-        defaultFileDirectoryStructure: {
-            pathLabels: [],
-            description: null
-        },
+        defaultFileBlocks: [],
         defaultVersioningKeys: []
     };
 

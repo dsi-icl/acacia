@@ -2,7 +2,7 @@ import { CoreError, IStandardization, IUserWithoutToken, enumCoreErrors, enumStu
 import { GraphQLError } from 'graphql';
 import { errorCodes } from '../utils/errors';
 import { v4 as uuid } from 'uuid';
-import { makeGenericReponse } from '../utils/responses';
+import { makeGenericResponse } from '../utils/responses';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
 import { PermissionCore } from './permissionCore';
@@ -154,7 +154,7 @@ export class StandarizationCore {
         }, {
             upsert: true
         });
-        return makeGenericReponse(result?.id || '');
+        return makeGenericResponse(result?.id || '');
     }
 }
 

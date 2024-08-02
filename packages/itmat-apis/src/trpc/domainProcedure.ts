@@ -84,6 +84,22 @@ export class DomainRouter {
                 domainId: z.string()
             })).mutation(async (opts) => {
                 return await this.domainCore.deleteDomain(opts.ctx.req?.user ?? opts.ctx.user, opts.input.domainId);
+            }),
+            /**
+             * Get current sub path.
+             *
+             * @returns The current sub path.
+             */
+            getCurrentSubPath: this.baseProcedure.query(async (opts) => {
+                return this.domainCore.getCurrentSubPath(opts);
+            }),
+            /**
+             * Get current domain. Note this can be used for not logged in users.
+             *
+             * @returns The current domain.
+             */
+            getCurrentDomain: this.baseProcedure.query(async (opts) => {
+                return await this.domainCore.getCurrentDomain(opts);
             })
         });
     }

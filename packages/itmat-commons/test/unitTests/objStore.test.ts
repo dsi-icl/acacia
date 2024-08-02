@@ -87,7 +87,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
         expect(uploadResult).toBeUndefined();
         expect(error).toBeInstanceOf(Error);
         if (error instanceof Error)
-            expect(error.toString()).toBe('Error: File "jkfljsdkfjij042rjio2-fi0-ds9a" of study "fakeStudy3" already exists.');
+            expect(error.toString()).toBe('Error: File "jkfljsdkfjij042rjio2-fi0-ds9a" of bucket "fakeStudy3" already exists.');
     });
 
     test('Download file', async () => {

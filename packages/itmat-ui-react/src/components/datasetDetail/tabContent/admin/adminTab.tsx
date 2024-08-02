@@ -1,64 +1,55 @@
 import { FunctionComponent, useState } from 'react';
-import { useQuery } from '@apollo/client/react/hooks';
 import { Subsection } from '../../../reusable';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
-import { GET_STUDY, DELETE_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { Mutation, Query } from '@apollo/client/react/components';
 import { Navigate, useParams } from 'react-router-dom';
-import { Button } from 'antd';
-import { IStudy } from '@itmat-broker/itmat-types';
+import { Button, message } from 'antd';
+import { trpc } from './../../../../utils/trpc';
 
 export const AdminTabContent: FunctionComponent = () => {
-
     const { studyId } = useParams();
     const [deleteButtonShown, setDeleteButtonShown] = useState(false);
-    const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
+    const getStudy = trpc.study.getStudies.useQuery({ studyId });
+    const deleteStudy = trpc.study.deleteStudy.useMutation({
+        onSuccess: () => {
+            void message.success('Study deleted successfully');
+        },
+        onError: () => {
+            void message.error('Failed to delete study');
+        }
+    });
 
-    if (!studyId)
-        return null;
-    if (loading)
+    if (getStudy.isLoading) {
         return <LoadSpinner />;
+    }
+
+    if (getStudy.isError) {
+        return <p>An error occured</p>;
+    }
+
+    if (!getStudy.data[0]) {
+        return null;
+    }
+
     return (
         <div className={`${css.tab_page_wrapper_grid} fade_in`}>
             <div className={`${css.tab_page_wrapper} ${css.cover_page}`}>
-                <Subsection title='Roles'>
-                    <RoleControlSection studyId={studyId} roles={data.getStudy.roles} />
-                </Subsection>
+                <RoleControlSection studyId={getStudy.data[0].id} />
                 <br />
                 <br />
                 <Subsection title='Dataset Deletion'>
                     <p>Be careful to check all related projects and files before deleting this dataset!</p>
-                    <Query<{ getStudy: IStudy }, { studyId: string }> query={GET_STUDY} variables={{ studyId }}>
-                        {({ loading, data, error }) => {
-                            if (loading) { return <LoadSpinner />; }
-                            if (error) { return <p>{error.toString()}</p>; }
-                            if (!data) { return null; }
-
-                            return <Mutation<{ deleteStudy: { successful: boolean } }, { studyId: string }>
-                                mutation={DELETE_STUDY}
-                                refetchQueries={[
-                                    { query: WHO_AM_I, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }
-                                ]}
-                            >
-                                {(deleteStudy, { loading, error, data: StudyDeletedData }) => {
-                                    if (StudyDeletedData && StudyDeletedData.deleteStudy && StudyDeletedData.deleteStudy.successful) {
-                                        return <Navigate to={'/datasets'} />;
-                                    }
-                                    if (error) return <p>{error.message}</p>;
-                                    if (loading) return <LoadSpinner />;
-                                    return !deleteButtonShown
-                                        ? <Button onClick={() => setDeleteButtonShown(true)}>Delete the dataset</Button> :
-                                        <>
-                                            <Button danger type='primary' onClick={() => { deleteStudy({ variables: { studyId: data.getStudy.id } }).catch(() => { return; }); }}>Delete&nbsp;<i>{data.getStudy.name}</i></Button>
-                                            <Button onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </Button>
-                                        </>;
-                                }}
-                            </Mutation>;
-                        }}
-                    </Query>
-
+                    {(() => {
+                        if (!deleteStudy.isLoading && !deleteStudy.isError && deleteStudy.data) {
+                            return <Navigate to={'/datasets'} />;
+                        }
+                        return !deleteButtonShown ? <Button onClick={() => setDeleteButtonShown(true)}>Delete the dataset</Button> :
+                            <>
+                                <Button danger type='primary' onClick={() => { deleteStudy.mutate({ studyId: getStudy.data[0].id }); }}>Delete&nbsp;<i>{getStudy.data[0].name}</i></Button>
+                                <Button onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </Button>
+                            </>;
+                    })()}
                 </Subsection>
 
             </div>

@@ -106,8 +106,6 @@ export function standardize(study: IStudy, fields: IField[], data: IGroupedData,
     const records = {};
     const mergedFields: IField[] = [...fields];
     const seqNumMap: Map<string, number> = new Map();
-    console.log(mergedFields);
-    console.log(standardizations);
     for (const field of mergedFields) {
         let fieldDef = {};
         for (let i = 0; i < mergedFields.length; i++) {

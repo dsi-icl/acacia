@@ -1,686 +1,743 @@
-import { FunctionComponent, useState, useEffect, useRef, useContext, Fragment, HTMLAttributes, createContext, ReactNode } from 'react';
-import { Button, Upload, notification, Tag, Table, Form, Input, InputRef, DatePicker, Space, Modal, FormInstance } from 'antd';
-import type { PickerRef } from 'rc-picker';
-import { RcFile } from 'antd/es/upload';
-import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Query } from '@apollo/client/react/components';
-import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
-import { useDropzone } from 'react-dropzone';
-import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, EDIT_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IFile, enumUserTypes, deviceTypes, IStudy } from '@itmat-broker/itmat-types';
-import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
+import React, { FunctionComponent, useState } from 'react';
+import { Button, Table, List, Modal, Upload, Form, Select, Input, notification, message, Typography } from 'antd';
+import { CloudDownloadOutlined, InboxOutlined } from '@ant-design/icons';
+import { enumConfigType, IStudyConfig, IStudy, IField, enumDataTypes, IStudyFileBlock, enumUserTypes, IUserWithoutToken, deviceTypes, enumStudyBlockColumnValueType } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
-import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
-import css from './tabContent.module.css';
-import { ApolloError } from '@apollo/client/errors';
+import css from './fileRepo.module.css';
+import { trpc } from '../../../../utils/trpc';
+import { convertFileListToApiFormat, formatBytes, stringCompareFunc, tableColumnRender } from '../../../../utils/tools';
+import { UploadChangeParam } from 'antd/lib/upload';
+import { RcFile, UploadFile } from 'antd/lib/upload/interface';
+import axios from 'axios';
 import { validate } from '@ideafast/idgen';
-import dayjs, { Dayjs } from 'dayjs';
-import { v4 as uuid } from 'uuid';
-import { ColumnProps } from 'antd/es/table';
+import dayjs from 'dayjs';
+import Highlighter from 'react-highlight-words';
+import ClipLoader from 'react-spinners/ClipLoader';
+import { ResponsiveLine } from '@nivo/line';
+import { ResponsiveBar } from '@nivo/bar';
 
-type StudyFile = RcFile & {
-    uuid: string;
-    participantId?: string;
-    deviceId?: string;
-    startDate?: Dayjs;
-    endDate?: Dayjs;
-    tup?: string;
-}
+const { Option } = Select;
 
-const { RangePicker } = DatePicker;
-let progressReports = [];
+export const FileRepositoryTabContent: FunctionComponent<{ study: IStudy }> = ({ study }) => {
+    const whoAmI = trpc.user.whoAmI.useQuery();
+    const getStudyConfig = trpc.config.getConfig.useQuery({ configType: enumConfigType.STUDYCONFIG, key: study.id, useDefault: true });
+    const getStudyFields = trpc.data.getStudyFields.useQuery({ studyId: study.id });
 
-export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-
-    const [uploadMovement, setUploadMovement] = useState(0);
-    const [isDropOverlayShowing, setisDropOverlayShowing] = useState(false);
-    const [fileList, setFileList] = useState<StudyFile[]>([]);
-    const [isUploading, setIsUploading] = useState(false);
-    const store = useApolloClient();
-    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
-    const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery<{ getStudy: IStudy & { files: IFile[] } }>(GET_STUDY, { variables: { studyId: studyId } });
-    const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
-    const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isEditingDescription, setIsEditingDescription] = useState(false);
-    const [datasetDescription, setDatasetDescription] = useState('');
-    const [isFileSummaryShown, setIsFileSummaryShown] = useState(false);
-    const [editStudy] = useMutation(EDIT_STUDY, {
-        onCompleted: () => { window.location.reload(); },
-        onError: () => { return; }
-    });
-    const [uploadFile] = useMutation(UPLOAD_FILE, {
-        onCompleted: ({ uploadFile }) => {
-            const cachedata = store.readQuery<{ getStudy: IStudy & { files: IFile[] } }, { studyId: string }>({
-                query: GET_STUDY,
-                variables: { studyId }
-            });
-            if (!cachedata)
-                return;
-            const newcachedata = {
-                ...cachedata.getStudy,
-                files: [...cachedata.getStudy.files, uploadFile]
-            };
-            store.writeQuery({
-                query: GET_STUDY,
-                variables: { studyId },
-                data: { getStudy: newcachedata }
-            });
-        },
-        onError: (error: ApolloError) => {
-            notification.error({
-                message: 'Upload error!',
-                description: error.message ?? 'Unknown Error Occurred!',
-                placement: 'topRight',
-                duration: 0
-            });
-        }
-    });
-
-    const onDropLocal = (acceptedFiles: Blob[]) => {
-        fileFilter(acceptedFiles.map(file => {
-            return file as StudyFile;
-        }));
-    };
-
-    const onDragEnter = () => setisDropOverlayShowing(true);
-    const onDragOver = () => setisDropOverlayShowing(true);
-    const onDragLeave = () => setisDropOverlayShowing(false);
-    const onDropAccepted = () => setisDropOverlayShowing(false);
-    const onDropRejected = () => setisDropOverlayShowing(false);
-
-    const { getRootProps, getInputProps } = useDropzone({
-        noClick: true,
-        preventDropOnDocument: true,
-        noKeyboard: true,
-        onDrop: onDropLocal,
-        onDragEnter,
-        onDragOver,
-        onDragLeave,
-        onDropAccepted,
-        onDropRejected
-    });
-
-    const removeFile = (record: StudyFile): void => {
-        setFileList(fileList => {
-            const index = fileList.findIndex(file => file.uuid === record.uuid);
-            const newFileList = [...fileList];
-            newFileList.splice(index, 1);
-            return newFileList;
-        });
-    };
-
-    const fileFilter = (files: StudyFile[]) => {
-        files.forEach((file) => {
-            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
-            const particules = file.name.match(matcher);
-            if (particules?.length === 8) {
-                if (Object.keys(sites).includes(particules[1].toUpperCase())
-                    && validate(particules[2].toUpperCase()))
-                    file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
-                if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
-                    && validate(particules[4].toUpperCase()))
-                    file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
-                const startDate = dayjs(particules[5], 'YYYYMMDD');
-                const endDate = dayjs(particules[6], 'YYYYMMDD');
-                if (startDate.isSame(endDate) || startDate.isBefore(endDate)) {
-                    if (startDate.isValid())
-                        file.startDate = startDate;
-                    if (endDate.isValid() && (endDate.isSame(dayjs()) || endDate.isBefore(dayjs())))
-                        file.endDate = endDate;
-                }
-            }
-            progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
-            file.uuid = uuid();
-            fileList.push(file);
-        });
-        setFileList([...fileList]);
-    };
-    const validFile = fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate);
-    const uploadHandler = () => {
-
-        const uploads: Promise<unknown>[] = [];
-        setIsUploading(true);
-        validFile.forEach(file => {
-            const description = {
-                participantId: file.participantId?.trim().toUpperCase(),
-                deviceId: file.deviceId?.trim().toUpperCase(),
-                startDate: file.startDate?.valueOf(),
-                endDate: file.endDate?.valueOf(),
-                tup: file.tup?.trim().toUpperCase()
-            };
-            const uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
-            if (!window.onUploadProgressHackMap)
-                window.onUploadProgressHackMap = {};
-            window.onUploadProgressHackMap[uploadMapHackName] = (progressEvent) => {
-                setUploadMovement(Math.random);
-                progressReports = {
-                    ...progressReports,
-                    [uploadMapHackName]: progressEvent
-                };
-            };
-            uploads.push(uploadFile({
-                variables: {
-                    file,
-                    studyId,
-                    description: JSON.stringify(description),
-                    fileLength: file.size
-                }
-            }).then(result => {
-                if (!result.data) {
-                    // Any accompanying error should already be displayed by `uploadFile`
-                    console.error(result.errors, result.extensions?.code);
-                    return;
-                }
-                delete window.onUploadProgressHackMap[uploadMapHackName];
-                delete progressReports[uploadMapHackName];
-                removeFile(file);
-                notification.success({
-                    message: 'Upload succeeded!',
-                    description: `File ${result.data.uploadFile.fileName} was successfully uploaded!`,
-                    placement: 'topRight'
-                });
-            }).catch(error => {
-                delete window.onUploadProgressHackMap[uploadMapHackName];
-                delete progressReports[uploadMapHackName];
-                notification.error({
-                    message: 'Upload error!',
-                    description: error?.message ?? error ?? 'Unknown Error Occurred!',
-                    placement: 'topRight',
-                    duration: 0
-                });
-            }));
-        });
-
-        Promise.all(uploads).then(() => {
-            setIsUploading(false);
-        }).catch(() => {
-            setIsUploading(false);
-        });
-    };
-
-    const uploaderProps = {
-        onRemove: (file) => {
-            const target = fileList.indexOf(file);
-            setFileList(fileList.splice(0, target).concat(fileList.splice(target + 1)));
-        },
-        beforeUpload: (file) => {
-            fileFilter([file]);
-            return true;
-        },
-        fileList: fileList.map(file => ({
-            ...file,
-            originFileObj: file
-        })),
-        multiple: true,
-        showUploadList: false
-    };
-
-    const handleSave = record => {
-        setFileList(fileList => {
-            const index = fileList.findIndex(file => file.uuid === record.uuid);
-            const newFileList = [...fileList];
-            const newFile = fileList[index];
-            newFile.participantId = record.participantId;
-            newFile.deviceId = record.deviceId;
-            newFile.startDate = record.startDate;
-            newFile.endDate = record.endDate;
-            newFile.tup = record.tup;
-            newFileList.splice(index, 1, newFile);
-            return newFileList;
-        });
-    };
-
-    const fileDetailsColumns = [
-        {
-            title: 'File name',
-            dataIndex: 'name',
-            key: 'fileName',
-            sorter: (a, b) => a.fileName.localeCompare(b.fileName),
-            render: (value, record) => {
-                const progress = progressReports[`UP_${record.participantId}_${record.deviceId}_${record.startDate?.valueOf()}_${record.endDate?.valueOf()}`];
-                if (progress)
-                    return <Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</Fragment>;
-                return value;
-            }
-        },
-        {
-            title: 'Participant ID',
-            dataIndex: 'participantId',
-            key: 'pid',
-            editable: true,
-            width: '10rem'
-        },
-        {
-            title: 'Site',
-            dataIndex: 'siteId',
-            key: 'site',
-            render: (__unused__value, record) => record.participantId ? sites[record.participantId.substr(0, 1)] : null
-        },
-        {
-            title: 'Device ID',
-            dataIndex: 'deviceId',
-            key: 'did',
-            editable: true,
-            width: '12rem'
-        },
-        {
-            title: 'Device type',
-            dataIndex: 'deviceType',
-            key: 'stype',
-            render: (__unused__value, record) => record.deviceId ? deviceTypes[record.deviceId.substr(0, 3)] : null
-        },
-        {
-            title: 'Period',
-            dataIndex: 'period',
-            key: 'period',
-            editable: true,
-            width: '24rem'
-        },
-        {
-            title: 'TUP',
-            dataIndex: 'tup',
-            key: 'tup',
-            editable: true,
-            width: '24rem'
-        },
-        {
-            key: 'delete',
-            render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
-                removeFile(record);
-            }}></Button>
-        }]
-        .map(col => {
-            if (!col.editable) {
-                return col;
-            }
-            return {
-                ...col,
-                onCell: record => ({
-                    record: {
-                        ...record,
-                        period: [record.startDate, record.endDate]
-                    },
-                    editable: col.editable,
-                    dataIndex: col.dataIndex,
-                    title: col.title,
-                    handleSave
-                })
-            };
-        });
-
-    if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
-        return <LoadSpinner />;
-
-    if (getOrgsError || getStudyError || getUsersError || whoAmIError)
-        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            An error occured, please contact your administrator
-        </div>;
-
-    if (!getStudyData) {
-        return null;
+    if (whoAmI.isLoading || getStudyConfig.isLoading || getStudyFields.isLoading) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <LoadSpinner />
+            </div>
+        </>;
     }
 
-    const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
-
-    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
-        ...prev,
-        [current.metadata.siteIDMarker]: current.shortname ?? current.name
-    }), {});
-
-    function dataSourceFilter(files: IFile[]) {
-        const studyLevelFiles: IFile[] = [];
-        const subjectLevelFiles: IFile[] = [];
-        for (const file of files) {
-            if (file.description && Object.keys(JSON.parse(file.description)).length !== 0) {
-                if (file !== null && file !== undefined &&
-                    (!searchTerm
-                        || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
-                        || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
-                        || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
-                        || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
-                        || (!userIdNameMapping[file.life.createdTime] || userIdNameMapping[file.life.createdTime].toUpperCase().indexOf(searchTerm) > -1))) {
-                    subjectLevelFiles.push(file);
-                }
-            } else {
-                studyLevelFiles.push(file);
-            }
-        }
-        subjectLevelFiles.sort((a, b) => a.life.createdTime - b.life.createdTime);
-        studyLevelFiles.sort((a, b) => a.life.createdTime - b.life.createdTime);
-        return [subjectLevelFiles, studyLevelFiles];
-    }
-
-    const sortedFiles = dataSourceFilter(getStudyData.getStudy.files);
-    const numberOfFiles = sortedFiles[0].length;
-    const sizeOfFiles = sortedFiles[0].reduce((a, b) => a + (b.fileSize || 0), 0);
-    const participantOfFiles = sortedFiles[0].reduce(function (values, v) {
-        if (v.description && !values.set[JSON.parse(v['description'])['participantId']]) {
-            values.set[JSON.parse(v['description'])['participantId']] = 1;
-            values.count++;
-        }
-        return values;
-    }, { set: {}, count: 0 }).count;
-    // format the file structure
-    const fileSummary: { site: string, total: number }[] = [];
-    const categoryColumns: ColumnProps<{ site: string, total: number }>[] = [];
-    if (sortedFiles[0].length > 0) {
-        const availableSites: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description ?? '').participantId[0]).sort()));
-        const availableDeviceTypes: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description ?? '').deviceId.substr(0, 3)).sort()));
-        categoryColumns.push(
-            {
-                title: 'Site',
-                dataIndex: 'site',
-                key: 'site',
-                render: (__unused__value, record) => sites[record.site] ? sites[record.site].concat(' (').concat(record.site).concat(')') : record.site
-            }
+    if (whoAmI.isError || getStudyConfig.isError || getStudyFields.isError) {
+        const errorMessage = (
+            <div>
+                <p>An error occurred:</p>
+                {whoAmI.isError && <p>{`whoAmI error: ${whoAmI.error.message}`}</p>}
+                {getStudyConfig.isError && <p>{`getStudyConfig error: ${getStudyConfig.error.message}`}</p>}
+                {getStudyFields.isError && <p>{`getStudyFields error: ${getStudyFields.error.message}`}</p>}
+            </div>
         );
-        for (const deviceType of availableDeviceTypes) {
-            categoryColumns.push({
-                title: deviceType,
-                dataIndex: deviceType,
-                key: deviceType,
-                render: (__unused__value, record) => record[deviceType] ? record[deviceType].toString() : deviceTypes[record[deviceType]]
-            });
-        }
-        categoryColumns.push({
-            title: 'Total',
-            dataIndex: 'Total',
-            key: 'total',
-            render: (__unused__value, record) => record.total
-        });
-        for (const site of availableSites) {
-            const tmpData = {
-                site: site,
-                total: 0
-            };
-            for (const deviceType of availableDeviceTypes) {
-                tmpData[deviceType] = sortedFiles[0].filter(el => (JSON.parse(el.description ?? '').participantId[0] === site
-                    && JSON.parse(el.description ?? '').deviceId.substr(0, 3) === deviceType)).length;
-            }
-            tmpData.total = sortedFiles[0].filter(el => JSON.parse(el.description ?? '').participantId[0] === site).length;
-            fileSummary.push(tmpData);
-        }
-        const tmpData = {
-            site: 'Total',
-            total: sortedFiles[0].length
-        };
-        for (const deviceType of availableDeviceTypes) {
-            tmpData[deviceType] = sortedFiles[0].filter(el => JSON.parse(el.description ?? '').deviceId.substr(0, 3) === deviceType).length;
-        }
-        fileSummary.push(tmpData);
-    }
-    return <div {...getRootProps() as HTMLAttributes<HTMLDivElement>} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
-        <input title='fileTabDropZone' {...getInputProps()} />
-        {fileList.length > 0
-            ?
-            <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-                <Subsection title='Upload files'>
-                    <Upload {...uploaderProps} >
-                        <Button>Select more files</Button>
-                    </Upload>
-                    <br />
-                    <br />
-                    <Table
-                        rowKey={(rec) => rec.uuid}
-                        rowClassName={() => css.editable_row}
-                        pagination={false}
-                        columns={fileDetailsColumns}
-                        dataSource={fileList}
-                        size='small'
-                        components={{ body: { row: EditableRow, cell: EditableCell } }} />
-                    <Button
-                        icon={<UploadOutlined />}
-                        type='primary'
-                        onClick={uploadHandler}
-                        disabled={fileList.length === 0}
-                        loading={isUploading}
-                        style={{ marginTop: 16 }}
-                    >
-                        {isUploading ? `Uploading (${validFile.length} ready of ${fileList.length})` : `Upload (${validFile.length} ready of ${fileList.length})`}
-                    </Button>
-                    &nbsp;&nbsp;&nbsp;
-                    <Button onClick={() => setFileList([])}>Cancel</Button>
-                </Subsection>
-            </div>
-            : <div className={`${css.tab_page_wrapper} ${css.both_panel} fade_in`}>
-                <SubsectionWithComment title='Dataset Description' comment={
-                    whoAmIData.whoAmI.type === enumUserTypes.ADMIN ?
-                        isEditingDescription ?
-                            <>
-                                <Button
-                                    type='primary'
-                                    onClick={() => { void editStudy({ variables: { studyId: getStudyData.getStudy.id, description: datasetDescription } }); }}
-                                >{'Submit'}
-                                </Button>
-                                <Button
-                                    type='primary'
-                                    onClick={() => { setIsEditingDescription(false); setDatasetDescription(''); }}
-                                >{'Cancel'}
-                                </Button>
-                            </> :
-                            <Button
-                                type='primary'
-                                onClick={() => { setIsEditingDescription(true); }}
-                            >{'Edit Description'}
-                            </Button>
-                        : null
-                }>
-                    {
-                        (isEditingDescription && whoAmIData.whoAmI.type === enumUserTypes.ADMIN) ? <Input onChange={(e) => { setDatasetDescription(e.target.value); }}>
-                        </Input> :
-                            (getStudyData.getStudy.description === null || getStudyData.getStudy.description === '') ? 'No descriptions.' : getStudyData.getStudy.description
-                    }
-                    <br />
-                    <br />
-                </SubsectionWithComment>
-                <Subsection title='Upload files'>
-                    <Query<{ getStudy: IStudy }, { studyId: string }> query={GET_STUDY} variables={{ studyId }}>
-                        {({ loading, data, error }) => {
-                            if (loading || error)
-                                return <>To upload files you can click on the button below or drag and drop files directly from your hard drive.</>;
-                            return <>To upload files to <i>{data?.getStudy.name}</i> you can click on the button below or drag and drop files directly from your hard drive.</>;
-                        }}
-                    </Query>
-                    <br />
-                    If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
-                    <Upload {...uploaderProps}>
-                        <Button>Select files</Button>
-                    </Upload>
-                    <br />
-                    <br />
-                    <br />
-                </Subsection>
-                <SubsectionWithComment
-                    title='Existing files'
-                    comment={<Space size={'large'}>
-                        <span>Total Files: {numberOfFiles}</span>
-                        <span>Total Size: {formatBytes(sizeOfFiles)}</span>
-                        <span>Total Participants: {participantOfFiles}</span>
-                        <Button onClick={() => setIsFileSummaryShown(true)}>File Details</Button>
-                    </Space>}
-                >
-                    <Modal open={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'60%'}>
-                        <div>Number of files associated to sites and device types.</div><br />
-                        <Table
-                            pagination={false}
-                            columns={categoryColumns}
-                            dataSource={fileSummary}
-                            size='small'
-                        /><br />
-                        <Space wrap={true}>
-                            {Object.keys(deviceTypes).sort().map((el, index) => <Tag key={index}>{`${el}: ${deviceTypes[el]}`}</Tag>)}
-                        </Space>
-                    </Modal>
-                    <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
-                    <FileList files={sortedFiles[0]} searchTerm={searchTerm}></FileList>
-                    <FileList isStudyLevel={true} files={sortedFiles[1]} searchTerm={undefined}></FileList>
-                    <br />
-                    <br />
-                </SubsectionWithComment>
 
-            </div>
+        return <div>{errorMessage}</div>;
+    }
+    return <div className={css['tab_page_wrapper']}>
+        <List
+            header={
+                <div className={css['overview-header']} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className={css['overview-icon']}></div>
+                        <div>Description</div>
+                    </div>
+                </div>
+            }
+        >
+            <List.Item>
+                <Typography.Paragraph style={{ whiteSpace: 'pre-line' }}>
+                    {study.description}
+                </Typography.Paragraph>
+            </List.Item>
+        </List>
+        {
+            ((getStudyConfig.data.properties as IStudyConfig).defaultFileBlocks ?? []).map((block, index) => (
+                <FileBlock
+                    key={`Fileblock_${index}`}
+                    user={whoAmI.data}
+                    fields={getStudyFields.data}
+                    study={study}
+                    block={block}
+                />
+            ))
         }
     </div >;
 };
 
-const EditableContext = createContext<FormInstance | null>(null);
-
-type EditableRowProps = {
-    index: number;
-}
-
-const EditableRow: FunctionComponent<EditableRowProps> = ({ index, ...props }) => {
-    const [form] = Form.useForm();
-
-    useEffect(() => {
-        form.validateFields().catch(() => { return; });
+export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IField[] }> = ({ study, fields }) => {
+    const [__unused__api, contextHolder] = notification.useNotification();
+    const [isShowPanel, setIsShowPanel] = React.useState(false);
+    const [fileList, setFileList] = useState<RcFile[]>([]);
+    const [fileProperties, setFileProperties] = useState({
+        fieldId: ''
     });
+    const [isUploading, setIsUploading] = useState(false);
+    const getCurrentDomain = trpc.domain.getCurrentDomain.useQuery();
+    const [form] = Form.useForm();
+    let selectedField = fields.filter(el => el.fieldId === fileProperties.fieldId)[0];
 
-    return (
-        <Form form={form} component={false}>
-            <EditableContext.Provider value={form}>
-                <tr key={index} {...props} />
-            </EditableContext.Provider>
-        </Form>
-    );
-};
-
-interface EditableCellProps {
-    editable: boolean;
-    children: ReactNode;
-    dataIndex: string;
-    record: StudyFile;
-    handleSave: (__unused__record: StudyFile) => void;
-}
-
-const EditableCell: FunctionComponent<EditableCellProps> = ({
-    editable,
-    children,
-    dataIndex,
-    record,
-    handleSave,
-    ...restProps
-}) => {
-    const [editing, setEditing] = useState(false);
-    const inputRef = useRef<InputRef>(null);
-    const rangeRef = useRef<PickerRef>(null);
-    const form = useContext(EditableContext);
-    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
-
-    useEffect(() => {
-        if (editable && !editing) {
-            form !== null && form.setFieldsValue(record);
-            setEditing(true);
-        }
-    }, [editable, editing, form, record]);
-    if (form === null) {
-        return null;
+    if (getCurrentDomain.isLoading) {
+        return <LoadSpinner />;
     }
 
+    if (getCurrentDomain.isError) {
+        return <div>An error occured.</div>;
+    }
 
-    const save = () => {
-        (async () => {
-            try {
-                const values = await form.validateFields();
-                handleSave({ ...record, ...values });
-            } catch (__unused__exception) {
-                // console.error(errInfo);
+    const handleUploadFile = async (variables: Record<string, string>) => {
+        try {
+            setIsShowPanel(false);
+            setIsUploading(true);
+            const files = await convertFileListToApiFormat(fileList, 'file');
+            const formData = new FormData();
+            if (files.length > 0) {
+                files.forEach(file => {
+                    formData.append('file', file.stream, file.originalname);
+                });
             }
-        })().catch(() => { return; });
+
+            formData.append('fieldId', String(variables.fieldId));
+            formData.append('studyId', String(variables.studyId));
+            formData.append('properties', JSON.stringify({
+                ...variables,
+                FileName: fileList[0].name
+            }));
+            const response = await axios.post('/trpc/data.uploadStudyFileData', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response?.data?.result?.data?.id) {
+                setIsUploading(false);
+                setIsShowPanel(false);
+                void message.success('File has been uploaded.');
+            }
+
+        } catch (error) {
+            // Check if the error is an AxiosError and handle it accordingly
+            if (axios.isAxiosError(error)) {
+                void message.error(String(JSON.parse(error.request?.response).error.message));
+            } else {
+                // Handle non-Axios errors
+                void message.error('An unexpected error occurred.');
+            }
+        } finally {
+            setIsUploading(false);
+        }
+
     };
 
-    if (getOrgsLoading)
-        return <LoadSpinner />;
-
-    if (getOrgsError)
-        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            An error occured, please contact your administrator: {getOrgsError.message}
-        </div>;
-
-    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
-        ...prev,
-        [current.metadata.siteIDMarker]: current.name
-    }), {});
-
-    let childNode = children;
-
-    if (editing) {
-        if (dataIndex === 'period') {
-            childNode = <>
-                <Form.Item
-                    style={{ display: 'none' }}
-                    name='startDate'
-                    rules={[{ required: true, message: '' }]}
-                >
-                    <Input id={`startDate_${record.uuid}`} />
-                </Form.Item>
-                <Form.Item
-                    style={{ display: 'none' }}
-                    name='endDate'
-                    rules={[{ required: true, message: '' }]}
-                >
-                    <Input id={`endDate_${record.uuid}`} />
-                </Form.Item>
-                <Form.Item
-                    style={{ margin: 0 }}
-                    name='period'
-                    hasFeedback
-                    dependencies={['startDate', 'endDate']}
-                    rules={[
-                        { required: true, message: '' },
-                        ({ getFieldValue }) => ({
-                            async validator() {
-                                if (getFieldValue('startDate') && getFieldValue('endDate'))
-                                    return Promise.resolve();
-                                return Promise.reject('Missing dates');
+    return (<div>
+        {contextHolder}
+        <Button style={{ backgroundColor: 'powderblue' }} onClick={() => setIsShowPanel(true)}>Upload Files</Button>
+        <Modal
+            open={isShowPanel}
+            onCancel={() => setIsShowPanel(false)}
+            onOk={() => void handleUploadFile({
+                ...form.getFieldsValue(),
+                studyId: study.id
+            })}
+        >
+            <Upload.Dragger
+                multiple={false}
+                showUploadList={true}
+                beforeUpload={async () => {
+                    return false;
+                }}
+                onChange={(info: UploadChangeParam<UploadFile>) => {
+                    // Filter out any items that do not have originFileObj
+                    const validFiles: RcFile[] = info.fileList
+                        .map(item => item.originFileObj)
+                        .filter((file): file is RcFile => !!file);
+                    // We set a special case for IDEA-FAST project because the validator could not be merged into the new rules
+                    if (getCurrentDomain.data?.name === 'IDEA-FAST' && study.description?.startsWith('IDEA-FAST')) {
+                        try {
+                            if (validFiles.length !== 1) {
+                                return;
                             }
-                        })
-                    ]}
-                >
-                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ? dayjs(record.startDate) : null, record.endDate ?? null]} disabledDate={(currentDate) => {
-                        return dayjs().isBefore(currentDate);
-                    }} onCalendarChange={(dates) => {
-                        if (dates === null)
-                            return;
-                        form.setFieldsValue({ startDate: dates[0] });
-                        form.setFieldsValue({ endDate: dates[1] });
-                    }} onBlur={save} />
-                </Form.Item>
-            </>;
-        } else {
-            childNode = <Form.Item
-                style={{ margin: 0 }}
-                name={dataIndex}
-                hasFeedback
-                rules={[{
-                    required: true, message: '', validator: async (__unused__rule, value) => {
-                        if (dataIndex === 'participantId') {
-                            if (!Object.keys(sites).includes(value?.[0]))
-                                throw new Error('Invalid site marker');
-                            if (value.length === 7) {
-                                if (!validate(value?.substr(1).toUpperCase()))
-                                    throw new Error('Invalid participant ID');
-                                return Promise.resolve();
+                            const fileName = validFiles[0].name;
+                            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+                            const particules = fileName.match(matcher);
+                            const properties: Record<string, string | number> = {};
+                            if (!particules) {
+                                return;
                             }
+                            if (particules?.length === 8) {
+                                if (validate(particules[2].toUpperCase()))
+                                    properties.subjectId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
+                                if (validate(particules[4].toUpperCase()))
+                                    properties.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
+                                const startDate = dayjs(particules[5], 'YYYYMMDD');
+                                const endDate = dayjs(particules[6], 'YYYYMMDD');
+                                if (startDate.isSame(endDate) || startDate.isBefore(endDate)) {
+                                    if (startDate.isValid())
+                                        properties.startDate = startDate.valueOf();
+                                    if (endDate.isValid() && (endDate.isSame(dayjs()) || endDate.isBefore(dayjs())))
+                                        properties.endDate = endDate.valueOf();
+                                }
+                            }
+                            const fieldId = `Device_${deviceTypes[particules[3]].replace(/ /g, '_')}`;
+                            form.setFieldsValue({
+                                fieldId: fieldId,
+                                subjectId: properties.subjectId,
+                                deviceId: properties.deviceId,
+                                startDate: properties.startDate,
+                                endDate: properties.endDate
+                            });
+                            setFileProperties({
+                                fieldId: fieldId
+                            });
+                            selectedField = fields.filter(el => el.fieldId === fieldId)[0];
+                        } catch {
+                            void message.error('Failed to upload file.');
                         }
-                        if (dataIndex === 'deviceId') {
-                            if (!Object.keys(deviceTypes).includes(value?.substr(0, 3)))
-                                throw new Error('Invalid device marker');
-                            if (value.length === 9) {
-                                if (!validate(value?.substr(3).toUpperCase()))
-                                    throw new Error('Invalid device ID');
-                                return Promise.resolve();
-                            }
-                        }
-                        return Promise.resolve();
                     }
-                }]}
+                    setFileList(validFiles);
+                }}
+                onRemove={() => setFileList([])}
             >
-                <Input id={`${dataIndex}_${record.uuid}`} ref={inputRef} allowClear={false} onPressEnter={save} onBlur={save} style={{ width: '100%' }} />
-            </Form.Item>;
+                <p className="ant-upload-drag-icon">
+                    <InboxOutlined style={{ color: '#009688', fontSize: 48 }} />
+                </p>
+                <p className="ant-upload-text" style={{ fontSize: 16, color: '#444' }}>
+                    Drag files here or click to select files
+                </p>
+            </Upload.Dragger>
+            <Form
+                form={form}
+                layout='horizontal'
+            >
+                <Form.Item
+                    name="fieldId"
+                    label="File Category"
+                    rules={[{ required: true }]}
+                    labelCol={{ span: 8 }}
+                    wrapperCol={{ span: 16 }}
+                >
+                    <Select
+                        placeholder='Select a file category'
+                        allowClear
+                        onChange={(value) => setFileProperties({ fieldId: value })}
+                        filterOption={(input: string, option?: { label: string; value: string }) =>
+                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+                        showSearch
+                    >
+                        {fields.map(el => <Option value={el.fieldId} label={el.fieldId}>{el.fieldName}</Option>)}
+                    </Select>
+                </Form.Item>
+                {
+                    (selectedField && selectedField.properties) ? selectedField.properties.filter(el => el.name !== 'FileName').map(el =>
+                        <Form.Item
+                            key={el.name}
+                            name={el.name}
+                            label={el.name}
+                            rules={[{ required: el.required }]}
+                            labelCol={{ span: 8 }}
+                            wrapperCol={{ span: 16 }}
+                        >
+                            <Input />
+                        </Form.Item>
+                    )
+                        : null
+                }
+            </Form>
+        </Modal>
+        {
+            isUploading ? (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: '10%',
+                        right: '0%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        transform: 'translate(-50%, -50%)'
+                    }}
+                >
+                    <ClipLoader />
+                    <span style={{ marginLeft: '8px' }}>Uploading...Please wait</span>
+                </div>
+            ) : null
         }
+    </div >);
+};
+
+export const FileBlock: FunctionComponent<{ user: IUserWithoutToken, fields: IField[], study: IStudy, block: IStudyFileBlock }> = ({ user, fields, study, block }) => {
+    const [searchedKeyword, setSearchedKeyword] = useState<string | undefined>(undefined);
+    const [isModalOn, setIsModalOn] = useState(false);
+    const getFiles = trpc.data.getFiles.useQuery({ studyId: study.id, fieldIds: block.fieldIds, readable: true, useCache: false });
+    const deleteFile = trpc.data.deleteFile.useMutation({
+        onSuccess: () => {
+            void message.success('File has been deleted.');
+        },
+        onError: () => {
+            void message.error('Failed to delete file.');
+        }
+    });
+    if (getFiles.isLoading) {
+        return <LoadSpinner />;
+    }
+    if (getFiles.isError) {
+        return <div>An error occured.</div>;
     }
 
-    return <td {...restProps}>{childNode}</td>;
+    const columns = generateTableColumns(block, searchedKeyword);
+    if (user.type === enumUserTypes.ADMIN) {
+        columns.push({
+            title: '',
+            dataIndex: 'delete',
+            key: 'delete',
+            render: (__unused__value, record) => {
+                return <Button onClick={() => deleteFile.mutate({ fileId: record.id })}>Delete</Button>;
+            }
+        });
+    }
+
+    const filteredFiles = getFiles.data.filter(el => {
+        if (!searchedKeyword) {
+            return true;
+        } else {
+            const keyword = searchedKeyword.toLowerCase();
+            if (
+                el.fileName?.toLowerCase().includes(keyword) ||
+                el.life?.createdUser?.toLowerCase().includes(keyword) ||
+                Object.keys(el.properties ?? {}).some(key => String(el.properties?.[key]).toLowerCase().includes(keyword))
+            ) {
+                return true;
+            }
+            return false;
+        }
+    });
+
+    const summaryByMonth = (filteredFiles) => {
+        // Create a map to hold the counts per month
+        const fileCounts: { [key: string]: number } = {};
+
+        // Iterate over each file and extract the createdTime
+        filteredFiles.forEach(file => {
+            if (file.life?.createdTime) {
+                // Convert createdTime (Unix timestamp) to a JavaScript Date object
+                const createdDate = new Date(file.life.createdTime);
+
+                // Format the date as 'YYYY-MM' for the month
+                const month = `${createdDate.getFullYear()}-${String(createdDate.getMonth() + 1).padStart(2, '0')}`;
+
+                // Increment the count for the corresponding month
+                if (fileCounts[month]) {
+                    fileCounts[month]++;
+                } else {
+                    fileCounts[month] = 1;
+                }
+            }
+        });
+
+        // Convert the map into an array of {x: month, y: count} objects
+        const result = Object.keys(fileCounts).map(month => ({
+            x: month,
+            y: fileCounts[month]
+        }));
+
+        // Sort the result array by the 'x' (month) value
+        result.sort((a, b) => {
+            const dateA = new Date(a.x + '-01'); // Adding '-01' to treat it as a full date (YYYY-MM-DD)
+            const dateB = new Date(b.x + '-01');
+            return dateA.getTime() - dateB.getTime();
+        });
+        // Return in the expected format
+        return [{
+            id: 'Month',
+            color: 'hsl(127, 70%, 50%)',
+            data: result
+        }];
+    };
+
+    const summaryByUser = (filteredFiles) => {
+        // Create a map to hold the counts per user
+        const userCounts: { [key: string]: number } = {};
+
+        // Iterate over each file and extract the createdUser
+        filteredFiles.forEach(file => {
+            const createdUser = file.life?.createdUser || 'Unknown User'; // Fallback to 'Unknown User' if createdUser is null/undefined
+
+            // Increment the count for the corresponding user
+            if (userCounts[createdUser]) {
+                userCounts[createdUser]++;
+            } else {
+                userCounts[createdUser] = 1;
+            }
+        });
+
+        // Convert the map into an array of {x: user, y: count} objects
+        const result = Object.keys(userCounts).map(user => ({
+            user: user.split(' ').map(el => (el[0] ?? '').toUpperCase()).join(''),
+            userFullName: user,
+            files: userCounts[user]
+        }));
+
+        // Sort the result array by the 'y' (count) value in descending order
+        result.sort((a, b) => a.user.localeCompare(b.user));
+
+        // Return in the expected format
+        return result;
+    };
+
+    return <List
+        header={
+            <div className={css['overview-header']} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div className={css['overview-icon']}></div>
+                    <div>{block.title}</div>
+                </div>
+                <div>
+                    <UploadFileComponent study={study} fields={fields.filter(el => el.dataType === enumDataTypes.FILE)} />
+                </div>
+            </div>
+        }
+    >
+        <List.Item>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <div style={{ width: '70%' }}>
+                    <Input
+                        value={searchedKeyword}
+                        placeholder="Search"
+                        onChange={(e) => setSearchedKeyword(e.target.value)}
+                    />
+                </div>
+                <div style={{ width: '30%', textAlign: 'right' }}>
+                    <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'black', marginRight: '20px' }}>
+                        {`Files: ${filteredFiles.length}`}
+                    </span>
+                    <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'black', marginRight: '20px' }}>
+                        {`Size: ${formatBytes(filteredFiles.reduce((acc, curr) => acc + (Number(curr?.fileSize) || 0), 0))}`}
+                    </span>
+                    <Button onClick={() => setIsModalOn(true)}>Statistics</Button>
+                </div>
+            </div>
+            <Modal
+                open={isModalOn}
+                onCancel={() => setIsModalOn(false)}
+                footer={null}
+                width='80%'
+            >
+                <h2>Progress by Month</h2>
+                <div style={{ height: '300px' }}>
+                    <ResponsiveLine
+                        data={summaryByMonth(filteredFiles)}
+                        margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
+                        xScale={{ type: 'point' }}
+                        yScale={{
+                            type: 'linear',
+                            min: 'auto',
+                            max: 'auto',
+                            stacked: true,
+                            reverse: false
+                        }}
+                        yFormat=" >-.2f"
+                        axisTop={null}
+                        axisRight={null}
+                        axisBottom={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'Month',
+                            legendOffset: 36,
+                            legendPosition: 'middle',
+                            truncateTickAt: 0
+                        }}
+                        axisLeft={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'Files Uploaded',
+                            legendOffset: -40,
+                            legendPosition: 'middle',
+                            truncateTickAt: 0
+                        }}
+                        pointSize={10}
+                        pointColor={{ theme: 'background' }}
+                        pointBorderWidth={2}
+                        pointBorderColor={{ from: 'serieColor' }}
+                        pointLabel="data.yFormatted"
+                        pointLabelYOffset={-12}
+                        enableTouchCrosshair={true}
+                        useMesh={true}
+                        legends={[
+                            {
+                                anchor: 'bottom-right',
+                                direction: 'column',
+                                justify: false,
+                                translateX: 100,
+                                translateY: 0,
+                                itemsSpacing: 0,
+                                itemDirection: 'left-to-right',
+                                itemWidth: 80,
+                                itemHeight: 20,
+                                itemOpacity: 0.75,
+                                symbolSize: 12,
+                                symbolShape: 'circle',
+                                symbolBorderColor: 'rgba(0, 0, 0, .5)',
+                                effects: [
+                                    {
+                                        on: 'hover',
+                                        style: {
+                                            itemBackground: 'rgba(0, 0, 0, .03)',
+                                            itemOpacity: 1
+                                        }
+                                    }
+                                ]
+                            }
+                        ]}
+                    />
+                </div>
+                <h2>Progress by Uploaders</h2>
+                <div style={{ height: '400px' }}>
+                    <ResponsiveBar
+                        data={summaryByUser(filteredFiles)}
+                        keys={[
+                            'files'
+                        ]}
+                        indexBy="user"
+                        margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+                        padding={0.3}
+                        valueScale={{ type: 'linear' }}
+                        indexScale={{ type: 'band', round: true }}
+                        colors={{ scheme: 'nivo' }}
+                        defs={[
+                            {
+                                id: 'dots',
+                                type: 'patternDots',
+                                background: 'inherit',
+                                color: '#38bcb2',
+                                size: 4,
+                                padding: 1,
+                                stagger: true
+                            },
+                            {
+                                id: 'lines',
+                                type: 'patternLines',
+                                background: 'inherit',
+                                color: '#eed312',
+                                rotation: -45,
+                                lineWidth: 6,
+                                spacing: 10
+                            }
+                        ]}
+                        fill={[
+                            {
+                                match: {
+                                    id: 'fries'
+                                },
+                                id: 'dots'
+                            },
+                            {
+                                match: {
+                                    id: 'sandwich'
+                                },
+                                id: 'lines'
+                            }
+                        ]}
+                        borderColor={{
+                            from: 'color',
+                            modifiers: [
+                                [
+                                    'darker',
+                                    1.6
+                                ]
+                            ]
+                        }}
+                        axisTop={null}
+                        axisRight={null}
+                        axisBottom={(() => {
+                            return {
+                                tickSize: 10,
+                                tickPadding: 0,
+                                tickRotation: -90,
+                                legend: 'User',
+                                legendPosition: 'middle',
+                                legendOffset: 32,
+                                truncateTickAt: 0
+                            };
+                        })()}
+                        axisLeft={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'Files',
+                            legendPosition: 'middle',
+                            legendOffset: -40,
+                            truncateTickAt: 0
+                        }}
+                        labelSkipWidth={12}
+                        labelSkipHeight={12}
+                        labelTextColor={{
+                            from: 'color',
+                            modifiers: [
+                                [
+                                    'darker',
+                                    1.6
+                                ]
+                            ]
+                        }}
+                        legends={[
+                            {
+                                dataFrom: 'keys',
+                                anchor: 'bottom-right',
+                                direction: 'column',
+                                justify: false,
+                                translateX: 120,
+                                translateY: 0,
+                                itemsSpacing: 2,
+                                itemWidth: 100,
+                                itemHeight: 20,
+                                itemDirection: 'left-to-right',
+                                itemOpacity: 0.85,
+                                symbolSize: 20,
+                                effects: [
+                                    {
+                                        on: 'hover',
+                                        style: {
+                                            itemOpacity: 1
+                                        }
+                                    }
+                                ]
+                            }
+                        ]}
+                        tooltip={(d) => `${d.data.userFullName}: ${d.data.files} files`}
+                        role="application"
+                        ariaLabel="Nivo bar chart demo"
+                        barAriaLabel={e => e.id + ': ' + e.formattedValue + ' in country: ' + e.indexValue}
+                    />
+                </div><br />
+                <h2>Statistics by Group</h2>
+                <div>
+                    <Select
+                        placeholder='Select the grouping keys in order'
+                        style={{ width: '100%' }}
+                        mode='multiple'
+                    >
+                        {
+                            block.defaultFileColumns.map(el => (
+                                <Option value={el.property}>{el.title}</Option>
+                            ))
+                        }
+                    </Select>
+                </div>
+            </Modal>
+        </List.Item>
+        <List.Item>
+            <div style={{ fontSize: '20px', width: '100%' }}>
+                <Table
+                    columns={columns}
+                    expandable={{ showExpandColumn: false }}
+                    dataSource={filteredFiles}
+                />
+            </div>
+        </List.Item>
+    </List>;
 };
+
+type CustomColumnType = {
+    title: React.ReactNode;
+    dataIndex: string;
+    key: string;
+    sorter?: (a, b) => number;
+    render?: (value, record) => React.ReactNode;
+};
+
+function generateTableColumns(block: IStudyFileBlock, searchedKeyword: string | undefined) {
+    const columns: CustomColumnType[] = [{
+        title: 'File Name',
+        dataIndex: 'fileName',
+        key: 'fileName',
+        sorter: (a, b) => { return stringCompareFunc(a.fileName, b.fileName); },
+        render: (__unused__value, record) => {
+            if (searchedKeyword)
+                return <Highlighter searchWords={[searchedKeyword]} textToHighlight={record.fileName} highlightStyle={{
+                    backgroundColor: '#FFC733',
+                    padding: 0
+                }} />;
+            else
+                return record.fileName;
+        }
+    }, {
+        title: 'File Size',
+        dataIndex: 'fileSize',
+        key: 'fileSize',
+        sorter: (a, b) => { return a.fileSize - b.fileSize; },
+        render: (__unused__value, record) => {
+            return formatBytes(record.fileSize);
+        }
+    }, {
+        title: 'Uploaded Time',
+        dataIndex: 'uploadedTime',
+        key: 'uploadedTime',
+        sorter: (a, b) => { return (new Date(a.life.createdTime)).valueOf() - (new Date(b.life.createdTime)).valueOf(); },
+        render: (__unused__value, record) => {
+            return (new Date(record.life.createdTime)).toLocaleDateString();
+        }
+    }, {
+        title: 'Uploaded By',
+        dataIndex: 'uploadedBy',
+        key: 'uploadedBy',
+        render: (__unused__value, record) => {
+            if (searchedKeyword)
+                return <Highlighter searchWords={[searchedKeyword]} textToHighlight={record.life.createdUser} highlightStyle={{
+                    backgroundColor: '#FFC733',
+                    padding: 0
+                }} />;
+            else
+                return record.life.createdUser;
+        }
+    }];
+    for (const bcolumn of block.defaultFileColumns) {
+        columns.push({
+            title: <span style={{ color: 'black' }}>{bcolumn.title}</span>,
+            dataIndex: bcolumn.property,
+            key: bcolumn.property,
+            sorter: (a, b) => {
+                if (bcolumn.type === enumStudyBlockColumnValueType.TIME) {
+                    return (new Date(tableColumnRender(a, bcolumn))).valueOf() - (new Date(tableColumnRender(b, bcolumn))).valueOf();
+                }
+                return stringCompareFunc(tableColumnRender(a, bcolumn), tableColumnRender(b, bcolumn));
+            },
+            render: (__unused__value, record) => {
+                const formattedText = tableColumnRender(record, bcolumn);
+                if (searchedKeyword)
+                    return <Highlighter searchWords={[searchedKeyword]} textToHighlight={formattedText} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return formattedText;
+            }
+        });
+    }
+    columns.push({
+        title: '',
+        dataIndex: 'download',
+        key: 'download',
+        render: (__unused__value, record) => {
+            return <Button
+                icon={<CloudDownloadOutlined />}
+                download={`${record.fileName}`}
+                href={`/file/${record.id}`}>
+                Download
+            </Button>;
+        }
+    });
+
+    return columns;
+}
+

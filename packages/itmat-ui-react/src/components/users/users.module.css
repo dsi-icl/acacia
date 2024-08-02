@@ -1,0 +1,91 @@
+.page_container {
+    grid-template-columns: 100% 0%;
+    grid-template-rows: 100%;
+    display: grid;
+    height: 100%;
+    grid-template-areas: "userList";
+}
+
+.col-item {
+    margin-bottom: 16px;
+}
+
+.card-container {
+    position: relative;
+    display: flex;
+    max-width: 100%;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+}
+
+.card-image {
+    object-fit: contain;
+    width: 100%;
+    height: 70%;
+}
+
+.card-meta {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.card-meta:hover {
+    cursor: pointer;
+}
+
+.row-container {
+    width: 100%;
+    /* Add this line */
+    box-sizing: border-box;
+    /* Add this line */
+}
+
+.col-item {
+    padding: 0 8px;
+    /* Half of gutter width */
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    /* Add this line */
+}
+
+.overview-header {
+    display: flex;
+    align-items: center;
+    /* This will vertically center align the icon and the title */
+    /* If there is still a misalignment, you may adjust by adding 'align-self' to the children */
+    font-size: 20px;
+    font-weight: 500;
+    overflow: auto;
+}
+
+.overview-icon {
+    background-color: #000;
+    /* Or any color you prefer */
+    width: 4px;
+    /* Thickness of the line */
+    height: 24px;
+    /* Height of the line, adjust as needed */
+    margin-right: 16px;
+    /* Space between the line and the text */
+    /* Adjust 'margin-top' if the line is not aligned with the text */
+}
+
+.overview-title {
+    /* Style for your title */
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.overview-content {
+    /* Style for your content */
+    text-indent: 30px;
+    /* Adjust the indent as needed */
+}

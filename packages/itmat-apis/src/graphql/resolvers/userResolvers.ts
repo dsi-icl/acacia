@@ -1,5 +1,5 @@
 import { CoreError, IUserWithoutToken, enumUserTypes } from '@itmat-broker/itmat-types';
-import { DBType, GraphQLErrorDecroator, PermissionCore, UserCore, V2CreateUserInput, V2EditUserInput, errorCodes, makeGenericReponse } from '@itmat-broker/itmat-cores';
+import { DBType, GraphQLErrorDecroator, PermissionCore, UserCore, V2CreateUserInput, V2EditUserInput, errorCodes, makeGenericResponse } from '@itmat-broker/itmat-cores';
 import { DMPResolversMap } from './context';
 import { GraphQLError } from 'graphql';
 
@@ -158,7 +158,7 @@ export class UserResolvers {
                 undefined,
                 args.user.description
             );
-            return makeGenericReponse(user.id, true, undefined, 'User created successfully.');
+            return makeGenericResponse(user.id, true, undefined, 'User created successfully.');
         } catch (e) {
             return GraphQLErrorDecroator(e as CoreError);
         }

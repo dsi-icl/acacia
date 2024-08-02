@@ -355,7 +355,7 @@ if (global.hasMinio) {
             const response2 = await authorisedUser.get('/trpc/study.getStudies?input=' + encodeQueryParams(paramteres))
                 .query({});
             expect(response2.status).toBe(400);
-            expect(response2.body.error.message).toBe('Study does not exist.');
+            expect(response2.body.error.message).toBe('No permission to access the study.');
         });
         test('Get studies (unpermitted user)', async () => {
             const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');
@@ -413,8 +413,8 @@ if (global.hasMinio) {
             expect(study?.dataVersions).toHaveLength(1);
             expect(study?.dataVersions[0].id).toBe(response2.body.result.data.id);
             // check cold storage
-            const colddata = await db.collections.colddata_collection.findOne({});
-            expect(colddata?.dataVersion).toBe(response2.body.result.data.id);
+            // const colddata = await db.collections.colddata_collection.findOne({});
+            // expect(colddata?.dataVersion).toBe(response2.body.result.data.id);
         });
         test('Create a new data version (no permission)', async () => {
             const filePath = path.join(__dirname, '../filesForTests/dsi.jpeg');

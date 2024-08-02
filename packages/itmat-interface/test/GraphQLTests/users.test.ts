@@ -1480,7 +1480,7 @@ describe('USERS API', () => {
             );
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Standard user can not change their type, expiration time and organisation. Please contact admins for help.');
+            expect(res.body.errors[0].message).toBe('Standard user can not change their type, expiration time. Please contact admins for help.');
             expect(res.body.data.editUser).toEqual(null);
         });
 
