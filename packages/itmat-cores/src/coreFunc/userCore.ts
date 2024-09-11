@@ -104,7 +104,7 @@ export class UserCore {
         let email;
         try {
             email = await decryptEmail(this.config.aesSecret, encryptedEmail, salt, iv);
-        } catch (e) {
+        } catch (__unused__exception) {
             throw new CoreError(
                 enumCoreErrors.CLIENT_MALFORMED_INPUT,
                 'Token is not valid.'
@@ -642,7 +642,7 @@ export class UserCore {
             try {
                 const reGenPubkey = pubkeycrypto.reGenPkfromSk(privateKey);
                 messageToBeSigned = pubkeycrypto.hashdigest(reGenPubkey);
-            } catch (error) {
+            } catch (__unused__exception) {
                 throw new CoreError(
                     enumCoreErrors.CLIENT_MALFORMED_INPUT,
                     'Error: private-key incorrect!'
@@ -707,7 +707,7 @@ export class UserCore {
                     'Signature vs Public-key mismatched.'
                 );
             }
-        } catch (error) {
+        } catch (__unused__exception) {
             throw new CoreError(
                 enumCoreErrors.CLIENT_MALFORMED_INPUT,
                 'Error: Signature or Public-key is incorrect.'
@@ -1194,7 +1194,7 @@ export class UserCore {
         let email;
         try {
             email = await decryptEmail(this.config.aesSecret, encryptedEmail, salt, iv);
-        } catch (e) {
+        } catch (__unused__exception) {
             throw new CoreError(
                 enumCoreErrors.CLIENT_MALFORMED_INPUT,
                 'Token is invalid.'

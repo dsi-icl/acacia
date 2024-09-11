@@ -7,7 +7,6 @@ import configManager from '../utils/configManager';
 import { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { inferAsyncReturnType, initTRPC } from '@trpc/server';
 
-
 export class APICalls {
     permissionCore: PermissionCore;
     fileCore: FileCore;
@@ -53,7 +52,7 @@ export class APICalls {
     }
 
     _listOfTRPCRouters() {
-        const createtRPCContext = async (opts: CreateNextContextOptions) => {
+        const __unusedCreatetRPCContext = async (opts: CreateNextContextOptions) => {
             return {
                 user: opts.req.user,
                 req: opts.req,
@@ -61,7 +60,7 @@ export class APICalls {
             };
         };
 
-        type Context = inferAsyncReturnType<typeof createtRPCContext>;
+        type Context = inferAsyncReturnType<typeof __unusedCreatetRPCContext>;
         const t = initTRPC.context<Context>().create();
         const baseProcedure = t.procedure.use(async (opts) => {
             return await tRPCBaseProcedureMilldeware(db, opts);

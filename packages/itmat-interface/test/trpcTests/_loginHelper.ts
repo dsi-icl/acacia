@@ -24,7 +24,7 @@ export async function connectAgent(agent: SuperTest<Test>, user: string, pw: str
         if (res.status !== 200) {
             throw new Error('Login failed');
         }
-    } catch (err) {
+    } catch (__unused__exception) {
         throw new Error('Login request failed');
     }
 }
@@ -35,7 +35,7 @@ export async function disconnectAgent(agent: SuperTest<Test>): Promise<void> {
         if (res.status !== 200) {
             throw new Error('Logout failed');
         }
-    } catch (err) {
+    } catch (__unused__exception) {
         throw new Error('Logout request failed');
     }
 }

@@ -30,7 +30,14 @@ const javascriptRules = {
     'comma-dangle': ['error', 'never'],
     'no-trailing-spaces': 'error',
     'no-extra-semi': 'error',
-    'no-unused-vars': ['error', { args: 'after-used', varsIgnorePattern: '^__unused' }],
+    'no-unused-vars': ['error', {
+        args: 'after-used',
+        argsIgnorePattern: '^__unused',
+        caughtErrorsIgnorePattern: '^__unused',
+        destructuredArrayIgnorePattern: '^__unused',
+        varsIgnorePattern: '^__unused',
+        ignoreRestSiblings: true
+    }],
     'semi': ['error', 'always']
 };
 
@@ -41,7 +48,14 @@ const typescriptRules = {
     '@typescript-eslint/no-non-null-assertion': 'error',
     '@typescript-eslint/no-unused-vars': [
         'error',
-        { args: 'after-used', varsIgnorePattern: '^__unused' }
+        {
+            args: 'after-used',
+            argsIgnorePattern: '^__unused',
+            caughtErrorsIgnorePattern: '^__unused',
+            destructuredArrayIgnorePattern: '^__unused',
+            varsIgnorePattern: '^__unused',
+            ignoreRestSiblings: true
+        }
     ],
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/promise-function-async': 'error',
@@ -54,7 +68,8 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 2022,
         tsconfigRootDir: __dirname,
-        EXPERIMENTAL_useProjectService: true,
+        projectService: true,
+        allowDefaultProject: true,
         warnOnUnsupportedTypeScriptVersion: false,
         project: [
             './tsconfig.eslint.json',

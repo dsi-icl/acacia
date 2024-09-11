@@ -584,7 +584,7 @@ const EditableCell: FunctionComponent<EditableCellProps> = ({
             try {
                 const values = await form.validateFields();
                 handleSave({ ...record, ...values });
-            } catch (errInfo) {
+            } catch (__unused__exception) {
                 // console.error(errInfo);
             }
         })().catch(() => { return; });

@@ -449,13 +449,14 @@ export class DMPWebDAVAuthentication implements HTTPAuthentication {
         this.realm = realm ?? 'realm';
         this.db = db;
     }
+
     askForAuthentication(): { 'WWW-Authenticate': string; } {
         return {
             'WWW-Authenticate': 'Basic realm="' + this.realm + '"'
         };
     }
 
-    async getUser(ctx: webdav.HTTPRequestContext, callback: (error: Error | null, user?: IUserWithoutToken) => void): Promise<void> {
+    getUser(ctx: webdav.HTTPRequestContext, callback: (error: Error | null, user?: IUserWithoutToken) => void): void {
         try {
             const token = ctx.headers.find('authorization') ?? '';
             const decodedPayload = jwt.decode(token);
@@ -473,8 +474,11 @@ export class DMPWebDAVAuthentication implements HTTPAuthentication {
                 }
             });
             try {
-                const associatedUser = await userRetrieval(this.db, pubkey);
-                callback(null, associatedUser);
+                userRetrieval(this.db, pubkey).then((associatedUser) => {
+                    callback(null, associatedUser);
+                }).catch(() => {
+                    callback(new Error('Invalid credentials'));
+                });
             } catch {
                 callback(new Error('Invalid credentials'));
             }

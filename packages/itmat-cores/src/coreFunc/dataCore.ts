@@ -720,7 +720,8 @@ export class DataCore {
                 bulk = this.db.collections.data_collection.initializeUnorderedBulkOp();
             }
         }
-        bulk.batches.length !== 0 && await bulk.execute();
+        if (bulk.batches.length !== 0)
+            await bulk.execute();
         return response;
     }
 

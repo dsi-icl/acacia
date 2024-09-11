@@ -211,7 +211,7 @@ export class StudyCore {
                 }
                 fileEntry = await this.fileCore.uploadFile(requester, studyId, null, profile, enumFileTypes[(profile.filename.split('.').pop() || '').toUpperCase() as keyof typeof enumFileTypes], enumFileCategories.PROFILE_FILE);
                 setObj['profile'] = fileEntry.id;
-            } catch (error) {
+            } catch (__unused__exception) {
                 setObj['profile'] = study.profile;
             }
         }

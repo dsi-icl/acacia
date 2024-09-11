@@ -1,7 +1,7 @@
 /* eslint-disable */
 export default {
     displayName: 'itmat-interface',
-    preset: '../../jest.preset.js',
+    preset: '../../jest.preset.cjs',
     verbose: true,
     transform: {
         '^.+\\.[tj]s$': ['ts-jest', {

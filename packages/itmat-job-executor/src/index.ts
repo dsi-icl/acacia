@@ -51,7 +51,8 @@ function serverSpinning() {
             console.info(`Shuting down executor server ${process.pid} ...`);
             interfaceRouter?.on('close', () => {
                 serverStart();
-            }) || serverStart();
+            });
+            serverStart();
         });
     } else {
         serverStart();

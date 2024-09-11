@@ -122,7 +122,7 @@ export class StudyResolvers {
                     uploadedBy: el.life.createdUser
                 };
             });
-        } catch (e) {
+        } catch (__unused__exception) {
             return [];
         }
     }

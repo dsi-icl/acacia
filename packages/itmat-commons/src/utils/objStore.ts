@@ -17,9 +17,10 @@ export class ObjectStore {
 
     public async isConnected(): Promise<boolean> {
         try {
-            this.client && await this.client.listBuckets();
+            if (this.client)
+                await this.client.listBuckets();
             return true;
-        } catch (e) {
+        } catch (__unused__exception) {
             return false;
         }
     }
@@ -59,7 +60,7 @@ export class ObjectStore {
         try {
             await this.client.statObject(lowercasestudyid, uri);
             fileExists = true;
-        } catch (e) {
+        } catch (__unused__exception) {
             fileExists = false;
         }
 
@@ -87,7 +88,10 @@ export class ObjectStore {
         // Copy the object
         const conds = new Minio.CopyConditions();
         const result = await this.client.copyObject(lowerTargetBucket, targetUri, `/${lowerSourceBucket}/${sourceUri}`, conds);
-        return result.etag;
+        if (Object.hasOwn(result, 'Etag'))
+            return (result as Record<string, unknown>)?.['Etag'];
+        else
+            return (result as Record<string, unknown>)?.['etag'];
     }
 
     public async downloadFile(studyId: string, uri: string): Promise<Readable> {
