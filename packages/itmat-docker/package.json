@@ -20,7 +20,11 @@
         "express": "4.20.0",
         "express-rate-limit": "7.4.0",
         "isobject": "4.0.0",
+<<<<<<< HEAD
         "minio": "8.0.1",
+=======
+        "minio": "7.1.4",
+>>>>>>> 34b773b6 (chore: Update patch dependencies)
         "mongodb": "6.8.1",
         "sanitize-filename": "1.6.3"
     }
