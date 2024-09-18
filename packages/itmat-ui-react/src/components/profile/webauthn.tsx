@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import { FunctionComponent, useState, useEffect } from 'react';
 import { Alert, Button, Table, Modal, List, message } from 'antd';
 import { AuthenticatorDevice } from '@itmat-broker/itmat-types';
 import { useNavigate } from 'react-router-dom';

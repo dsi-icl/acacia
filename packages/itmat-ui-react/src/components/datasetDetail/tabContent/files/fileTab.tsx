@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useState } from 'react';
 import { Button, Table, List, Modal, Upload, Form, Select, Input, notification, message, Typography } from 'antd';
 import { CloudDownloadOutlined, InboxOutlined } from '@ant-design/icons';
-import { enumConfigType, IStudyConfig, IStudy, IField, enumDataTypes, IStudyFileBlock, enumUserTypes, IUserWithoutToken, deviceTypes, enumStudyBlockColumnValueType } from '@itmat-broker/itmat-types';
+import { enumConfigType, IStudyConfig, IStudy, IField, enumDataTypes, IStudyFileBlock, enumUserTypes, IUserWithoutToken, deviceTypes, enumStudyBlockColumnValueType, IFile } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './fileRepo.module.css';
 import { trpc } from '../../../../utils/trpc';
@@ -15,6 +15,7 @@ import Highlighter from 'react-highlight-words';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { ResponsiveLine } from '@nivo/line';
 import { ResponsiveBar } from '@nivo/bar';
+import { useQueryClient } from '@tanstack/react-query';
 
 const { Option } = Select;
 
@@ -75,7 +76,8 @@ export const FileRepositoryTabContent: FunctionComponent<{ study: IStudy }> = ({
     </div >;
 };
 
-export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IField[] }> = ({ study, fields }) => {
+export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IField[], fieldIds: string[] }> = ({ study, fields, fieldIds }) => {
+    const queryClient = useQueryClient();
     const [__unused__api, contextHolder] = notification.useNotification();
     const [isShowPanel, setIsShowPanel] = React.useState(false);
     const [fileList, setFileList] = useState<RcFile[]>([]);
@@ -120,6 +122,25 @@ export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IFi
             });
 
             if (response?.data?.result?.data?.id) {
+                const queryKey = [['data', 'getFiles'], {
+                    input: {
+                        studyId: study.id,
+                        fieldIds: fieldIds,
+                        useCache: false,
+                        readable: true
+                    }, type: 'query'
+                }];
+                const cache: IFile[] = queryClient.getQueryData(queryKey) ?? [];
+                const newCache = [...cache, response.data.result.data];
+                queryClient.setQueryData(queryKey, newCache);
+                void queryClient.invalidateQueries(['data', 'getFiles', {
+                    input: {
+                        studyId: study.id,
+                        fieldIds: fieldIds,
+                        useCache: false,
+                        readable: true
+                    }
+                }]);
                 setIsUploading(false);
                 setIsShowPanel(false);
                 void message.success('File has been uploaded.');
@@ -275,11 +296,31 @@ export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IFi
 };
 
 export const FileBlock: FunctionComponent<{ user: IUserWithoutToken, fields: IField[], study: IStudy, block: IStudyFileBlock }> = ({ user, fields, study, block }) => {
+    const queryClient = useQueryClient();
     const [searchedKeyword, setSearchedKeyword] = useState<string | undefined>(undefined);
     const [isModalOn, setIsModalOn] = useState(false);
     const getFiles = trpc.data.getFiles.useQuery({ studyId: study.id, fieldIds: block.fieldIds, readable: true, useCache: false });
     const deleteFile = trpc.data.deleteFile.useMutation({
-        onSuccess: () => {
+        onSuccess: (data) => {
+            const queryKey = [['data', 'getFiles'], {
+                input: {
+                    studyId: study.id,
+                    fieldIds: fields.map(el => el.fieldId),
+                    useCache: false,
+                    readable: true
+                }, type: 'query'
+            }];
+            const cache: IFile[] = queryClient.getQueryData(queryKey) ?? [];
+            const newCache = cache.filter(el => el.id !== data.id);
+            queryClient.setQueryData(queryKey, newCache);
+            void queryClient.invalidateQueries(['data', 'getFiles', {
+                input: {
+                    studyId: study.id,
+                    fieldIds: fields.map(el => el.fieldId),
+                    useCache: false,
+                    readable: true
+                }
+            }]);
             void message.success('File has been deleted.');
         },
         onError: () => {
@@ -300,7 +341,7 @@ export const FileBlock: FunctionComponent<{ user: IUserWithoutToken, fields: IFi
             dataIndex: 'delete',
             key: 'delete',
             render: (__unused__value, record) => {
-                return <Button onClick={() => deleteFile.mutate({ fileId: record.id })}>Delete</Button>;
+                return <Button danger onClick={() => deleteFile.mutate({ fileId: record.id })}>Delete</Button>;
             }
         });
     }
@@ -401,7 +442,7 @@ export const FileBlock: FunctionComponent<{ user: IUserWithoutToken, fields: IFi
                     <div>{block.title}</div>
                 </div>
                 <div>
-                    <UploadFileComponent study={study} fields={fields.filter(el => el.dataType === enumDataTypes.FILE)} />
+                    <UploadFileComponent study={study} fields={fields.filter(el => el.dataType === enumDataTypes.FILE)} fieldIds={block.fieldIds} />
                 </div>
             </div>
         }
