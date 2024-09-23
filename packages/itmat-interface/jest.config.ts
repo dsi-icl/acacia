@@ -2,7 +2,6 @@
 export default {
     displayName: 'itmat-interface',
     preset: '../../jest.preset.cjs',
-    verbose: true,
     transform: {
         '^.+\\.[tj]s$': ['ts-jest', {
             tsconfig: '<rootDir>/tsconfig.spec.json',

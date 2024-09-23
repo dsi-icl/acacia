@@ -188,7 +188,7 @@ export class FileCore {
             );
         }
 
-        await this.objStore.uploadFile(stream, defaultFileBucketId, fileUri);
+        await this.objStore.uploadFile(stream, defaultFileBucketId, fileUri, fileSize);
 
         const fileEntry: IFile = {
             id: uuid(),

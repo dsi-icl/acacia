@@ -44,7 +44,7 @@ export class ObjectStore {
         return await minioClient.listBuckets();
     }
 
-    public async uploadFile(fileStream: Readable, bucketId: string, uri: string): Promise<string> {
+    public async uploadFile(fileStream: Readable, bucketId: string, uri: string, size?: number): Promise<string> {
         if (!this.client) {
             throw new Error('Connection failed.');
         }
@@ -66,7 +66,7 @@ export class ObjectStore {
         if (fileExists) {
             throw new Error(`File "${uri}" of bucket "${bucketId}" already exists.`);
         }
-        const result = await this.client.putObject(lowerCaseBucketId, uri, fileStream);
+        const result = await this.client.putObject(lowerCaseBucketId, uri, fileStream, size);
         return result.etag;
     }
 
