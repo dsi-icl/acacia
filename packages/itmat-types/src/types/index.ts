@@ -19,6 +19,7 @@ import * as Drive from './drive';
 import * as Permission from './permission';
 import * as Cache from './cache';
 import * as Domain from './domain';
+import * as WebAuthn from './webauthn';
 
 export * from './field';
 export * from './file';
@@ -41,5 +42,6 @@ export * from './drive';
 export * from './permission';
 export * from './cache';
 export * from './domain';
+export * from './webauthn';
 
-export const Types = { File, Job, Log, User, Organisation, Pubkey, Study, Query, Field, Data, Standardization, Common, Base, CoreErrors, Config, ZodSchema, Utils, Drive, Permission, Cache, Domain };
+export const Types = { File, Job, Log, User, Organisation, Pubkey, Study, Query, Field, Data, Standardization, Common, Base, CoreErrors, Config, ZodSchema, Utils, Drive, Permission, Cache, Domain, WebAuthn };

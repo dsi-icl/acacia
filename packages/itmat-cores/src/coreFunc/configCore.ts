@@ -1,7 +1,7 @@
 import { CoreError, ICacheConfig, IConfig, IDocConfig, IDomainConfig, IStudyConfig, ISystemConfig, IUserConfig, IUserWithoutToken, defaultSettings, enumConfigType, enumCoreErrors, enumReservedUsers, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
 import { v4 as uuid } from 'uuid';
-import { makeGenericReponse } from '../utils';
+import { makeGenericResponse } from '../utils';
 
 export class ConfigCore {
     db: DBType;
@@ -112,7 +112,7 @@ export class ConfigCore {
         }
         await this.db.collections.configs_collection.updateOne({ 'type': configType, 'key': key, 'life.deletedTime': null }, { $set: { properties: properties } });
 
-        return makeGenericReponse(config.id, true, undefined, 'Config updated.');
+        return makeGenericResponse(config.id, true, undefined, 'Config updated.');
     }
 
     /**

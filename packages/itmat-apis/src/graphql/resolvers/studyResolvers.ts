@@ -5,7 +5,8 @@ import {
     IQueryString,
     IGenericResponse,
     CoreError,
-    IGroupedData
+    IGroupedData,
+    IData
 } from '@itmat-broker/itmat-types';
 import { DBType, GraphQLErrorDecroator, DataCore, PermissionCore, StudyCore, V2CreateFieldInput, V2EditFieldInput, convertV2CreateFieldInputToV3, convertV2DataClipInputToV3, convertV2EditFieldInputToV3, convertV3FieldToV2Field } from '@itmat-broker/itmat-cores';
 import { DMPResolversMap } from './context';
@@ -71,19 +72,19 @@ export class StudyResolvers {
 
     async getDataRecords(_parent, { studyId, queryString, versionId }: { queryString: IQueryString, studyId: string, versionId: string | null | undefined }, context) {
         try {
-            const result = (await this.dataCore.getData(context.req.user, studyId, queryString.data_requested, versionId))['raw'];
+            const result = (await this.dataCore.getData(context.req.user, studyId, queryString.data_requested, versionId)) as unknown as IData[] & { properties: { subjectId: string, visitId: string }, fieldId: string, value: string }[];
             const groupedResult: IGroupedData = {};
             for (let i = 0; i < result.length; i++) {
-                const { m_subjectId, m_visitId } = result[i].properties;
-                const m_fieldId = result[i].fieldId;
+                const { subjectId, visitId } = result[i].properties;
+                const fieldId = result[i].fieldId;
                 const value = result[i].value;
-                if (!groupedResult[m_subjectId]) {
-                    groupedResult[m_subjectId] = {};
+                if (!groupedResult[subjectId]) {
+                    groupedResult[subjectId] = {};
                 }
-                if (!groupedResult[m_subjectId][m_visitId]) {
-                    groupedResult[m_subjectId][m_visitId] = {};
+                if (!groupedResult[subjectId][visitId]) {
+                    groupedResult[subjectId][visitId] = {};
                 }
-                groupedResult[m_subjectId][m_visitId][m_fieldId] = value;
+                groupedResult[subjectId][visitId][fieldId] = value;
             }
             return {
                 data: groupedResult
@@ -106,8 +107,8 @@ export class StudyResolvers {
     async studyRoles(study: IStudy, _args: never, context) {
         try {
             return await this.permissionCore.getRolesOfStudy(context.req.user, study.id);
-        } catch (e) {
-            return GraphQLErrorDecroator(e as CoreError);
+        } catch {
+            return [];
         }
     }
 
@@ -117,9 +118,15 @@ export class StudyResolvers {
             return files.map(el => {
                 return {
                     ...el,
-                    fileSize: el.fileSize.toString(),
-                    uploadTime: el.life.createdTime.toString(),
-                    uploadedBy: el.life.createdUser
+                    fileSize: el.fileSize?.toString(),
+                    uploadTime: el.life?.createdTime.toString(),
+                    uploadedBy: el.life?.createdUser,
+                    description: el.properties?.['subjectId'] ? JSON.stringify({
+                        participantId: el.properties?.['subjectId'] ?? '',
+                        deviceId: el.properties?.['deviceId'] ?? '',
+                        startDate: el.properties?.['startDate'] ?? '',
+                        endDate: el.properties?.['endDate'] ?? ''
+                    }) : el.description
                 };
             });
         } catch (__unused__exception) {

@@ -40,8 +40,8 @@ const CreateFieldInputSchema = z.object({
     categoricalOptions: z.optional(z.array(ZCategoricalOption)),
     unit: z.optional(z.string()),
     comments: z.optional(z.string()),
-    verifier: z.optional(z.array(z.array(ZValueVerifier))), // Ensure this matches your interface
-    properties: z.optional(z.array(ZFieldProperty)) // Ensure this matches your interface
+    verifier: z.optional(z.array(z.array(ZValueVerifier))),
+    properties: z.optional(z.array(ZFieldProperty))
 });
 
 const EditFieldInputSchema = CreateFieldInputSchema;
@@ -283,24 +283,79 @@ export class DataRouter {
              * @param studyId - The id of the study.
              * @param versionId - The id of the data version. By default not specified for the latest version.
              * @param fieldIds - The list of fields to return.
-             * @param aggregation - The aggregation pipeline. Used for data post preocessing.
-             * @param useCache - Whether to use fetch the data from cache.
-             * @param forceUpdate - Whether to update the cache with the results from this call.
-             * @param readable - Whether to return the readable stream.
              *
              * @return IFile[] - The list of objects of IFile.
              */
             getFiles: this.baseProcedure.input(z.object({
                 studyId: z.string(),
                 versionId: z.optional(z.string()),
-                fieldIds: z.optional(z.array(z.string()))
+                fieldIds: z.optional(z.array(z.string())),
+                readable: z.optional(z.boolean()),
+                useCache: z.optional(z.boolean()),
+                forceUpdate: z.optional(z.boolean())
             })).query(async (opts) => {
                 return await this.dataCore.getStudyFiles(
                     opts.ctx.req.user,
                     opts.input.studyId,
                     opts.input.fieldIds,
-                    opts.input.versionId
+                    opts.input.versionId,
+                    opts.input.readable,
+                    opts.input.useCache,
+                    opts.input.forceUpdate
                 );
+            }),
+            /**
+             * Get the latest files of a study.
+             *
+             * @param studyId - The id of the study.
+             * @param versionId - The id of the data version. By default not specified for the latest version.
+             * @param fieldIds - The list of fields to return.
+             *
+             * @return IFile[] - The list of objects of IFile.
+             */
+            getFilesLatest: this.baseProcedure.input(z.object({
+                studyId: z.string(),
+                versionId: z.optional(z.string()),
+                fieldIds: z.optional(z.array(z.string())),
+                readable: z.optional(z.boolean()),
+                useCache: z.optional(z.boolean()),
+                forceUpdate: z.optional(z.boolean())
+            })).query(async (opts) => {
+                return await this.dataCore.getStudyFilesLatest(
+                    opts.ctx.req.user,
+                    opts.input.studyId,
+                    opts.input.fieldIds,
+                    opts.input.versionId,
+                    opts.input.readable,
+                    opts.input.useCache,
+                    opts.input.forceUpdate
+                );
+            }),
+            /**
+             * Get the file of a study.
+             *
+             * @param fileId - The id of the file.
+             *
+             * @return IFile - The object of IFile.
+             */
+            deleteFile: this.baseProcedure.input(z.object({
+                fileId: z.string()
+            })).mutation(async (opts) => {
+                return await this.dataCore.deleteFile(opts.ctx.req.user, opts.input.fileId);
+            }),
+            /**
+             * Get the summary of a study.
+             *
+             * @param studyId - The id of the study.
+             *
+             * @return The object of IStudySummary.
+             */
+            getStudyDataSummary: this.baseProcedure.input(z.object({
+                studyId: z.string(),
+                useCache: z.optional(z.boolean()),
+                forceUpdate: z.optional(z.boolean())
+            })).query(async (opts) => {
+                return await this.dataCore.getStudySummary(opts.ctx.req.user, opts.input.studyId, opts.input.useCache, opts.input.forceUpdate);
             })
         });
     }

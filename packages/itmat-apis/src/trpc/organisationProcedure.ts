@@ -38,7 +38,7 @@ export class OrganisationRouter {
              */
             createOrganisation: this.baseProcedure.input(z.object({
                 name: z.string(),
-                shortname: z.string(),
+                shortname: z.optional(z.string()),
                 files: z.optional(z.object({
                     profile: z.optional(z.array(FileUploadSchema))
                 }))

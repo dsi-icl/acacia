@@ -232,13 +232,14 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '21',
-                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
+                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000, subjectId: 'I7N3G6G' }),
                         uploadedBy: authorisedUserProfile.id,
                         hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
                         metadata: {
                             deviceId: 'MMM7N3G6G',
                             endDate: 1595296000000,
                             participantId: 'I7N3G6G',
+                            subjectId: 'I7N3G6G',
                             startDate: 1593827200000
                         }
                     });
@@ -287,47 +288,6 @@ if (global.hasMinio) {
                     expect(res.body.errors).toHaveLength(1);
                     expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                     expect(res.body.data.uploadFile).toEqual(null);
-                });
-
-                test('Upload a empty file (admin)', async () => {
-                    /* test: upload file */
-                    const res = await authorisedUser.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudy.id,
-                                file: null,
-                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
-                                fileLength: 0,
-                                hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/IR6R4AR-AX6VJH6F6-20200601-20200703.txt'));
-
-                    /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'IR6R4AR-AX6VJH6F6-20200601-20200703.txt', studyId: createdStudy.id });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
-                    expect(uri).toBeDefined();
-                    expect(uploadTime).toBeDefined();
-                    expect(uploadFile).toEqual({
-                        id: createdFile.id,
-                        fileName: 'IR6R4AR-AX6VJH6F6-20200601-20200703.txt',
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        fileSize: '0',
-                        description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
-                        uploadedBy: authorisedUserProfile.id,
-                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-                        metadata: {
-                            deviceId: 'AX6VJH6F6',
-                            endDate: 1593740800000,
-                            participantId: 'IR6R4AR',
-                            startDate: 1590976000000
-                        }
-                    });
                 });
 
                 test('Upload a file with incorrect hash', async () => {

@@ -358,7 +358,7 @@ export class DMPFileSystem extends webdav.FileSystem {
                     } else {
                         try {
                             const files = await this.dataCore.getStudyFiles(user, study.id);
-                            callback(undefined, files.map(el => el.fileName));
+                            callback(undefined, files.map(el => el.fileName ?? ''));
                             return;
                         } catch {
                             callback(new Error('Failed to get study files.'));

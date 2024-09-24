@@ -1,7 +1,7 @@
 import { CoreError, IData, IDataPermission, IField, IRole, IUserWithoutToken, enumCoreErrors, enumDataAtomicPermissions, enumStudyRoles, enumUserTypes, permissionString } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
 import { v4 as uuid } from 'uuid';
-import { makeGenericReponse } from '../utils';
+import { makeGenericResponse } from '../utils';
 
 export class PermissionCore {
     db: DBType;
@@ -45,13 +45,6 @@ export class PermissionCore {
         // if studyId is provided, only admins, study managers and user him/herself can see the roles
         // if studyId is not provided, only admins and user him/herself can see the roles
         if (studyId) {
-            const requesterRoles = await this.db.collections.roles_collection.find({ 'studyId': studyId, 'users': requester.id, 'life.deletedTime': null }).toArray();
-            if (requester.type !== enumUserTypes.ADMIN && requesterRoles.every(role => role.studyRole !== enumStudyRoles.STUDY_MANAGER) && requester.id !== userId) {
-                throw new CoreError(
-                    enumCoreErrors.NO_PERMISSION_ERROR,
-                    enumCoreErrors.NO_PERMISSION_ERROR
-                );
-            }
             return await this.db.collections.roles_collection.find({ 'studyId': studyId, 'users': userId, 'life.deletedTime': null }).toArray();
         } else {
             if (requester.type !== enumUserTypes.ADMIN && requester.id !== userId) {
@@ -102,12 +95,13 @@ export class PermissionCore {
      */
     public async checkFieldOrDataPermission(user: IUserWithoutToken, studyId: string, entry: Partial<IField> | Partial<IData>, permission: enumDataAtomicPermissions) {
         const roles = await this.getRolesOfUser(user, user.id, studyId);
+        let tag = true;
         for (const role of roles) {
             const dataPermissions = role.dataPermissions;
             for (const dataPermission of dataPermissions) {
                 for (const field of dataPermission.fields) {
                     if (!(new RegExp(field).test(String(entry.fieldId)))) {
-                        return false;
+                        tag = false;
                     }
                 }
                 if ('value' in entry && dataPermission.dataProperties) {
@@ -115,18 +109,21 @@ export class PermissionCore {
                         for (const property in dataPermission.dataProperties) {
                             for (const prop of dataPermission.dataProperties[property]) {
                                 if (!(new RegExp(prop).test(String(entry.properties[property])))) {
-                                    return false;
+                                    tag = false;
                                 }
                             }
                         }
                     }
                 }
                 if (!permissionString[permission].includes(dataPermission.permission)) {
-                    return false;
+                    tag = false;
+                }
+                if (tag) {
+                    return true;
                 }
             }
         }
-        return true;
+        return false;
     }
 
     /**
@@ -270,6 +267,6 @@ export class PermissionCore {
             }
         });
 
-        return makeGenericReponse(roleId, true, undefined, 'Role deleted successfully.');
+        return makeGenericResponse(roleId, true, undefined, 'Role deleted successfully.');
     }
 }

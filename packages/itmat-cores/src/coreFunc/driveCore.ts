@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { FileCore } from './fileCore';
 import { UpdateFilter } from 'mongodb';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
-import { makeGenericReponse } from '../utils';
+import { makeGenericResponse } from '../utils';
 
 export class DriveCore {
     db: DBType;
@@ -698,7 +698,7 @@ export class DriveCore {
 
         await this.db.collections.drives_collection.insertMany(newDrivesForDatabase);
 
-        return makeGenericReponse(driveId, true, undefined, 'Drive copied successfully.');
+        return makeGenericResponse(driveId, true, undefined, 'Drive copied successfully.');
     }
     /**
      * Delete a file node.

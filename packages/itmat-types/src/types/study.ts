@@ -13,7 +13,6 @@ export interface IStudy extends IBase {
     dataVersions: IStudyDataVersion[];
     description?: string;
     profile?: string;
-    ontologyTrees?: IOntologyTree[];
 }
 
 export interface IStudyDataVersion extends IBase {
@@ -65,7 +64,7 @@ export interface IOntologyTree {
     name: string,
     dataVersion: string | null,
     routes?: IOntologyRoute[],
-    metadata?: JSON,
+    metadata?: Record<string, unknown>,
     deleted: number
 }
 

@@ -40,9 +40,7 @@ import {
     IRole,
     IData,
     enumFileTypes,
-    enumFileCategories,
-    enumConfigType,
-    enumReservedUsers
+    enumFileCategories
 } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 import { objStore } from '../../src/objStore/objStore';
@@ -520,8 +518,8 @@ if (global.hasMinio) {
                             dataVersion: mockDataVersion.id,
                             value: 'male',
                             properties: {
-                                m_subjectId: 'mock_patient1',
-                                m_visitId: 'mockvisitId'
+                                subjectId: 'mock_patient1',
+                                visitId: 'mockvisitId'
                             },
                             life: {
                                 createdTime: 10000,
@@ -538,8 +536,8 @@ if (global.hasMinio) {
                             dataVersion: mockDataVersion.id,
                             value: 'England',
                             properties: {
-                                m_subjectId: 'mock_patient1',
-                                m_visitId: 'mockvisitId'
+                                subjectId: 'mock_patient1',
+                                visitId: 'mockvisitId'
                             },
                             life: {
                                 createdTime: 10001,
@@ -556,8 +554,8 @@ if (global.hasMinio) {
                             dataVersion: mockDataVersion.id,
                             value: 'female',
                             properties: {
-                                m_subjectId: 'mock_patient2',
-                                m_visitId: 'mockvisitId'
+                                subjectId: 'mock_patient2',
+                                visitId: 'mockvisitId'
                             },
                             life: {
                                 createdTime: 10002,
@@ -574,8 +572,8 @@ if (global.hasMinio) {
                             dataVersion: mockDataVersion.id,
                             value: 'France',
                             properties: {
-                                m_subjectId: 'mock_patient2',
-                                m_visitId: 'mockvisitId'
+                                subjectId: 'mock_patient2',
+                                visitId: 'mockvisitId'
 
                             },
                             life: {
@@ -630,10 +628,10 @@ if (global.hasMinio) {
                             dataType: enumDataTypes.STRING,
                             categoricalOptions: [],
                             properties: [{
-                                name: 'm_subjectId',
+                                name: 'subjectId',
                                 required: true
                             }, {
-                                name: 'm_visitId',
+                                name: 'visitId',
                                 required: true
                             }],
                             unit: 'person',
@@ -655,10 +653,10 @@ if (global.hasMinio) {
                             dataType: enumDataTypes.STRING,
                             categoricalOptions: [],
                             properties: [{
-                                name: 'm_subjectId',
+                                name: 'subjectId',
                                 required: true
                             }, {
-                                name: 'm_visitId',
+                                name: 'visitId',
                                 required: true
                             }],
                             unit: 'person',
@@ -740,31 +738,6 @@ if (global.hasMinio) {
                     await db.collections.field_dictionary_collection.insertMany(mockFields);
                     await db.collections.files_collection.insertMany(mockFiles);
                     await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, { $set: { currentDataVersion: 0, dataVersions: [mockDataVersion] } });
-
-                    await db.collections.configs_collection.insertOne({
-                        type: enumConfigType.STUDYCONFIG,
-                        key: createdStudy.id,
-                        properties: {
-                            id: uuid(),
-                            life: {
-                                createdTime: Date.now(),
-                                createdUser: enumReservedUsers.SYSTEM,
-                                deletedTime: null,
-                                deletedUser: null
-                            },
-                            metadata: {},
-                            defaultStudyProfile: null,
-                            defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
-                            defaultRepresentationForMissingValue: '99999',
-                            defaultFileColumns: [],
-                            defaultFileColumnsPropertyColor: 'black',
-                            defaultFileDirectoryStructure: {
-                                pathLabels: [],
-                                description: null
-                            },
-                            defaultVersioningKeys: []
-                        }
-                    });
                 }
 
                 /* setup: creating a privileged user */
@@ -825,7 +798,6 @@ if (global.hasMinio) {
                 await db.collections.field_dictionary_collection.deleteMany({});
                 await db.collections.files_collection.deleteMany({});
                 await db.collections.roles_collection.deleteMany({});
-                await db.collections.projects_collection.deleteMany({});
                 await db.collections.configs_collection.deleteMany({});
             });
 
@@ -836,7 +808,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe('Study does not exist.');
+                expect(res.body.errors[0].message).toBe('No permission to access the study.');
                 expect(res.body.data.getStudy).toBe(null);
             });
 
@@ -892,7 +864,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.errors[0].message).toBe('No permission to access the study.');
                 expect(res.body.data.getStudy).toBe(null);
             });
 
@@ -1589,10 +1561,10 @@ if (global.hasMinio) {
                         dataType: enumDataTypes.INTEGER,
                         categoricalOptions: [],
                         properties: [{
-                            name: 'm_subjectId',
+                            name: 'subjectId',
                             required: true
                         }, {
-                            name: 'm_visitId',
+                            name: 'visitId',
                             required: true
                         }],
                         unit: 'person',
@@ -1614,10 +1586,10 @@ if (global.hasMinio) {
                         dataType: enumDataTypes.STRING,
                         categoricalOptions: [],
                         properties: [{
-                            name: 'm_subjectId',
+                            name: 'subjectId',
                             required: true
                         }, {
-                            name: 'm_visitId',
+                            name: 'visitId',
                             required: true
                         }],
                         unit: 'person',
@@ -1639,10 +1611,10 @@ if (global.hasMinio) {
                         dataType: enumDataTypes.FILE,
                         categoricalOptions: [],
                         properties: [{
-                            name: 'm_subjectId',
+                            name: 'subjectId',
                             required: true
                         }, {
-                            name: 'm_visitId',
+                            name: 'visitId',
                             required: true
                         }],
                         unit: 'person',
@@ -1694,30 +1666,6 @@ if (global.hasMinio) {
                         }]
                     }
                 });
-                await db.collections.configs_collection.insertOne({
-                    type: enumConfigType.STUDYCONFIG,
-                    key: createdStudy.id,
-                    properties: {
-                        id: uuid(),
-                        life: {
-                            createdTime: Date.now(),
-                            createdUser: enumReservedUsers.SYSTEM,
-                            deletedTime: null,
-                            deletedUser: null
-                        },
-                        metadata: {},
-                        defaultStudyProfile: null,
-                        defaultMaximumFileSize: 8 * 1024 * 1024 * 1024, // 8 GB,
-                        defaultRepresentationForMissingValue: '99999',
-                        defaultFileColumns: [],
-                        defaultFileColumnsPropertyColor: 'black',
-                        defaultFileDirectoryStructure: {
-                            pathLabels: [],
-                            description: null
-                        },
-                        defaultVersioningKeys: []
-                    }
-                });
             });
 
             afterAll(async () => {
@@ -1728,7 +1676,6 @@ if (global.hasMinio) {
                 await db.collections.users_collection.deleteMany({});
                 await db.collections.files_collection.deleteMany({});
                 await db.collections.roles_collection.deleteMany({});
-                await db.collections.projects_collection.deleteMany({});
             });
 
             beforeEach(async () => {

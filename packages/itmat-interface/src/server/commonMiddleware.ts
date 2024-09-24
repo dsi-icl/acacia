@@ -1,6 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { GraphQLError } from 'graphql';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { userRetrieval } from '@itmat-broker/itmat-cores';
 import { db } from '../database/database';
 
@@ -13,18 +11,23 @@ export const tokenAuthentication = async (token: string) => {
         if (decodedPayload !== null && typeof decodedPayload === 'object') {
             pubkey = decodedPayload['publicKey'];
         } else {
-            throw new GraphQLError('JWT verification failed. ', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+            return false;
         }
 
         // verify the JWT
         jwt.verify(token, pubkey, function (error) {
             if (error) {
-                throw new GraphQLError('JWT verification failed. ' + error, { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
+                return false;
             }
+            return true;
         });
         // store the associated user with the JWT to context
-        const associatedUser = await userRetrieval(db, pubkey);
-        return associatedUser;
+        try {
+            const associatedUser = await userRetrieval(db, pubkey);
+            return associatedUser;
+        } catch {
+            return false;
+        }
     } else {
         return null;
     }

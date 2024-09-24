@@ -25,13 +25,6 @@ const collections = {
             { key: { 'name': 1, 'life.deletedTime': 1 }, unique: true }
         ]
     },
-    projects_collection: {
-        name: 'PROJECT_COLLECTION',
-        indexes: [
-            { key: { id: 1 }, unique: true },
-            { key: { name: 1, studyId: 1, deleted: 1 }, unique: true }
-        ]
-    },
     queries_collection: {
         name: 'QUERY_COLLECTION',
         indexes: [
@@ -54,15 +47,14 @@ const collections = {
     roles_collection: {
         name: 'ROLE_COLLECTION',
         indexes: [
-            { key: { id: 1 }, unique: true },
-            { key: { 'name': 1, 'studyId': 1, 'life.createdTime': 1 }, unique: true }
+            { key: { id: 1 }, unique: true }
         ]
     },
     field_dictionary_collection: {
         name: 'FIELD_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { 'studyId': 1, 'fieldId': 1, 'life.createdTime': 1, 'life.deletedTime': 1, 'properties': 1 }, unique: true }
+            { key: { 'studyId': 1, 'fieldId': 1, 'life.createdTime': 1, 'life.deletedTime': 1, 'properties': 1, 'dataVersion': 1 }, unique: true }
         ]
     },
     files_collection: {
@@ -141,6 +133,13 @@ const collections = {
         name: 'DOC_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true }
+        ]
+    },
+    webauthn_collection: {
+        name: 'WEBAUTHN_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { userId: 1 }, unique: false }
         ]
     }
 };

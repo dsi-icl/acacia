@@ -1,29 +1,50 @@
 import { FunctionComponent, useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { GET_ORGANISATIONS, CREATE_USER } from '@itmat-broker/itmat-models';
 import { IOrganisation } from '@itmat-broker/itmat-types';
-import { Input, Form, Button, Alert, Checkbox, Select } from 'antd';
+import { Input, Form, Button, Alert, Checkbox, Select, Image } from 'antd';
 import css from './login.module.css';
+import { trpc } from '../../utils/trpc';
+import LoadSpinner from '../reusable/loadSpinner';
 
 export const RegisterNewUser: FunctionComponent = () => {
     const navigate = useNavigate();
     const [completedCreation, setCompletedCreation] = useState(false);
-    const [createUser, { loading, error }] = useMutation(CREATE_USER,
-        { onCompleted: () => setCompletedCreation(true) }
-    );
+    const createUser = trpc.user.createUser.useMutation({
+        onSuccess: () => {
+            setCompletedCreation(true);
+        },
+        onError: () => {
+            return;
+        }
+    });
+
+    const getCurrentSubPath = trpc.domain.getCurrentSubPath.useQuery();
+    const getCurrentDomain = trpc.domain.getCurrentDomain.useQuery();
 
     // Get list of organisations from server
-    const { loading: getorgsloading, error: getorgserror, data: getorgsdata } = useQuery(GET_ORGANISATIONS);
-    if (getorgsloading) { return <p>Loading..</p>; }
-    if (getorgserror) { return <p>ERROR: please try again.</p>; }
-    const orgList: IOrganisation[] = getorgsdata.getOrganisations;
+    const getOrganisations = trpc.organisation.getOrganisations.useQuery({});
+
+    if (getCurrentSubPath.isLoading || getCurrentDomain.isLoading || getOrganisations.isLoading) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <LoadSpinner />
+            </div>
+        </>;
+    }
+    if (getCurrentSubPath.isError || getCurrentDomain.isError || getOrganisations.isError) {
+        return <>
+            An error occured.
+        </>;
+    }
+
+    const orgList: IOrganisation[] = getOrganisations.data;
 
     if (completedCreation) {
         return (
             <div className={css.login_wrapper}>
                 <div className={css.login_box}>
-                    <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
+                    <Image src={`${window.location.origin}/file/${getCurrentDomain.data?.logo}`} width={200} />
                     <h1>Registration Successful!</h1>
                     <br />
                     <div>
@@ -43,11 +64,11 @@ export const RegisterNewUser: FunctionComponent = () => {
     return (
         <div className={css.login_wrapper}>
             <div className={css.login_box}>
-                <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
+                <Image src={`${window.location.origin}/file/${getCurrentDomain.data?.logo}`} width={200} />
                 <h1>Register an Account</h1>
                 <br />
                 <div>
-                    <Form layout='vertical' onFinish={(variables) => { createUser({ variables }).catch(() => { return; }); }}>
+                    <Form layout='vertical' onFinish={(variables) => { createUser.mutate(variables); }}>
                         <Form.Item name='username' hasFeedback rules={[{ required: true, message: 'Please enter a username' }]}>
                             <Input placeholder='Username' />
                         </Form.Item>
@@ -86,10 +107,9 @@ export const RegisterNewUser: FunctionComponent = () => {
                         <Form.Item name='emailNotificationsActivated' valuePropName='checked'>
                             Subscribe to email notifications <Checkbox />
                         </Form.Item>
-                        {error ? (
+                        {createUser.isError ? (
                             <>
-                                <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
-                                <Alert type='error' message={error.networkError?.message} />
+                                <Alert type='error' message={createUser.error.message} />
                                 <br />
                             </>
                         ) : null}
@@ -100,7 +120,7 @@ export const RegisterNewUser: FunctionComponent = () => {
                                 Cancel
                             </Button>
                             &nbsp;&nbsp;&nbsp;
-                            <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                            <Button type='primary' disabled={createUser.isLoading} loading={createUser.isLoading} htmlType='submit'>
                                 Create
                             </Button>
                         </Form.Item>

@@ -1,10 +1,9 @@
-import { CoreError, FileUpload, IDomain, IUserWithoutToken, enumCoreErrors, enumFileCategories, enumFileTypes, enumRequestErrorCodes, enumUserTypes } from '@itmat-broker/itmat-types';
-import { TRPCError } from '@trpc/server';
+import { CoreError, FileUpload, IDomain, IUserWithoutToken, enumCoreErrors, enumFileCategories, enumFileTypes, enumUserTypes } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
 import { FileCore } from './fileCore';
 import { Filter, UpdateFilter } from 'mongodb';
-import { makeGenericReponse } from '../utils';
+import { makeGenericResponse } from '../utils';
 
 
 export class DomainCore {
@@ -39,7 +38,9 @@ export class DomainCore {
             );
         }
 
-        const obj: Filter<IDomain> = {};
+        const obj: Filter<IDomain> = {
+            'life.deletedTime': null
+        };
         if (domainId) {
             obj.id = domainId;
         }
@@ -51,6 +52,26 @@ export class DomainCore {
         }
 
         return (await this.db.collections.domains_collection.find(obj).toArray()) as IDomain[];
+    }
+
+    /**
+     * Get the domain of an endpoint. Note this is a helper function for not logged in users.
+     *
+     * @param endpoint - The endpoint.
+     *
+     * @returns The domain object.
+     */
+    public async getCurrentDomain(opts) {
+        const endpoint = await this.getCurrentSubPath(opts);
+        if (!endpoint) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Domain does not exist.'
+            );
+        }
+        return await this.db.collections.domains_collection.findOne({
+            domainPath: { $regex: new RegExp(`^${endpoint}$`, 'i') }
+        });
     }
 
     /**
@@ -81,19 +102,19 @@ export class DomainCore {
 
         const domain = await this.db.collections.domains_collection.findOne({ 'domainPath': domainPath, 'life.deletedTime': null });
         if (domain) {
-            throw new TRPCError({
-                code: enumRequestErrorCodes.BAD_REQUEST,
-                message: 'Domain already exists.'
-            });
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Domain already exists.'
+            );
         }
         let fileEntry;
 
         if (logo) {
             if (!Object.keys(enumFileTypes).includes((logo?.filename?.split('.').pop() || '').toUpperCase())) {
-                throw new TRPCError({
-                    code: enumRequestErrorCodes.BAD_REQUEST,
-                    message: 'File type not supported.'
-                });
+                throw new CoreError(
+                    enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                    'File type not supported.'
+                );
             }
             fileEntry = await this.fileCore.uploadFile(requester, null, null, logo, enumFileTypes[(logo.filename.split('.').pop() || '').toUpperCase() as keyof typeof enumFileTypes], enumFileCategories.DOMAIN_FILE);
         }
@@ -133,29 +154,29 @@ export class DomainCore {
 
         const domain = await this.db.collections.domains_collection.findOne({ 'id': domainId, 'life.deletedTime': null });
         if (!domain) {
-            throw new TRPCError({
-                code: enumRequestErrorCodes.BAD_REQUEST,
-                message: 'Domain does not exist.'
-            });
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Domain does not exist.'
+            );
         }
 
         if (domainPath) {
             const domainWithSamePath = await this.db.collections.domains_collection.findOne({ 'domainPath': domainPath, 'life.deletedTime': null });
             if (domainWithSamePath && domainWithSamePath.id !== domainId) {
-                throw new TRPCError({
-                    code: enumRequestErrorCodes.BAD_REQUEST,
-                    message: 'Domain path already exists.'
-                });
+                throw new CoreError(
+                    enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                    'Domain path already exists.'
+                );
             }
         }
 
         let fileEntry;
         if (logo) {
             if (!Object.keys(enumFileTypes).includes((logo?.filename?.split('.').pop() || '').toUpperCase())) {
-                throw new TRPCError({
-                    code: enumRequestErrorCodes.BAD_REQUEST,
-                    message: 'File type not supported.'
-                });
+                throw new CoreError(
+                    enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                    'File type not supported.'
+                );
             }
             fileEntry = await this.fileCore.uploadFile(requester, null, null, logo, enumFileTypes[(logo.filename.split('.').pop() || '').toUpperCase() as keyof typeof enumFileTypes], enumFileCategories.DOMAIN_FILE);
         }
@@ -177,7 +198,7 @@ export class DomainCore {
         await this.db.collections.domains_collection.findOneAndUpdate({ id: domain.id }, {
             $set: updateObj
         });
-        return makeGenericReponse(domainId, true, undefined, `Domain ${domain.name} has been updated`);
+        return makeGenericResponse(domainId, true, undefined, `Domain ${domain.name} has been updated`);
     }
 
     /**
@@ -205,26 +226,31 @@ export class DomainCore {
 
         const domain = await this.db.collections.domains_collection.findOne({ 'id': domainId, 'life.deletedTime': null });
         if (!domain) {
-            throw new TRPCError({
-                code: enumRequestErrorCodes.BAD_REQUEST,
-                message: 'Domain does not exist.'
-            });
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Domain does not exist.'
+            );
         }
 
         await this.db.collections.domains_collection.findOneAndUpdate({ id: domain.id }, {
             $set: {
-                'life.deletedUser': requester,
+                'life.deletedUser': requester.id,
                 'life.deletedTime': Date.now()
             }
         });
         if (domain.logo) {
             await this.db.collections.files_collection.findOneAndUpdate({ id: domain.logo }, {
                 $set: {
-                    'life.deletedUser': requester,
+                    'life.deletedUser': requester.id,
                     'life.deletedTime': Date.now()
                 }
             });
         }
-        return makeGenericReponse(domainId, true, undefined, `Domain ${domain.name} has been deleted`);
+        return makeGenericResponse(domainId, true, undefined, `Domain ${domain.name} has been deleted`);
+    }
+
+    public async getCurrentSubPath(opts) {
+        const req = opts.ctx.req;
+        return req.hostname ?? null;
     }
 }

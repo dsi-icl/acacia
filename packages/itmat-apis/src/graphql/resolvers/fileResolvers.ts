@@ -50,7 +50,12 @@ export class FileResolvers {
             );
         } else {
             try {
-                const res = await this.dataCore.uploadFileData(context.req.user, args.studyId, await args.file, targetFieldId, args.description);
+                // We need to rename the properties to fit for the new V3 naming
+                const description = {
+                    ...parsedDescription,
+                    subjectId: parsedDescription['participantId']
+                };
+                const res = await this.dataCore.uploadFileData(context.req.user, args.studyId, await args.file, targetFieldId, JSON.stringify(description));
                 const fileEntry = await this.db.collections.files_collection.findOne({ id: res.id });
                 if (args.fileLength) {
                     if (args.fileLength.toString() !== fileEntry?.fileSize.toString()) {

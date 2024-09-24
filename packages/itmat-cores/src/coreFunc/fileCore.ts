@@ -3,8 +3,9 @@ import { v4 as uuid } from 'uuid';
 import crypto from 'crypto';
 import { DBType } from '../database/database';
 import { ObjectStore } from '@itmat-broker/itmat-commons';
-import { makeGenericReponse } from '../utils';
-import { PassThrough } from 'stream';
+import { makeGenericResponse } from '../utils';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { PassThrough, Readable } from 'stream';
 
 /**
  * This class provides methods to interact with files.
@@ -103,20 +104,55 @@ export class FileCore {
         const fileUri = uuid();
         const hash = crypto.createHash('sha256');
         const stream = fileUpload.createReadStream();
+        let fileSize = 0;
+        const MAX_CHUNK_SIZE = 64 * 1024; // 64KB, adjust this value if necessary
+
+        // Array to store the chunks temporarily
         const chunks: Buffer[] = [];
 
         return new Promise<IFile>((resolve, reject) => {
-            let fileSize = 0;
-
             stream.on('data', (chunk: Buffer) => {
-                hash.update(chunk);
-                chunks.push(chunk);
-                fileSize += chunk.length;
+                try {
+                    fileSize += chunk.length;
+
+                    if (fileSize > fileSizeLimit) {
+                        stream.destroy(new CoreError(
+                            enumCoreErrors.UNQUALIFIED_ERROR,
+                            'File size exceeds the limit.'
+                        ));
+                    }
+
+                    // Store the chunk
+                    chunks.push(chunk);
+
+                    // Manually break down large chunks
+                    for (let i = 0; i < chunk.length; i += MAX_CHUNK_SIZE) {
+                        const subChunk = chunk.slice(i, i + MAX_CHUNK_SIZE);
+                        hash.update(subChunk);
+                    }
+
+                } catch (err) {
+                    reject(new CoreError(
+                        enumCoreErrors.FILE_STREAM_ERROR,
+                        'Error updating hash: ' + (err as Error).message
+                    ));
+                }
             });
 
             stream.on('end', () => {
-                this.processFileChunks(chunks, hash, fileSize, fileSizeLimit, fileUpload, defaultFileBucketId, fileUri, requester, studyId, userId, fileType, fileCategory, description, properties)
-                    .then(fileEntry => resolve(fileEntry))
+                const hashString = hash.digest('hex');
+
+                // Create a single stream from the stored chunks
+                const combinedStream = new Readable();
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                combinedStream._read = () => { }; // _read is required but you can noop it
+                combinedStream.push(Buffer.concat(chunks));
+                combinedStream.push(null); // Indicate end of stream
+
+                this.handleFileUpload(
+                    fileSize, fileSizeLimit, combinedStream, hashString, fileUpload, defaultFileBucketId,
+                    fileUri, requester, studyId, userId, fileType, fileCategory, description, properties
+                ).then(fileEntry => resolve(fileEntry))
                     .catch(error => reject(error));
             });
 
@@ -129,33 +165,10 @@ export class FileCore {
         });
     }
 
-    private async processFileChunks(
-        chunks: Buffer[],
-        hash: crypto.Hash,
-        fileSize: number,
-        fileSizeLimit: number,
-        fileUpload: FileUpload,
-        defaultFileBucketId: string,
-        fileUri: string,
-        requester: IUserWithoutToken,
-        studyId: string | null,
-        userId: string | null,
-        fileType: enumFileTypes,
-        fileCategory: enumFileCategories,
-        description?: string,
-        properties?: Record<string, unknown>
-    ): Promise<IFile> {
-        const buffer = Buffer.concat(chunks);
-        const hashString = hash.digest('hex');
-        const stream = new PassThrough();
-        stream.end(buffer);
-        return this.handleFileUpload(fileSize, fileSizeLimit, stream, hashString, fileUpload, defaultFileBucketId, fileUri, requester, studyId, userId, fileType, fileCategory, description, properties);
-    }
-
     private async handleFileUpload(
         fileSize: number,
         fileSizeLimit: number,
-        stream: PassThrough,
+        stream: Readable,
         hashString: string,
         fileUpload: FileUpload,
         defaultFileBucketId: string,
@@ -228,7 +241,7 @@ export class FileCore {
         }
         try {
             await this.db.collections.files_collection.findOneAndUpdate({ id: fileId }, { $set: { 'life.deletedTime': Date.now().valueOf(), 'life.deletedUser': requester } });
-            return makeGenericReponse(fileId, undefined, undefined, 'File has been deleted.');
+            return makeGenericResponse(fileId, undefined, undefined, 'File has been deleted.');
         } catch {
             throw new CoreError(
                 enumCoreErrors.DATABASE_ERROR,

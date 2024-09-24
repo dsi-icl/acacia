@@ -3,7 +3,7 @@ import { CoreError, FileUpload, IFile, IOrganisation, IUserWithoutToken, enumCor
 import { DBType } from '../database/database';
 import { FileCore } from './fileCore';
 import { UpdateFilter } from 'mongodb';
-import { makeGenericReponse } from '../utils';
+import { makeGenericResponse } from '../utils';
 
 export class OrganisationCore {
     db: DBType;
@@ -22,13 +22,6 @@ export class OrganisationCore {
      * @returns - IOrganisation[]
      */
     public async getOrganisations(requester: IUserWithoutToken | undefined, organisationId?: string) {
-        if (!requester) {
-            throw new CoreError(
-                enumCoreErrors.NOT_LOGGED_IN,
-                enumCoreErrors.NOT_LOGGED_IN
-            );
-        }
-
         return organisationId ? await this.db.collections.organisations_collection.find({ 'id': organisationId, 'life.deletedTime': null }).toArray() : await this.db.collections.organisations_collection.find({ 'life.deletedTime': null }).toArray();
     }
 
@@ -157,7 +150,7 @@ export class OrganisationCore {
 
         await this.db.collections.organisations_collection.updateOne({ id: organisationId }, { $set: updateFilter });
 
-        return makeGenericReponse(organisationId, true, undefined, 'Organisation updated successfully.');
+        return makeGenericResponse(organisationId, true, undefined, 'Organisation updated successfully.');
     }
 
     /**
@@ -193,6 +186,6 @@ export class OrganisationCore {
 
         await this.db.collections.organisations_collection.updateOne({ id: organisationId }, { $set: { 'life.deletedTime': Date.now(), 'life.deletedUser': requester.id } });
 
-        return makeGenericReponse(organisationId, true, undefined, 'Organisation deleted successfully.');
+        return makeGenericResponse(organisationId, true, undefined, 'Organisation deleted successfully.');
     }
 }

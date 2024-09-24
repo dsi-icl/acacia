@@ -6,5 +6,5 @@ export interface IGenericResponse {
 }
 
 export enum enumReservedKeys {
-    STUDY_LEVEL_DATA = 'STUDY_LEVEL_DATA'
+    STUDY_LEVEL_DATA = 'reserved_study_level_data'
 }

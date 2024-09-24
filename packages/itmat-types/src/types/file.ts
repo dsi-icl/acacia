@@ -27,11 +27,14 @@ export enum enumFileTypes {
     JSON = 'JSON',
     PDF = 'PDF',
     DOCX = 'DOCX',
+    XLSX = 'XLSX',
+    XLS = 'XLS',
     // images
     JPG = 'JPG',
     JPEG = 'JPEG',
     PNG = 'PNG',
     WEBP = 'WEBP',
+    GIF = 'GIF',
     // videos
     MP4 = 'MP4',
     AVI = 'AVI'
