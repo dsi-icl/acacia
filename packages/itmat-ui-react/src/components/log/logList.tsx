@@ -1,6 +1,5 @@
 import { FunctionComponent } from 'react';
 import { List, Progress, Table, Tooltip } from 'antd';
-import 'react-quill/dist/quill.snow.css';
 import { trpc } from '../../utils/trpc';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ISystemConfig, IUserWithoutToken, enumConfigType } from '@itmat-broker/itmat-types';

@@ -1,6 +1,5 @@
 import { FunctionComponent, useState } from 'react';
 import { notification, Image, List, Table, Form, message, Button, Modal, Input } from 'antd';
-import 'react-quill/dist/quill.snow.css';
 import { trpc } from '../../utils/trpc';
 import LoadSpinner from '../reusable/loadSpinner';
 import dayjs from 'dayjs';

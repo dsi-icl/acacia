@@ -1,6 +1,5 @@
 import { FunctionComponent, useState } from 'react';
 import { Button, DatePicker, Form, Input, List, Modal, Progress, Select, Table, message } from 'antd';
-import 'react-quill/dist/quill.snow.css';
 import { trpc } from '../../utils/trpc';
 import LoadSpinner from '../reusable/loadSpinner';
 import { stringCompareFunc } from '../../utils/tools';
