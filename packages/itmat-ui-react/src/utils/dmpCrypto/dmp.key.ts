@@ -127,6 +127,7 @@ export class Key {
     }
 
     static async signwtRSAKey(message: string, privateKey: CryptoKey) {
+        console.log('inside signwtRSAKey start');
         const messageEncoded = Utils.toSupportedArray(message);
         const finalEncoded = await Utils.hash(messageEncoded);
         const signature = await crypto.subtle.sign(
@@ -137,6 +138,7 @@ export class Key {
             privateKey,
             finalEncoded
         );
+        console.log('inside signwtRSAKey', signature);
         return Utils.arrayBufferToBase64String(signature);
     }
 
@@ -236,7 +238,7 @@ export class Key {
             try {
                 decrypted = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv, tagLength: 128 }, aesKey, encrypted));
             }
-            catch (e) {
+            catch (__unused__exception) {
                 throw new Error(ErrorMessage[ErrorCodes.EINPASSWD]);
             }
 

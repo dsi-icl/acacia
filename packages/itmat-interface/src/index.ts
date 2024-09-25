@@ -5,7 +5,7 @@ import http from 'http';
 import ITMATInterfaceRunner from './interfaceRunner';
 import config from './utils/configManager';
 import { db } from './database/database';
-import { IUser, userTypes } from '@itmat-broker/itmat-types';
+import { IUser, enumUserTypes } from '@itmat-broker/itmat-types';
 import { mailer } from './emailer/emailer';
 
 let interfaceRunner = new ITMATInterfaceRunner(config);
@@ -69,7 +69,8 @@ function serverSpinning() {
             console.info(`Shuting down api server ${process.pid} ...`);
             interfaceRouter?.on('close', () => {
                 serverStart();
-            }) || serverStart();
+            });
+            serverStart();
         });
     } else {
         serverStart();
@@ -90,19 +91,15 @@ if (module.hot) {
 async function emailNotification() {
     const now = Date.now().valueOf();
     const threshold = now + 7 * 24 * 60 * 60 * 1000;
-    // update info if not set before
-    await db.collections.users_collection.updateMany({ deleted: null, emailNotificationsStatus: null }, {
-        $set: { emailNotificationsStatus: { expiringNotification: false } }
-    });
     const users = await db.collections.users_collection.find<IUser>({
         'expiredAt': {
             $lte: threshold,
             $gt: now
         },
-        'type': { $ne: userTypes.ADMIN },
+        'type': { $ne: enumUserTypes.ADMIN },
         'emailNotificationsActivated': true,
         'emailNotificationsStatus.expiringNotification': false,
-        'deleted': null
+        'life.deletedTime': null
     }).toArray();
     for (const user of users) {
         await mailer.sendMail({

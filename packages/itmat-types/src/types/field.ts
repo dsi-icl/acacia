@@ -1,37 +1,39 @@
-export interface IFieldEntry {
-    id: string;
+import { IBase } from './base';
+import { IValueVerifier } from './utils';
+
+export interface IField extends IBase {
     studyId: string;
-    fieldId: string;
     fieldName: string;
-    tableName?: string;
-    dataType: enumValueType;
-    possibleValues?: IValueDescription[] | null;
+    fieldId: string;
+    description?: string;
+    dataType: enumDataTypes;
+    categoricalOptions?: ICategoricalOption[];
     unit?: string;
     comments?: string;
-    metadata?: Record<string, unknown>;
-    dateAdded: number;
-    dateDeleted: number | null;
     dataVersion: string | null;
+    verifier?: IValueVerifier[][];
+    properties?: IFieldProperty[]; // mostly used for file data
 }
 
-export interface IValueDescription {
-    id: string;
+export interface IFieldProperty {
+    name: string;
+    verifier?: IValueVerifier[][];
+    description?: string;
+    required: boolean;
+}
+
+export enum enumDataTypes {
+    INTEGER = 'INTEGER',
+    DECIMAL = 'DECIMAL',
+    STRING = 'STRING',
+    BOOLEAN = 'BOOLEAN',
+    DATETIME = 'DATETIME',
+    FILE = 'FILE',
+    JSON = 'JSON',
+    CATEGORICAL = 'CATEGORICAL'
+}
+
+export interface ICategoricalOption extends IBase {
     code: string;
-    description: string
-}
-
-export enum enumItemType {
-    IMAGE = 'I',
-    CLINICAL = 'C'
-}
-
-export enum enumValueType {
-    INTEGER = 'int',
-    DECIMAL = 'dec',
-    STRING = 'str',
-    BOOLEAN = 'bool',
-    DATETIME = 'date',
-    FILE = 'file',
-    JSON = 'json',
-    CATEGORICAL = 'cat'
+    description: string;
 }

@@ -17,9 +17,10 @@ export class ObjectStore {
 
     public async isConnected(): Promise<boolean> {
         try {
-            this.client && await this.client.listBuckets();
+            if (this.client)
+                await this.client.listBuckets();
             return true;
-        } catch (e) {
+        } catch (__unused__exception) {
             return false;
         }
     }
@@ -43,41 +44,61 @@ export class ObjectStore {
         return await minioClient.listBuckets();
     }
 
-    public async uploadFile(fileStream: Readable, studyId: string, uri: string): Promise<string> {
+    public async uploadFile(fileStream: Readable, bucketId: string, uri: string, size?: number): Promise<string> {
         if (!this.client) {
             throw new Error('Connection failed.');
         }
-        const lowercasestudyid = studyId.toLowerCase();
-        const bucketExists = await this.client.bucketExists(lowercasestudyid);
-
+        const lowerCaseBucketId = bucketId.toLowerCase();
+        const bucketExists = await this.client.bucketExists(lowerCaseBucketId);
         if (!bucketExists) {
-            await this.client.makeBucket(lowercasestudyid, this.config?.bucketRegion ?? '');
+            await this.client.makeBucket(lowerCaseBucketId, this.config?.bucketRegion ?? '');
         }
 
         /* check if object already exists because if it does, minio supplant the old file without warning*/
         let fileExists;
         try {
-            await this.client.statObject(lowercasestudyid, uri);
+            await this.client.statObject(lowerCaseBucketId, uri);
             fileExists = true;
-        } catch (e) {
+        } catch (__unused__exception) {
             fileExists = false;
         }
 
         if (fileExists) {
-            throw new Error(`File "${uri}" of study "${studyId}" already exists.`);
+            throw new Error(`File "${uri}" of bucket "${bucketId}" already exists.`);
         }
-
-        const result = await this.client.putObject(lowercasestudyid, uri, fileStream);
+        const result = await this.client.putObject(lowerCaseBucketId, uri, fileStream, size);
         return result.etag;
     }
 
-    public async downloadFile(studyId: string, uri: string): Promise<Readable> {
+    public async copyObject(sourceBucket: string, sourceUri: string, targetBucket: string, targetUri: string) {
+        if (!this.client) {
+            throw new Error('Connection failed.');
+        }
+
+        const lowerSourceBucket = sourceBucket.toLowerCase();
+        const lowerTargetBucket = targetBucket.toLowerCase();
+
+        // Ensure target bucket exists
+        const bucketExists = await this.client.bucketExists(lowerTargetBucket);
+        if (!bucketExists) {
+            await this.client.makeBucket(lowerTargetBucket, this.config?.bucketRegion ?? '');
+        }
+        // Copy the object
+        const conds = new Minio.CopyConditions();
+        const result = await this.client.copyObject(lowerTargetBucket, targetUri, `/${lowerSourceBucket}/${sourceUri}`, conds);
+        if (Object.hasOwn(result, 'Etag'))
+            return (result as Record<string, unknown>)?.['Etag'];
+        else
+            return (result as Record<string, unknown>)?.['etag'];
+    }
+
+    public async downloadFile(buckerId: string, uri: string): Promise<Readable> {
         if (!this.client) {
             throw new Error('Connection failed.');
         }
         // PRECONDITION: studyId and file exists (checked by interface resolver)
-        const lowercasestudyid = studyId.toLowerCase();
-        const stream = this.client.getObject(lowercasestudyid, uri);
+        const lowerBuckerId = buckerId.toLowerCase();
+        const stream = this.client.getObject(lowerBuckerId, uri);
         return stream as Promise<Readable>;
     }
 }

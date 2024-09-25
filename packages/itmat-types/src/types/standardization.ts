@@ -1,5 +1,6 @@
-export interface IStandardization {
-    id: string,
+import { IBase } from './base';
+
+export interface IStandardization extends IBase {
     studyId: string,
     type: string,
     field: string[],
@@ -9,9 +10,6 @@ export interface IStandardization {
     // records with same path will be joined together
     joinByKeys?: string[],
     dataVersion: string | null,
-    uploadedAt: number,
-    metadata?: JSON,
-    deleted: number | null,
 }
 
 export enum StandardizationRuleSource {

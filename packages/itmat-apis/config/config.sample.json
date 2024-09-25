@@ -1,0 +1,56 @@
+{
+    "appName": "ITMAT Interface",
+    "database": {
+        "mongo_url": "mongodb://localhost:27017",
+        "database": "itmat",
+        "collections": {
+            "jobs_collection": "JOB_COLLECTION",
+            "users_collection": "USER_COLLECTION",
+            "organisations_collection": "ORGANISATION_COLLECTION",
+            "studies_collection": "STUDY_COLLECTION",
+            "projects_collection": "PROJECT_COLLECTION",
+            "queries_collection": "QUERY_COLLECTION",
+            "log_collection": "LOG_COLLECTION",
+            "data_collection": "DATA_COLLECTION",
+            "roles_collection": "ROLE_COLLECTION",
+            "field_dictionary_collection": "FIELD_COLLECTION",
+            "files_collection": "FILES_COLLECTION",
+            "sessions_collection": "SESSIONS_COLLECTION",
+            "pubkeys_collection": "PUBKEY_COLLECTION",
+            "standardizations_collection": "STANDARDIZATION_COLLECTION",
+            "configs_collection": "CONFIG_COLLECTION",
+            "ontologies_collection": "ONTOLOGY_COLLECTION",
+            "docs_collection": "DOC_COLLECTION",
+            "cache_collection": "CACHE_COLLECTION",
+            "drives_collection": "DRIVE_COLLECTION",
+            "colddata_collection": "COLDDATA_COLLECTION",
+            "domains_collection": "DOMAIN_COLLECTION"
+        }
+    },
+    "server": {
+        "port": 3333
+    },
+    "bcrypt": {
+        "saltround": 2
+    },
+    "objectStore": {
+        "host": "localhost",
+        "port": 8080,
+        "accessKey": "minioadmin",
+        "secretKey": "minioadmin",
+        "bucketRegion": "region",
+        "useSSL": false
+    },
+    "sessionsSecret": "Change_Me",
+    "aesSecret": "change_this",
+    "nodemailer": {
+        "auth": {
+            "user": "change_this",
+            "pass": "change_this"
+        }
+    },
+    "adminEmail": "admin@example.com",
+    "aeEndpoint": "http://localhost:9090",
+    "useWebdav": true,
+    "webdavPort": 1900
+}

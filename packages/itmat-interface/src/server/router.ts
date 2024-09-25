@@ -1,8 +1,6 @@
 import { ApolloServer } from '@apollo/server';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import { GraphQLError } from 'graphql';
 import { graphqlUploadExpress, GraphQLUpload } from 'graphql-upload-minimal';
 import { execute, subscribe } from 'graphql';
 import { WebSocketServer } from 'ws';
@@ -17,19 +15,21 @@ import rateLimit from 'express-rate-limit';
 import http from 'node:http';
 import passport from 'passport';
 import { db } from '../database/database';
-import { resolvers } from '../graphql/resolvers';
-import { typeDefs } from '../graphql/typeDefs';
 import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
-import jwt from 'jsonwebtoken';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
-import { IUser } from '@itmat-broker/itmat-types';
-import { ApolloServerContext } from '../graphql/ApolloServerContext';
-import { DMPContext } from '../graphql/resolvers/context';
+import { FileUploadSchema, IUser, IUserConfig, enumConfigType, enumUserTypes } from '@itmat-broker/itmat-types';
 import { logPluginInstance } from '../log/logPlugin';
-import { IConfiguration, spaceFixing, userRetrieval } from '@itmat-broker/itmat-cores';
+import { IConfiguration, spaceFixing } from '@itmat-broker/itmat-cores';
 import { userLoginUtils } from '../utils/userLoginUtils';
+import * as trpcExpress from '@trpc/server/adapters/express';
+import { tokenAuthentication } from './commonMiddleware';
+import multer from 'multer';
+import { Readable } from 'stream';
+import { z } from 'zod';
+import { ApolloServerContext, DMPContext, createtRPCContext, typeDefs } from '@itmat-broker/itmat-apis';
+import { APICalls } from './helper';
 
 export class Router {
     private readonly app: Express;
@@ -42,14 +42,34 @@ export class Router {
         this.config = config;
         this.app = express();
 
-        this.app.use(rateLimit({
-            windowMs: 1 * 60 * 1000,
-            max: 500
-        }));
-
         this.app.use(express.json({ limit: '50mb' }));
         this.app.use(express.urlencoded({ extended: true }));
 
+        this.app.use((req, res, next) => {
+            db.collections.configs_collection.findOne({
+                type: enumConfigType.SYSTEMCONFIG
+            })
+                .then(async () => {
+                    const availablePaths: string[] = (await db.collections.domains_collection.find({ 'life.deletedTime': null }).toArray()).map(el => el.domainPath);
+                    // Use a regular expression to match the first path segment after the initial '/'
+                    const pathMatch = req.url.match(/^\/([^/]+)/);
+                    // If there's a match and it's one of the known base paths, remove it from req.url
+                    if (pathMatch && availablePaths.includes(pathMatch[1])) {
+                        // Remove the matched segment from req.url
+                        req.url = req.url.substring(pathMatch[0].length);
+                        // Handle the special case where req.url becomes empty, which should default to '/'
+                        if (req.url === '') {
+                            req.url = '/';
+                        }
+                    }
+                    next();
+                })
+                .catch(err => {
+                    next(err);
+                });
+        });
+
+        this.app.set('trust proxy', 1);
 
         /* save persistent sessions in mongo */
         this.app.use(
@@ -76,6 +96,44 @@ export class Router {
         passport.serializeUser(userLoginUtils.serialiseUser);
         passport.deserializeUser(userLoginUtils.deserialiseUser);
 
+        this.app.use(rateLimit({
+            windowMs: 1 * 60 * 1000,
+            max: async function (req) {
+                const minimumQPS = 200;
+                let qps = minimumQPS;
+                if (req.user) {
+                    const userConfig = await db.collections.configs_collection.findOne({ type: enumConfigType.USERCONFIG, key: req.user.id });
+                    if (!userConfig) {
+                        qps = minimumQPS;
+                    } else {
+                        qps = (userConfig.properties as IUserConfig).defaultMaximumQPS ?? minimumQPS;
+                    }
+                }
+                if (req.user?.type === enumUserTypes.ADMIN) {
+                    qps = Math.max(qps, 1000);
+                }
+                return qps;
+            }
+        }));
+
+        // authentication middleware
+        this.app.use((req, res, next) => {
+            let token: string = req.headers.authorization || '';
+            if (token.startsWith('Bearer ')) {
+                token = token.slice(7);
+            }
+            tokenAuthentication(token)
+                .then((associatedUser) => {
+                    if (associatedUser) {
+                        req.user = associatedUser;
+                    }
+                    next();
+                })
+                .catch(() => {
+                    next();
+                });
+        });
+
         this.server = http.createServer({
             keepAlive: true,
             keepAliveInitialDelay: 0,
@@ -100,11 +158,13 @@ export class Router {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const _this = this;
 
+        const apiCalls = new APICalls();
+
         /* putting schema together */
         const schema = makeExecutableSchema({
             typeDefs,
             resolvers: {
-                ...resolvers,
+                ...apiCalls._listOfGraphqlResolvers(),
                 BigInt: scalarResolvers,
                 // This maps the `Upload` scalar to the implementation provided
                 // by the `graphql-upload` package.
@@ -128,6 +188,7 @@ export class Router {
                         };
                     },
                     async requestDidStart() {
+                        const startTime = Date.now();
                         return {
                             async executionDidStart(requestContext) {
                                 const operation = requestContext.operationName;
@@ -135,7 +196,8 @@ export class Router {
                                 requestContext.request.variables = operation ? spaceFixing(operation, actionData) : undefined;
                             },
                             async willSendResponse(requestContext) {
-                                await logPluginInstance.requestDidStartLogPlugin(requestContext);
+                                const executionTime = Date.now() - startTime;
+                                await logPluginInstance.requestDidStartLogPlugin(requestContext, startTime, executionTime);
                             }
                         };
                     }
@@ -156,11 +218,11 @@ export class Router {
             target: _this.config.aeEndpoint,
             ws: true,
             xfwd: true,
-            // logLevel: 'debug',
             autoRewrite: true,
             changeOrigin: true,
             on: {
                 proxyReq: function (preq, req: Request, res: Response) {
+                    preq.path = req.baseUrl + req.path;
                     if (!req.user)
                         return res.status(403).redirect('/');
                     res.cookie('ae_proxy', req.headers['host']);
@@ -189,7 +251,7 @@ export class Router {
                     const data = 'username:token';
                     preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
                 },
-                error: function (err, req, res, target) {
+                error: function (err, _req, _res, target) {
                     console.error(err, target);
                 }
             }
@@ -215,28 +277,6 @@ export class Router {
             graphqlUploadExpress(),
             expressMiddleware(gqlServer, {
                 context: async ({ req, res }): Promise<DMPContext> => {
-                    const token: string = req.headers.authorization || '';
-                    if ((token !== '') && (req.user === undefined)) {
-                        // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
-                        const decodedPayload = jwt.decode(token);
-                        // obtain the public-key of the robot user in the JWT payload
-                        let pubkey;
-                        if (decodedPayload !== null && typeof decodedPayload === 'object') {
-                            pubkey = decodedPayload['publicKey'];
-                        } else {
-                            throw new GraphQLError('JWT verification failed. ', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
-                        }
-
-                        // verify the JWT
-                        jwt.verify(token, pubkey, function (error) {
-                            if (error) {
-                                throw new GraphQLError('JWT verification failed. ' + error, { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
-                            }
-                        });
-                        // store the associated user with the JWT to context
-                        const associatedUser = await userRetrieval(db, pubkey);
-                        req.user = associatedUser;
-                    }
                     return ({ req, res });
                 }
             })
@@ -264,6 +304,62 @@ export class Router {
         //     }
         //     next();
         // });
+
+        // webdav
+        const webdav_proxy = createProxyMiddleware({
+            target: `http://localhost:${this.config.webdavPort}`,
+            changeOrigin: true,
+            pathRewrite: (path) => {
+                const rewrittenPath = path.replace(/^\/webdav/, '/');
+                return rewrittenPath;
+            }
+        });
+
+        this.app.use('/webdav', webdav_proxy as NativeRequestHandler);
+
+        // trpc
+        const upload = multer();
+        this.app.use(
+            '/trpc',
+            upload.any(), // Accept any field name for file uploads
+            (req, _res, next) => {
+                (async () => {
+                    try {
+                        if (req.files && req.files.length > 0) {
+                            const files = req.files || [];
+                            const transformedFiles: Record<string, z.infer<typeof FileUploadSchema>[]> = {};
+
+                            for (const file of files) {
+                                if (!transformedFiles[file.fieldname]) {
+                                    transformedFiles[file.fieldname] = [];
+                                }
+
+                                transformedFiles[file.fieldname].push({
+                                    createReadStream: () => {
+                                        const readableStream = new Readable();
+                                        // eslint-disable-next-line @typescript-eslint/no-empty-function
+                                        readableStream._read = () => { }; // No-op _read method
+                                        readableStream.push(file.buffer);
+                                        readableStream.push(null); // Signify the end of the stream
+                                        return readableStream;
+                                    },
+                                    filename: file.originalname,
+                                    mimetype: file.mimetype,
+                                    encoding: file.encoding,
+                                    fieldName: file.fieldname
+                                });
+                            }
+                            req.body.files = transformedFiles; // Attach the transformed files to the request body for later use
+                        }
+                        next();
+                    } catch (error) {
+                        next(error);
+                    }
+                })().catch(next);
+            }, trpcExpress.createExpressMiddleware({
+                router: apiCalls._listOfTRPCRouters(),
+                createContext: createtRPCContext
+            }));
 
         this.app.get('/file/:fileId', fileDownloadControllerInstance.fileDownloadController);
 

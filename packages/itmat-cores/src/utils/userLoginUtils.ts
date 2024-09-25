@@ -22,6 +22,6 @@ export class UserLoginUtils {
     }
 
     private async _getUser(username: string): Promise<IUserWithoutToken | null> {
-        return await this.db.collections.users_collection.findOne<IUserWithoutToken>({ deleted: null, username }, { projection: { _id: 0, deleted: 0, password: 0 } });
+        return await this.db.collections.users_collection.findOne<IUserWithoutToken>({ 'life.deletedTime': null, username }, { projection: { '_id': 0, 'life.deletedTime': 0, 'password': 0 } });
     }
 }

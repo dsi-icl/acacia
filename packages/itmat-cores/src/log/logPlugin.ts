@@ -1,14 +1,8 @@
 import { v4 as uuid } from 'uuid';
-import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from '@itmat-broker/itmat-types';
+import { enumAPIResolver, enumEventStatus, enumEventType, enumReservedUsers } from '@itmat-broker/itmat-types';
 import { GraphQLRequestContextWillSendResponse } from '@apollo/server';
 import { ApolloServerContext } from '../utils/ApolloServerContext';
 import { DBType } from '../database/database';
-
-// only requests in white list will be recorded
-export const logActionRecordWhiteList = Object.keys(LOG_ACTION);
-
-// only requests in white list will be recorded
-export const logActionShowWhiteList = Object.keys(LOG_ACTION);
 
 export class LogPlugin {
     db: DBType;
@@ -16,43 +10,55 @@ export class LogPlugin {
         this.db = db;
     }
 
-    public async serverWillStartLogPlugin(): Promise<null> {
+    public async serverWillStartLogPlugin() {
         await this.db.collections.log_collection.insertOne({
             id: uuid(),
-            requesterName: userTypes.SYSTEM,
-            requesterType: userTypes.SYSTEM,
-            logType: LOG_TYPE.SYSTEM_LOG,
-            actionType: LOG_ACTION.startSERVER,
-            actionData: JSON.stringify({}),
-            time: Date.now(),
-            status: LOG_STATUS.SUCCESS,
-            errors: '',
-            userAgent: USER_AGENT.OTHER
+            requester: enumReservedUsers.SYSTEM,
+            type: enumEventType.SYSTEM_LOG,
+            apiResolver: null,
+            event: 'SERVER_START',
+            parameters: undefined,
+            status: enumEventStatus.SUCCESS,
+            errors: undefined,
+            timeConsumed: null,
+            life: {
+                createdTime: Date.now(),
+                createdUser: enumReservedUsers.SYSTEM,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {}
         });
-        return null;
+        return;
     }
 
-    public async requestDidStartLogPlugin(requestContext: GraphQLRequestContextWillSendResponse<ApolloServerContext>): Promise<null> {
-        if (!requestContext.operationName || !logActionRecordWhiteList.includes(requestContext.operationName)) {
-            return null;
+    public async requestDidStartLogPlugin(requestContext: GraphQLRequestContextWillSendResponse<ApolloServerContext>, startTime: number, executionTime: number) {
+        if (!requestContext.operationName) {
+            return;
         }
-        if (LOG_ACTION[requestContext.operationName] === undefined || LOG_ACTION[requestContext.operationName] === null) {
-            return null;
-        }
+
         const variables = requestContext.request.variables ?? {}; // Add null check
         await this.db.collections.log_collection.insertOne({
             id: uuid(),
-            requesterName: requestContext.contextValue?.req?.user?.username ?? 'NA',
-            requesterType: requestContext.contextValue?.req?.user?.type ?? userTypes.SYSTEM,
-            userAgent: (requestContext.contextValue.req?.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
-            logType: LOG_TYPE.REQUEST_LOG,
-            actionType: LOG_ACTION[requestContext.operationName],
-            actionData: JSON.stringify(ignoreFieldsHelper(variables, requestContext.operationName)), // Use the null-checked variables
-            time: Date.now(),
-            status: requestContext.errors === undefined ? LOG_STATUS.SUCCESS : LOG_STATUS.FAIL,
-            errors: requestContext.errors === undefined ? '' : requestContext.errors[0].message
+            requester: requestContext.contextValue?.req?.user?.username ?? 'NA',
+            type: enumEventType.API_LOG,
+            apiResolver: enumAPIResolver.GraphQL,
+            event: requestContext.operationName,
+            parameters: ignoreFieldsHelper(variables, requestContext.operationName),
+            status: requestContext.errors === undefined ? enumEventStatus.SUCCESS : enumEventStatus.FAIL,
+            errors: requestContext.errors === undefined ? undefined : requestContext.errors[0].message,
+            timeConsumed: executionTime,
+            life: {
+                createdTime: Date.now(),
+                createdUser: 'SYSTEMAGENT',
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {
+                startTime: startTime,
+                endTime: startTime + executionTime
+            }
         });
-        return null;
     }
 }
 
@@ -117,5 +123,5 @@ function ignoreFieldsHelper(dataObj: DataObj, operationName: LogOperationName) {
     } else if (operationName === 'uploadFile') {
         delete dataObj['file'];
     }
-    return dataObj;
+    return dataObj as Record<string, unknown>;
 }

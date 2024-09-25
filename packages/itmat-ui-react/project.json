@@ -27,7 +27,7 @@
                     "packages/itmat-ui-react/src/styles.css"
                 ],
                 "scripts": [],
-                "webpackConfig": "packages/itmat-ui-react/webpack.config.js"
+                "webpackConfig": "packages/itmat-ui-react/webpack.config.cjs"
             },
             "configurations": {
                 "development": {

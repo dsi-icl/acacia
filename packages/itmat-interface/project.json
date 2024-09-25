@@ -17,7 +17,7 @@
                 "main": "packages/itmat-interface/src/index.ts",
                 "tsConfig": "packages/itmat-interface/tsconfig.app.json",
                 "assets": [],
-                "webpackConfig": "packages/itmat-interface/webpack.config.js"
+                "webpackConfig": "packages/itmat-interface/webpack.config.cjs"
             },
             "configurations": {
                 "production": {

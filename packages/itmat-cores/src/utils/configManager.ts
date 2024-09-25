@@ -16,6 +16,8 @@ export interface IConfiguration extends IServerConfig {
     sessionsSecret: string;
     adminEmail: string;
     aeEndpoint: string;
+    useWebdav: boolean;
+    webdavPort: number;
 }
 
 export class ConfigurationManager {
@@ -32,7 +34,7 @@ export class ConfigurationManager {
                     config = merge(config, JSON.parse(content));
                     Logger.log(`Applied configuration from ${path.resolve(configurationFile)}.`);
                 }
-            } catch (e) {
+            } catch (__unused__exception) {
                 Logger.error(chalk.red('Cannot parse configuration file.'));
             }
         });

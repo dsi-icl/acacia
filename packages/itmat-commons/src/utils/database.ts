@@ -49,18 +49,18 @@ export class Database<configType extends IDatabaseBaseConfig, C = Record<keyof c
     ): Promise<MongoClient> {
         this.config = config;
         const shouldOutput = process.env['JEST_WORKER_ID'] !== undefined;
-        shouldOutput && Logger.log('Connecting to the database..');
+        if (shouldOutput) Logger.log('Connecting to the database..');
         /* any error throw here will be caught by the server */
         this.localClient = await (new mongoClient(config.mongo_url)).connect();
-        shouldOutput && Logger.log('Connected to database.');
+        if (shouldOutput) Logger.log('Connected to database.');
 
-        shouldOutput && Logger.log('Performing basic checks..');
+        if (shouldOutput) Logger.log('Performing basic checks..');
         await this.checkAllCollectionsArePresent();
-        shouldOutput && Logger.log('Done basic checks.');
+        if (shouldOutput) Logger.log('Done basic checks.');
 
         this.assignCollections();
 
-        shouldOutput && Logger.log('Finished with database initialisation.');
+        if (shouldOutput) Logger.log('Finished with database initialisation.');
         return this.localClient;
     }
 

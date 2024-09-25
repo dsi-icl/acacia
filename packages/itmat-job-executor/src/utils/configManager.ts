@@ -25,7 +25,7 @@ class ConfigurationManager {
                     Logger.log(`Applied configuration from ${path.resolve(configurationFile)}.`);
                 }
             } catch (e) {
-                Logger.error('Could not parse configuration file.');
+                Logger.error('Could not parse configuration file. ' + e);
             }
         });
 

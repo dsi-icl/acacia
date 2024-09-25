@@ -4,3 +4,7 @@ export interface IGenericResponse {
     code?: string;
     description?: string;
 }
+
+export enum enumReservedKeys {
+    STUDY_LEVEL_DATA = 'reserved_study_level_data'
+}

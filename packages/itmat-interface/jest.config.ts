@@ -1,8 +1,7 @@
 /* eslint-disable */
 export default {
     displayName: 'itmat-interface',
-    preset: '../../jest.preset.js',
-    verbose: true,
+    preset: '../../jest.preset.cjs',
     transform: {
         '^.+\\.[tj]s$': ['ts-jest', {
             tsconfig: '<rootDir>/tsconfig.spec.json',

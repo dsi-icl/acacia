@@ -1,310 +1,330 @@
-import { FunctionComponent, useState } from 'react';
-import { GET_LOGS } from '@itmat-broker/itmat-models';
-import { userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT, ILogEntry } from '@itmat-broker/itmat-types';
-import { Query } from '@apollo/client/react/components';
+import { FunctionComponent } from 'react';
+import { List, Progress, Table, Tooltip } from 'antd';
+import { trpc } from '../../utils/trpc';
 import LoadSpinner from '../reusable/loadSpinner';
-import { Table, Input, Button, Checkbox, Descriptions, DatePicker, Modal, Row, Col } from 'antd';
-import Highlighter from 'react-highlight-words';
+import { ISystemConfig, IUserWithoutToken, enumConfigType } from '@itmat-broker/itmat-types';
+import css from './logList.module.css';
+import { ResponsiveTimeRange } from '@nivo/calendar';
 import dayjs from 'dayjs';
 
-export const LogListSection: FunctionComponent = () => {
-
-    return (
-        <Query<{ getLogs: ILogEntry[] }, object>
-            query={GET_LOGS}
-            variables={{}}
-        >
-            {({ loading, error, data }) => {
-                if (loading) { return <LoadSpinner />; }
-                if (error) {
-                    return (
-                        <p>
-                            Error {error.message}
-                        </p>
-                    );
-                }
-                if (!data) {
-                    return null;
-                }
-                const logList: ILogEntry[] = data.getLogs;
-                return (
-                    <LogList list={logList} />
-                );
-            }}
-        </Query>
-    );
+type DailyCount = {
+    dayIndex: number;
+    count: number;
 };
 
-const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const initInputs: {
-        requesterName: string,
-        requesterType: userTypes[],
-        userAgent: string[],
-        logType: LOG_TYPE[],
-        actionType: LOG_ACTION[],
-        time: string,
-        status: LOG_STATUS[],
-        dateRange: dayjs.Dayjs[]
-    } = {
-        requesterName: '',
-        requesterType: [],
-        userAgent: [],
-        logType: [],
-        actionType: [],
-        time: '',
-        status: [],
-        dateRange: [dayjs().subtract(7, 'days'), dayjs()]
-    };
-    const [inputs, setInputs] = useState(initInputs);
-    const [verbose, setVerbose] = useState(false);
-    const [verboseInfo, setVerboseInfo] = useState(({ actionData: JSON.stringify({}) }));
-    const [advancedSearch, setAdvancedSearch] = useState(false);
-    const dateFormat = 'YYYY-MM-DD';
-    function formatActionData(data) {
-        const obj = JSON.parse(data.actionData);
-        const keys = Object.keys(obj);
-        const keysMap = keys.map((el) => <><span>{el}</span><br /></>);
-        const valuesMap = keys.map((el) => <><span>{JSON.stringify((obj[el] || 'NA'))}</span><br /></>);
-        return { keyList: keysMap, valueList: valuesMap };
-    }
-    /* time offset, when filter by time, adjust all date to utc time */
-    const timeOffset = dayjs().utcOffset() /* minutes */ * 60 /* seconds */ * 1000 /* to UNIX millisec */;
+type EventStatistics = {
+    event: string;
+    count: number;
+    dailyCounts: DailyCount[];
+    avgTimeConsumed: number;
+    stdDevTimeConsumed: number;
+};
 
-    const inputControl = (property: string) => ({
-        value: inputs[property],
-        onChange: (e) => {
-            setInputs({ ...inputs, [property]: property === 'requesterName' ? e.target.value : e });
-        }
-    });
+type RequesterStatistics = {
+    requester: string;
+    count: number;
+    dailyCounts: DailyCount[];
+    avgTimeConsumed: number;
+    stdDevTimeConsumed: number;
+};
 
-    const checkboxControl = (property: string) => ({
-        value: inputs[property],
-        onChange: (e) => {
-            setInputs({ ...inputs, [property]: e });
-        }
-    });
-    function dataSourceFilter(logList: ILogEntry[]) {
-        return logList.filter((log) => {
-            // convert the contest of log to be string (except for value), as null could not be parsed
-            const logCopy: ILogEntry = { ...log };
-            Object.keys(logCopy).forEach(item => {
-                logCopy[item] = (logCopy[item] || '').toString();
-            });
-            return (searchTerm === '' || (logCopy.requesterName.toUpperCase().search(searchTerm) > -1 || logCopy.requesterType.toUpperCase().search(searchTerm) > -1
-                || logCopy.logType.toUpperCase().search(searchTerm) > -1 || logCopy.actionType.toUpperCase().search(searchTerm) > -1
-                || logCopy.status.toUpperCase().search(searchTerm) > -1 || logCopy.userAgent.toUpperCase().search(searchTerm) > -1
-                || new Date(logCopy.time).toUTCString().toUpperCase().search(searchTerm) > -1 || logCopy.status.toUpperCase().search(searchTerm) > -1))
-                && (inputs.requesterName === '' || logCopy.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
-                && (inputs.requesterType.length === 0 || inputs.requesterType.includes(logCopy.requesterType))
-                && (inputs.userAgent.length === 0 || inputs.userAgent.includes(logCopy.userAgent))
-                && (inputs.logType.length === 0 || inputs.logType.includes(logCopy.logType))
-                && (inputs.actionType.length === 0 || inputs.actionType.includes(logCopy.actionType))
-                && (inputs.status.length === 0 || inputs.status.includes(logCopy.status))
-                && ((dayjs(inputs.dateRange[0].startOf('day')).valueOf() - timeOffset) < logCopy.time)
-                && ((dayjs(inputs.dateRange[1].startOf('day')).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */ - timeOffset) > logCopy.time);
-        });
+type LogsSummary = {
+    eventStatistics: EventStatistics[];
+    requesterStatistics: RequesterStatistics[];
+};
+
+export const LogSection: FunctionComponent = () => {
+    const getLogs = trpc.log.getLogs.useQuery({ indexRange: [0, 100] });
+    const getUsers = trpc.user.getUsers.useQuery({});
+    const getSystemConfig = trpc.config.getConfig.useQuery({ configType: enumConfigType.SYSTEMCONFIG, key: null, useDefault: true });
+    const getLogsSummary = trpc.log.getLogsSummary.useQuery();
+    if (getLogs.isLoading || getUsers.isLoading || getSystemConfig.isLoading || getLogsSummary.isLoading) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <LoadSpinner />
+            </div>
+        </>;
     }
 
-    const columns = [
-        {
-            title: 'Requester Name',
-            dataIndex: 'requesterName',
-            key: 'requesterName',
-            render: (__unused__value, record) => {
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.requesterName} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return record.requesterName;
+    if (getLogs.isError || getUsers.isError || getSystemConfig.isError || getLogsSummary.isError) {
+        return <>An error occurred.</>;
+    }
+
+    return <div className={css.page_container}>
+        <List
+            header={
+                <div className={css['overview-header']} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className={css['overview-header']} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <div className={css['overview-icon']}></div>
+                            <div>Logs</div>
+                        </div>
+                    </div>
+                    <div>
+                    </div>
+                </div>
             }
-        },
-        {
-            title: 'Requester Type',
-            dataIndex: 'requesterType',
-            key: 'requesterType',
-            render: (__unused__value, record) => {
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.requesterType} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return record.requesterType;
+        >
+            <List.Item >
+                <Table
+                    style={{ width: '100%' }}
+                    dataSource={getLogs.data}
+                    columns={generateLogColumns(getUsers.data, (getSystemConfig.data.properties as ISystemConfig).defaultEventTimeConsumptionBar)}
+                />
+            </List.Item>
+        </List><br />
+        <List
+            header={
+                <div className={css['overview-header']} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className={css['overview-header']} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <div className={css['overview-icon']}></div>
+                            <div>Statistics</div>
+                        </div>
+                    </div>
+                    <div>
+                    </div>
+                </div>
             }
-        },
-        {
-            title: 'Request Type',
-            dataIndex: 'logType',
-            key: 'logType',
-            render: (__unused__value, record) => {
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.logType} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return record.logType;
-            }
-        },
-        {
-            title: 'Request From',
-            dataIndex: 'userAgent',
-            key: 'userAgent',
-            render: (__unused__value, record) => {
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.userAgent} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return record.userAgent;
-            }
-        },
-        {
-            title: 'API Type',
-            dataIndex: 'actionType',
-            key: 'actionType',
-            render: (__unused__value, record) => {
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.actionType} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return record.actionType;
-            }
-        },
-        {
-            title: 'Time',
-            dataIndex: 'time',
-            key: 'time',
-            render: (__unused__value, record) => {
-                return new Date(record.time).toUTCString();
-            }
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            render: (__unused__value, record) => {
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.status} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return record.status;
+        >
+            <List.Item>
+                <Table
+                    style={{ width: '100%' }}
+                    dataSource={(getLogsSummary.data as LogsSummary).eventStatistics}
+                    columns={generateEventStatisticsColumns((getSystemConfig.data.properties as ISystemConfig).defaultEventTimeConsumptionBar)}
+                />
+            </List.Item>
+            <List.Item>
+                <Table
+                    style={{ width: '100%' }}
+                    dataSource={(getLogsSummary.data as LogsSummary).requesterStatistics}
+                    columns={generateRequesterStatisticsColumns((getSystemConfig.data.properties as ISystemConfig).defaultEventTimeConsumptionBar, getUsers.data)}
+                />
+            </List.Item>
+        </List>
+    </div>;
+};
+
+const generateEventStatisticsColumns = (barThreshold: number[]) => {
+    return [{
+        title: 'Event',
+        dataIndex: 'event',
+        key: 'event',
+        width: '20%',
+        render: (__unused__value, record) => {
+            return record.event;
+        }
+    }, {
+        title: 'Number Calls',
+        dataIndex: 'count',
+        key: 'count',
+        width: '20%',
+        sorter: (a, b) => a.count - b.count,
+        render: (__unused__value, record) => {
+            return record.count;
+        }
+    }, {
+        title: 'Avg Time Consuming/ms',
+        dataIndex: 'avgTimeConsumed',
+        key: 'avgTimeConsumed',
+        width: '20%',
+        sorter: (a, b) => a.avgTimeConsumed - b.avgTimeConsumed,
+        render: (__unused__value, record) => {
+            const value = Math.round(record.avgTimeConsumed * 100) / 100;
+            return <Tooltip title={`${value} ms`}>
+                <Progress
+                    percent={value}
+                    strokeColor={getColor(value, barThreshold)}
+                    showInfo={false}
+                />
+            </Tooltip>;
+        }
+    }, {
+        title: 'Activity',
+        dataIndex: 'activity',
+        key: 'activity',
+        width: '40%',
+        render: (__unused__value, record) => {
+            return <div style={{ height: '200px' }}>
+                <ResponsiveTimeRange
+                    data={record.dailyCounts.map(rel => {
+                        return {
+                            day: dayjs().add(rel.dayIndex, 'day').format('YYYY-MM-DD'),
+                            value: rel.count
+                        };
+                    })}
+                    from={dayjs().subtract(40, 'day').format('YYYY-MM-DD')}
+                    to={dayjs().format('YYYY-MM-DD')}
+                    emptyColor="#eeeeee"
+                    colors={['#61cdbb', '#97e3d5', '#e8c1a0', '#f47560']}
+                    margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
+                    dayBorderWidth={2}
+                    dayBorderColor="#ffffff"
+                />
+            </div>;
+        }
+    }];
+};
+
+const generateRequesterStatisticsColumns = (barThreshold: number[], users: IUserWithoutToken[]) => {
+    return [{
+        title: 'Requester',
+        dataIndex: 'requester',
+        key: 'requester',
+        width: '20%',
+        render: (__unused__value, record) => {
+            const user = users.filter(el => el.id === record.requester)[0];
+            if (user) {
+                return `${user.firstname} ${user.lastname}`;
+            } else {
+                return 'NA';
             }
         }
-    ];
-
-    const detailColumns = [
-        {
-            title: 'Field',
-            dataIndex: 'keyList',
-            key: 'keyList',
-            render: (__unused__value, record) => {
-                return record.keyList;
-            }
-        },
-        {
-            title: 'Value',
-            dataIndex: 'valueList',
-            key: 'valueList',
-            render: (__unused__value, record) => {
-                return record.valueList;
-            }
+    }, {
+        title: 'Number Calls',
+        dataIndex: 'count',
+        key: 'count',
+        width: '20%',
+        sorter: (a, b) => a.count - b.count,
+        render: (__unused__value, record) => {
+            return record.count;
         }
-    ];
+    }, {
+        title: 'Avg Time Consuming/ms',
+        dataIndex: 'avgTimeConsumed',
+        key: 'avgTimeConsumed',
+        width: '20%',
+        sorter: (a, b) => a.avgTimeConsumed - b.avgTimeConsumed,
+        render: (__unused__value, record) => {
+            const value = Math.round(record.avgTimeConsumed * 100) / 100;
+            return <Tooltip title={`${value} ms`}>
+                <Progress
+                    percent={value}
+                    strokeColor={getColor(value, barThreshold)}
+                    showInfo={false}
+                />
+            </Tooltip>;
+        }
+    }, {
+        title: 'Activity',
+        dataIndex: 'activity',
+        key: 'activity',
+        width: '40%',
+        render: (__unused__value, record) => {
+            return <div style={{ height: '200px' }}>
+                <ResponsiveTimeRange
+                    data={record.dailyCounts.map(rel => {
+                        return {
+                            day: dayjs().add(rel.dayIndex, 'day').format('YYYY-MM-DD'),
+                            value: rel.count
+                        };
+                    })}
+                    from={dayjs().subtract(40, 'day').format('YYYY-MM-DD')}
+                    to={dayjs().format('YYYY-MM-DD')}
+                    emptyColor="#eeeeee"
+                    colors={['#61cdbb', '#97e3d5', '#e8c1a0', '#f47560']}
+                    margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
+                    dayBorderWidth={2}
+                    dayBorderColor="#ffffff"
+                />
+            </div>;
+        }
+    }];
+};
 
-    return <>
-        <Input.Search allowClear style={{
-            maxWidth: '65%'
-        }} defaultValue={searchTerm} value={searchTerm} placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />&nbsp;&nbsp;&nbsp;
-        <Button type='primary' style={{
-            verticalAlign: 'top',
-            backgroundColor: 'grey'
-        }} onClick={() => { setSearchTerm(''); setInputs(initInputs); }}>
-            {advancedSearch ? null : 'Reset'}
-        </Button>&nbsp;&nbsp;&nbsp;
-        <Button type='primary' style={{
-            verticalAlign: 'top'
-        }} onClick={() => setAdvancedSearch(!advancedSearch)}>
-            {advancedSearch ? null : 'Advanced Search'}
-        </Button>
-        <Modal
-            title='Advanced Search'
-            open={advancedSearch}
-            onOk={() => { setAdvancedSearch(false); }}
-            onCancel={() => { setAdvancedSearch(false); }}
-            okText='OK'
-            cancelText='Reset'
-            width={'50%'}
-        >
-            <Descriptions title='Requester Name'    ></Descriptions>
-            <Input {...inputControl('requesterName')} style={{ marginBottom: '20px' }} />
-            <Descriptions title='Requester Type'></Descriptions>
-            <Checkbox.Group options={Object.keys(userTypes)} {...checkboxControl('requesterType')} style={{ marginBottom: '20px' }} />
-            <Descriptions title='Request From'></Descriptions>
-            <Checkbox.Group options={Object.keys(USER_AGENT)} {...checkboxControl('userAgent')} style={{ marginBottom: '20px' }} />
-            <Descriptions title='Log Type'></Descriptions>
-            <Checkbox.Group options={Object.keys(LOG_TYPE)} {...checkboxControl('logType')} style={{ marginBottom: '20px' }} />
-            <Descriptions title='Request Type'></Descriptions>
-            <Checkbox.Group {...checkboxControl('actionType')} style={{ marginBottom: '20px' }} >
-                <Row>
-                    {Object.keys(LOG_ACTION).map(el => <Col><Checkbox value={LOG_ACTION[el]}>{el}</Checkbox></Col>)}
-                </Row>
-            </Checkbox.Group>
-            <Descriptions title='Status'></Descriptions>
-            <Checkbox.Group options={Object.keys(LOG_STATUS)} {...checkboxControl('status')} style={{ marginBottom: '20px' }} />
-            <Descriptions title='Date Range'></Descriptions>
-            <DatePicker.RangePicker
-                defaultValue={[dayjs('2015-06-06', dateFormat), dayjs('2015-06-06', dateFormat)]}
-                {...inputControl('dateRange')}
-            />
-        </Modal>
-        <Table
-            rowKey={(rec) => rec.id}
-            onRow={(record: ILogEntry) => ({
-                onClick: () => {
-                    setVerbose(true);
-                    setVerboseInfo(record);
-                },
-                style: {
-                    cursor: 'pointer'
-                }
-            })}
-            pagination={
-                {
-                    defaultPageSize: 10,
-                    showSizeChanger: true,
-                    pageSizeOptions: ['10', '20', '50', '100'],
-                    defaultCurrent: 1,
-                    showQuickJumper: true
-                }
-            }
-            columns={columns}
-            dataSource={dataSourceFilter(list)}
-            size='small'
-        >
-        </Table>
-        <Modal
-            title='Details'
-            open={verbose}
-            onOk={() => { setVerbose(false); }}
-            onCancel={() => { setVerbose(false); }}
-        >
-            <Table
-                pagination={false}
-                columns={detailColumns}
-                dataSource={[formatActionData(verboseInfo)]}
-                size='small'
-                scroll={{ x: true }}
-            >
-            </Table>
-        </Modal>
-    </>;
+const generateLogColumns = (users: IUserWithoutToken[], barThreshold: number[]) => {
+    return [{
+        title: 'Caller',
+        dataIndex: 'caller',
+        key: 'caller',
+        render: (__unused__value, record) => {
+            const user = users.filter(el => el.id === record.requester)[0];
+            return user ? `${user.firstname} ${user.lastname}` : 'NA';
+        }
+    }, {
+        title: 'type',
+        dataIndex: 'type',
+        key: 'type',
+        render: (__unused__value, record) => {
+            return record.type;
+        }
+    }, {
+        title: 'Resolver',
+        dataIndex: 'apiResolver',
+        key: 'apiResolver',
+        render: (__unused__value, record) => {
+            return record.apiResolver;
+        }
+    }, {
+        title: 'Event',
+        dataIndex: 'event',
+        key: 'event',
+        render: (__unused__value, record) => {
+            return record.event;
+        }
+    }, {
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        render: (__unused__value, record) => {
+            return record.status;
+        }
+    }, {
+        title: 'Time Elapsed/ms',
+        dataIndex: 'timeConsumed',
+        key: 'timeConsumed',
+        sorter: (a, b) => a.timeConsumed - b.timeConsumed,
+        render: (__unused__value, record) => {
+            // return <Progress percent={record.timeConsumed} showInfo={false} />;
+            const percent = Math.min(100, (record.timeConsumed / barThreshold[1]) * 100);
+            return (
+                <Tooltip title={`${record.timeConsumed} ms`}>
+                    <Progress
+                        percent={percent}
+                        strokeColor={getColor(record.timeConsumed, barThreshold)}
+                        showInfo={false}
+                    />
+                </Tooltip>
+            );
+        }
+    }, {
+        title: 'Execution Time',
+        dataIndex: 'time',
+        key: 'time',
+        sorter: (a, b) => a.life.createdTime ?? 0 - b.life.createdTime ?? 0,
+        render: (__unused__value, record) => {
+            return new Date(record.life.createdTime).toUTCString();
+        }
+    }];
+};
+
+const greenRGB = [0, 255, 0];   // RGB for green
+const blueRGB = [0, 0, 255];   // RGB for blue
+const redRGB = [255, 0, 0];    // RGB for red
+
+const lerp = (start, end, t) => {
+    return start + t * (end - start);
+};
+
+const getColor = (value, threshold) => {
+    let startColor, endColor, t;
+
+    if (value < threshold[0]) {
+        startColor = greenRGB;
+        endColor = blueRGB;
+        t = value / threshold[0];  // Normalize between 0 and 1
+    } else if (value <= threshold[1]) {
+        startColor = blueRGB;
+        endColor = redRGB;
+        t = (value - threshold[0]) / (threshold[1] - threshold[0]);  // Normalize between 0 and 1
+    } else {
+        return `rgb(${redRGB.join(',')})`; // If it's over b, just return red
+    }
+
+    const r = Math.round(lerp(startColor[0], endColor[0], t));
+    const g = Math.round(lerp(startColor[1], endColor[1], t));
+    const b = Math.round(lerp(startColor[2], endColor[2], t));
+
+    return `rgb(${r},${g},${b})`;
 };

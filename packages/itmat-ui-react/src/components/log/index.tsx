@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react';
-import { LogListSection } from './logList';
+import { LogSection } from './logList';
 import css from './logList.module.css';
 
 export const LogPage: FunctionComponent = () => {
@@ -10,7 +10,7 @@ export const LogPage: FunctionComponent = () => {
                     Log History
                 </div>
                 <div className='page_content'>
-                    <LogListSection />
+                    <LogSection />
                 </div>
             </div>
         </div>
