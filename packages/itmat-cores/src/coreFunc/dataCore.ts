@@ -1310,7 +1310,6 @@ export class DataCore {
             a[c.fieldId] = c;
             return a;
         }, {});
-
         const availableFieldIds = Object.keys(availableFields);
         const refactoredFieldIds = fieldIds ?? Object.keys(availableFields);
         const queryField = async (fieldId: string) => {
@@ -1340,6 +1339,10 @@ export class DataCore {
                     }
                 }, {
                     $replaceRoot: { newRoot: '$latestDocument' }
+                }, {
+                    $match: {
+                        'life.deletedTime': null
+                    }
                 }, {
                     $project: {
                         _id: 0, // Exclude the _id field
