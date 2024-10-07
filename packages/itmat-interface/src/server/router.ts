@@ -99,7 +99,7 @@ export class Router {
         this.app.use(rateLimit({
             windowMs: 1 * 60 * 1000,
             max: async function (req) {
-                const minimumQPS = 200;
+                const minimumQPS = 1000;
                 let qps = minimumQPS;
                 if (req.user) {
                     const userConfig = await db.collections.configs_collection.findOne({ type: enumConfigType.USERCONFIG, key: req.user.id });
@@ -110,7 +110,7 @@ export class Router {
                     }
                 }
                 if (req.user?.type === enumUserTypes.ADMIN) {
-                    qps = Math.max(qps, 1000);
+                    qps = Math.max(qps, 2000);
                 }
                 return qps;
             }

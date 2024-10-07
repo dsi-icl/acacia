@@ -276,7 +276,7 @@ export const MyFile: FunctionComponent = () => {
             title: 'Modified',
             dataIndex: 'modified',
             key: 'modified',
-            width: '10%',
+            width: '20%',
             sorter: (a, b) => a.life.createdTime - b.life.createdTime,
             render: (__unused__value, record) => <span>{new Date(record.life.createdTime).toLocaleDateString()}</span>
         },
@@ -284,14 +284,14 @@ export const MyFile: FunctionComponent = () => {
             title: 'File Size',
             dataIndex: 'fileSize',
             key: 'fileSize',
-            width: '10%',
+            width: '20%',
             render: (__unused__value, record) => <span>{formatBytes(record.metadata.fileSize)}</span>
         },
         {
             title: 'Sharing',
             dataIndex: 'sharedUsers',
             key: 'sharedUsers',
-            width: '10%',
+            width: '20%',
             render: (__unused__value, record) => {
                 if (record.sharedUsers.length >= 1) {
                     return (
@@ -527,6 +527,7 @@ export const MyFile: FunctionComponent = () => {
                         <Table
                             style={{ width: '100%', fontSize: '20px' }}
                             scroll={{ y: '400px' }}
+                            tableLayout='fixed'
                             columns={fileTableColumns}
                             expandable={{ showExpandColumn: false }}
                             dataSource={getDrives.data?.[whoAmI.data.id]?.filter(el => el.parent === currentLocationPath[currentLocationPath.length - 1])}
@@ -779,6 +780,7 @@ export const SharedFiles: FunctionComponent<{ users: IUserWithoutToken[], shared
             title: 'Name',
             dataIndex: 'value',
             key: 'value',
+            width: '40%',
             render: (__unused__value, record) => {
                 const icon = record.type === enumDriveNodeTypes.FILE ? <FileTwoTone /> : <FolderTwoTone />;
                 const content = (
@@ -811,7 +813,7 @@ export const SharedFiles: FunctionComponent<{ users: IUserWithoutToken[], shared
                                         a.click();
                                         document.body.removeChild(a);
                                     } else if (e.key === 'delete') {
-                                        // Handle delete logic here
+                                        // Handle delete logic hereƒ
                                     }
                                 }}>
                                     {
@@ -846,18 +848,21 @@ export const SharedFiles: FunctionComponent<{ users: IUserWithoutToken[], shared
             title: 'Modified',
             dataIndex: 'modified',
             key: 'modified',
+            width: '20%',
             render: (__unused__value, record) => <span>{new Date(record.life.createdTime).toUTCString()}</span>
         },
         {
             title: 'File Size',
             dataIndex: 'fileSize',
             key: 'fileSize',
+            width: '20%',
             render: (__unused__value, record) => <span>{formatBytes(record.metadata.fileSize)}</span>
         },
         {
             title: 'Sharing',
             dataIndex: 'sharedBy',
             key: 'sharedBy',
+            width: '20%',
             render: (__unused__value, record) => {
                 const user = users.filter(el => el.id === record.managerId)[0];
 
@@ -920,7 +925,7 @@ export const SharedFiles: FunctionComponent<{ users: IUserWithoutToken[], shared
             }
         >
             <List.Item>
-                <div className={css.shared_container} style={{ width: '100%' }}>
+                <div style={{ width: '100%' }}>
                     <div>
                         {
                             currentLocationPath.map((el, index) => {
@@ -937,6 +942,7 @@ export const SharedFiles: FunctionComponent<{ users: IUserWithoutToken[], shared
                         <Table
                             style={{ width: '100%' }}
                             columns={fileTableColumns}
+                            tableLayout='fixed'
                             expandable={{ showExpandColumn: false }}
                             dataSource={currentSharedUser ? sharedUserFiles[currentSharedUser].filter(el => {
                                 return el.managerId === currentSharedUser;
