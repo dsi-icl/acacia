@@ -7,7 +7,13 @@ import { trpc } from './utils/trpc';
 import { httpLink } from '@trpc/client';
 
 const AppWithTRPC = () => {
-    const [queryClient] = useState(() => new QueryClient());
+    const [queryClient] = useState(() => new QueryClient({
+        defaultOptions: {
+            queries: {
+                refetchOnWindowFocus: false
+            }
+        }
+    }));
     const [trpcClient] = useState(() =>
         trpc.createClient({
             links: [

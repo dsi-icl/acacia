@@ -95,22 +95,19 @@ export class PermissionCore {
      */
     public async checkFieldOrDataPermission(user: IUserWithoutToken, studyId: string, entry: Partial<IField> | Partial<IData>, permission: enumDataAtomicPermissions) {
         const roles = await this.getRolesOfUser(user, user.id, studyId);
-        let tag = true;
+        const tags: boolean[] = [];
         for (const role of roles) {
+            let tag = true;
             const dataPermissions = role.dataPermissions;
             for (const dataPermission of dataPermissions) {
-                for (const field of dataPermission.fields) {
-                    if (!(new RegExp(field).test(String(entry.fieldId)))) {
-                        tag = false;
-                    }
+                if (dataPermission.fields.every(field => !(new RegExp(field).test(String(entry.fieldId))))) {
+                    tag = false;
                 }
                 if ('value' in entry && dataPermission.dataProperties) {
                     if (entry.properties) {
                         for (const property in dataPermission.dataProperties) {
-                            for (const prop of dataPermission.dataProperties[property]) {
-                                if (!(new RegExp(prop).test(String(entry.properties[property])))) {
-                                    tag = false;
-                                }
+                            if (dataPermission.dataProperties[property].every(prop => !(new RegExp(prop).test(String(entry.properties?.[property]))))) {
+                                tag = false;
                             }
                         }
                     }
@@ -118,12 +115,13 @@ export class PermissionCore {
                 if (!permissionString[permission].includes(dataPermission.permission)) {
                     tag = false;
                 }
-                if (tag) {
-                    return true;
-                }
             }
+            tags.push(tag);
         }
-        return false;
+        if (tags.every(tag => tag === false)) {
+            return false;
+        }
+        return true;
     }
 
     /**

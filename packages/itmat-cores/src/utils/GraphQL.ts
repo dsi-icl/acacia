@@ -206,7 +206,7 @@ export function convertV2DataClipInputToV3(dataclip: IDataClip[]) {
             fieldId: el.fieldId,
             value: el.value,
             properties: {
-                subjectId: el.subjectId,
+                subjectId: el.subjectId.replace('-', ''),
                 visitId: el.visitId
             }
         };

@@ -3,6 +3,7 @@
     position: relative;
     overflow-y: scroll;
     display: grid;
+    max-width: 90vw;
     justify-content: space-between;
     grid-template-areas:
         "FILE FILE"
@@ -22,41 +23,53 @@
 /* Assuming this is named FileManager.module.css */
 
 /* Styles for the table cell with the ellipsis */
+/* Cell container */
 .ellipsisStyle {
     display: flex;
     align-items: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     position: relative;
+    overflow: hidden;
+    /* Ensure the cell doesn't expand */
 }
 
-/* This will be for the text and icon */
+/* Text and icon container */
 .textAndIcon {
-    flex-grow: 1;
+    flex: 1;
     display: flex;
     align-items: center;
     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-/* Styles for the action elements in the table cell */
+.textAndIcon span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Icons container */
 .cellIcons {
     display: flex;
     align-items: center;
+    position: absolute;
+    right: 0;
+    /* Reserve space for icons to prevent cell expansion */
+    width: 60px;
+    /* Adjust based on your icon size */
     justify-content: flex-end;
-    flex-shrink: 0;
-    /* Prevent icons from shrinking */
-}
-
-.cellIcon {
     opacity: 0;
     transition: opacity 0.3s ease;
-    margin-left: 16px;
-    /* Space between icons */
 }
 
-.ellipsisStyle:hover .cellIcon {
+/* Show icons on hover */
+.ellipsisStyle:hover .cellIcons {
     opacity: 1;
+}
+
+/* Individual icons */
+.cellIcon {
+    margin-left: 8px;
 }
 
 /* Styles for the action element in the table cell */
@@ -99,6 +112,7 @@
 .shared_container {
     width: 100%;
     grid-area: SHARED;
+    padding: 20px;
 }
 
 .ellipsis-style {

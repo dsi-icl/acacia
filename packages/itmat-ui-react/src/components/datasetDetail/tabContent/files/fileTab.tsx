@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useState } from 'react';
-import { Button, Table, List, Modal, Upload, Form, Select, Input, notification, message, Typography } from 'antd';
-import { CloudDownloadOutlined, InboxOutlined } from '@ant-design/icons';
+import { Button, Table, List, Modal, Upload, Form, Select, Input, notification, message, Typography, Tooltip } from 'antd';
+import { CloudDownloadOutlined, InboxOutlined, NumberOutlined } from '@ant-design/icons';
 import { enumConfigType, IStudyConfig, IStudy, IField, enumDataTypes, IStudyFileBlock, enumUserTypes, IUserWithoutToken, deviceTypes, enumStudyBlockColumnValueType, IFile } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './fileRepo.module.css';
@@ -159,19 +159,26 @@ export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IFi
         }
 
     };
-
     return (<div>
         {contextHolder}
         <Button style={{ backgroundColor: 'powderblue' }} onClick={() => setIsShowPanel(true)}>Upload Files</Button>
         <Modal
             open={isShowPanel}
-            onCancel={() => setIsShowPanel(false)}
-            onOk={() => void handleUploadFile({
-                ...form.getFieldsValue(),
-                studyId: study.id
-            })}
+            onCancel={() => {
+                setIsShowPanel(false);
+                setFileList([...[]]);
+            }}
+            onOk={() => {
+                void handleUploadFile({
+                    ...form.getFieldsValue(),
+                    studyId: study.id
+                });
+                setFileList([]);
+                form.resetFields();
+            }}
         >
             <Upload.Dragger
+                key={fileList.length}
                 multiple={false}
                 showUploadList={true}
                 beforeUpload={async () => {
@@ -360,7 +367,7 @@ export const FileBlock: FunctionComponent<{ user: IUserWithoutToken, fields: IFi
             }
             return false;
         }
-    });
+    }).sort((a, b) => (b.life?.createdTime ?? 0) - (a.life?.createdTime ?? 0));
 
     const summaryByMonth = (filteredFiles) => {
         // Create a map to hold the counts per month
@@ -765,6 +772,17 @@ function generateTableColumns(block: IStudyFileBlock, searchedKeyword: string | 
             }
         });
     }
+    columns.push({
+        title: '',
+        dataIndex: 'hash',
+        render: (__unused__value, record) => (
+            <Tooltip title={record.hash} placement='bottomRight' >
+                <Button type='link' icon={<NumberOutlined />}></Button>
+            </Tooltip>
+        ),
+        // width: '8rem',
+        key: 'delete'
+    });
     columns.push({
         title: '',
         dataIndex: 'download',
