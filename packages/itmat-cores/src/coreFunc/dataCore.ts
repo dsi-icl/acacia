@@ -43,6 +43,7 @@ interface CreateFieldInput {
     comments?: string;
     verifier?: ValueVerifierInput[][];
     properties?: IFieldProperty[];
+    metadata?: Record<string, unknown>;
 }
 
 type EditFieldInput = CreateFieldInput;
@@ -255,7 +256,7 @@ export class DataCore {
                 deletedTime: null,
                 deletedUser: null
             },
-            metadata: {}
+            metadata: fieldInput.metadata ?? {}
         };
 
         await this.db.collections.field_dictionary_collection.insertOne(fieldEntry);

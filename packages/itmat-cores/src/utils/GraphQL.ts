@@ -154,7 +154,8 @@ export function convertV2CreateFieldInputToV3(studyId: string, fields: V2CreateF
                 required: false
             }],
             unit: field.unit,
-            comments: field.comments
+            comments: field.comments,
+            metadata: field.metadata
         };
     });
 }
