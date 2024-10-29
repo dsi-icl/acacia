@@ -1540,6 +1540,52 @@ export class DataCore {
         }
     }
 
+    public async uploadFileDataWithFileEntry(requester: IUserWithoutToken | undefined, studyId: string, fieldId: string, fileEntry: IFile, properties?: string) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+        const roles = await this.permissionCore.getRolesOfUser(requester, requester.id, studyId);
+        if (roles.length === 0) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                enumCoreErrors.NO_PERMISSION_ERROR
+            );
+        }
+        const study = await this.db.collections.studies_collection.findOne({ 'id': studyId, 'life.deletedTime': null });
+        if (!study) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Study does not exist.'
+            );
+        }
+        try {
+            const parsedProperties = properties ? JSON.parse(properties) : {};
+            const dataInput: IDataInput[] = [{
+                fieldId: fieldId,
+                value: fileEntry.id,
+                properties: parsedProperties
+            }];
+            const res = await this.uploadData(requester, studyId, dataInput);
+            if (!res[0].successful) {
+                throw new CoreError(
+                    enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                    res[0].description ?? 'Failed to upload file.'
+                );
+            }
+            // invalidate the cache
+            await this.db.collections.cache_collection.updateMany({ 'keys.studyId': studyId, 'keys.query': 'getStudyFiles' }, { $set: { status: enumCacheStatus.OUTDATED } });
+            return fileEntry;
+        } catch (error) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                `${(error as Error).message}`
+            );
+        }
+    }
+
     /**
      * Get the summary of a study.
      * Admins can study managers can access this function.

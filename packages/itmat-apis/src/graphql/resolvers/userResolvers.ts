@@ -60,7 +60,7 @@ export class UserResolvers {
 
     async validateResetPassword(_parent, args: { token: string, encryptedEmail: string }) {
         try {
-            return await this.userCore.validateResetPassword(args.token, args.encryptedEmail);
+            return await this.userCore.validateResetPassword(args.encryptedEmail, args.token);
         } catch (e) {
             return GraphQLErrorDecroator(e as CoreError);
         }
