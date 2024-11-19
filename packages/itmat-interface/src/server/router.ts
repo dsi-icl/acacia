@@ -24,12 +24,13 @@ import { logPluginInstance } from '../log/logPlugin';
 import { IConfiguration, spaceFixing } from '@itmat-broker/itmat-cores';
 import { userLoginUtils } from '../utils/userLoginUtils';
 import * as trpcExpress from '@trpc/server/adapters/express';
-import { tokenAuthentication } from './commonMiddleware';
+import { tokenAuthentication, uploadFileData } from './commonMiddleware';
 import multer from 'multer';
 import { Readable } from 'stream';
 import { z } from 'zod';
 import { ApolloServerContext, DMPContext, createtRPCContext, typeDefs } from '@itmat-broker/itmat-apis';
 import { APICalls } from './helper';
+
 
 export class Router {
     private readonly app: Express;
@@ -317,6 +318,10 @@ export class Router {
 
         this.app.use('/webdav', webdav_proxy as NativeRequestHandler);
 
+        this.app.use('/trpc/data.uploadStudyFileData', (req, res, next) => {
+            uploadFileData(req, res).catch(next); // Ensure any error is passed to next()
+        });
+
         // trpc
         const upload = multer();
         this.app.use(
@@ -376,4 +381,5 @@ export class Router {
     public getServer(): http.Server {
         return this.server;
     }
+
 }
