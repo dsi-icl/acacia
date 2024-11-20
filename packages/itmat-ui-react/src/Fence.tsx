@@ -25,7 +25,7 @@ export const Fence: FunctionComponent = () => {
 
     const whoAmI = trpc.user.whoAmI.useQuery();
     const recoverSession = trpc.user.recoverSessionExpireTime.useQuery(undefined, {
-        refetchInterval: 60 * 60 * 1000
+        refetchInterval: 30 * 60 * 1000
     });
 
     const [component, setComponent] = useState<JSX.Element | null>(null);
