@@ -198,7 +198,7 @@ export class DataRouter {
                 fieldIds: z.optional(z.array(z.string())),
                 useCache: z.optional(z.boolean()),
                 forceUpdate: z.optional(z.boolean()),
-                formatted: z.optional(z.string())
+                fromCold: z.optional(z.boolean())
             })).query(async (opts) => {
                 return await this.dataCore.getData(
                     opts.ctx.req.user,
@@ -207,7 +207,8 @@ export class DataRouter {
                     opts.input.versionId,
                     opts.input.aggregation,
                     opts.input.useCache,
-                    opts.input.forceUpdate
+                    opts.input.forceUpdate,
+                    opts.input.fromCold
                 );
             }),
             /**

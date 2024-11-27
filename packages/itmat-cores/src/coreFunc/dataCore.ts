@@ -748,7 +748,7 @@ export class DataCore {
      *
      * @return Partial<IData>[] - The list of objects of Partial<IData>
      */
-    public async getData(requester: IUserWithoutToken | undefined, studyId: string, selectedFieldIds?: string[], dataVersion?: string | null | Array<string | null>, aggregation?: Record<string, Array<{ operationName: enumDataTransformationOperation, params: Record<string, unknown> }>>, useCache?: boolean, forceUpdate?: boolean) {
+    public async getData(requester: IUserWithoutToken | undefined, studyId: string, selectedFieldIds?: string[], dataVersion?: string | null | Array<string | null>, aggregation?: Record<string, Array<{ operationName: enumDataTransformationOperation, params: Record<string, unknown> }>>, useCache?: boolean, forceUpdate?: boolean, fromCold?: boolean) {
         if (!requester) {
             throw new CoreError(
                 enumCoreErrors.NOT_LOGGED_IN,
@@ -811,7 +811,7 @@ export class DataCore {
                 return await getJsonFileContents(this.objStore, 'cache', hashedInfo[0].uri);
             } else {
                 // raw data by the permission
-                const data = await this.getDataByRoles(requester, roles, studyId, availableDataVersions, fieldIds);
+                const data = await this.getDataByRoles(requester, roles, studyId, availableDataVersions, fieldIds, fromCold);
                 // data transformation if aggregation is provided
                 const transformed = aggregation ? this.dataTransformationCore.transformationAggregate(data as unknown as IDataTransformationClipArray, aggregation) : data;
                 // write to minio and cache collection
@@ -843,7 +843,7 @@ export class DataCore {
             }
         } else {
             // raw data by the permission
-            const data = await this.getDataByRoles(requester, roles, studyId, availableDataVersions, fieldIds);
+            const data = await this.getDataByRoles(requester, roles, studyId, availableDataVersions, fieldIds, fromCold);
             // data transformation if aggregation is provided
             const transformed = aggregation ? this.dataTransformationCore.transformationAggregate(data as unknown as IDataTransformationClipArray, aggregation) : data;
             return transformed;
@@ -1275,11 +1275,13 @@ export class DataCore {
     }
 
 
-    public async getDataByRoles(requester: IUserWithoutToken, roles: IRole[], studyId: string, dataVersions: Array<string | null>, fieldIds?: string[]) {
+    public async getDataByRoles(requester: IUserWithoutToken, roles: IRole[], studyId: string, dataVersions: Array<string | null>, fieldIds?: string[], fromCold?: boolean) {
         const matchFilter: Filter<IData> = {
             studyId: studyId,
             dataVersion: { $in: dataVersions }
         };
+
+        const dbCollection = fromCold ? this.db.collections.colddata_collection : this.db.collections.data_collection;
 
         const roleArr: Filter<IData>[] = [];
         for (const role of roles) {
@@ -1316,12 +1318,15 @@ export class DataCore {
         const queryField = async (fieldId: string) => {
             if (availableFieldIds.includes(fieldId) || availableFieldIds.some(el => new RegExp(el).test(fieldId))) {
                 const propertyFilter: Record<string, string> = {};
+                if (!availableFields[fieldId]) {
+                    return [];
+                }
                 if (availableFields[fieldId].properties) {
                     for (const property of availableFields[fieldId].properties) {
                         propertyFilter[`${property.name}`] = `$properties.${property.name}`;
                     }
                 }
-                const data = await this.db.collections.data_collection.aggregate<IData>([{
+                const data = await dbCollection.aggregate<IData>([{
                     $match: {
                         ...matchFilter,
                         fieldId: fieldId,
