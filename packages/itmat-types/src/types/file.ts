@@ -29,6 +29,7 @@ export enum enumFileTypes {
     DOCX = 'DOCX',
     XLSX = 'XLSX',
     XLS = 'XLS',
+    MAT = 'MAT',
     // images
     JPG = 'JPG',
     JPEG = 'JPEG',
