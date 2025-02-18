@@ -27,7 +27,7 @@ export const WebAuthnAuthenticationComponent: FunctionComponent = () => {
     const webauthnAuthenticateVerify = trpc.webauthn.webauthnAuthenticateVerify.useMutation();
     const webauthnLogin = trpc.webauthn.webauthnLogin.useMutation();
     const { data: webauthn_users, isLoading: webAuthnLoading, error: webAuthnError } = trpc.webauthn.getWebauthn.useQuery({ webauthn_ids: webauthn_ids || [] });
-
+    const getCurrentDomain = trpc.domain.getCurrentDomain.useQuery();
 
 
     useEffect(() => {
@@ -157,7 +157,11 @@ export const WebAuthnAuthenticationComponent: FunctionComponent = () => {
     return (
         <div>
             <div className={webauthnStyles.registration_dialog}>
-                <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
+                <img
+                    src={`${window.location.origin}/file/${getCurrentDomain.data?.logo}`}
+                    width={200}
+                    alt="Logo"
+                />
                 <div className={webauthnStyles.userIconWrapper}>
                     <div style={{ display: 'flex', alignItems: 'center', marginRight: '8px' }}>
                         <UserOutlined style={{ fontSize: '32px' }} />
