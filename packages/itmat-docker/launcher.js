@@ -28,6 +28,8 @@ Promise.all([
         root.use('/', router.getApp());
     });
 
+    root.set('trust proxy', 1);
+
     root.use(rateLimit({
         windowMs: 1 * 60 * 1000,
         max: 500
@@ -61,6 +63,17 @@ Promise.all([
         socket.setNoDelay(true)
         socket.setTimeout(0);
         socket.timeout = 0;
+    });
+    
+    // Add WebSocket upgrade handling
+    server.on('upgrade', (req, socket, head) => {
+        // Forward WebSocket upgrade to the interface
+        if (interface.router) {
+            interface.router.getServer().emit('upgrade', req, socket, head);
+        } else {
+            console.error('No WebSocket upgrade handler available for URL:', req.url);
+            socket.destroy();
+        }
     });
 
     try {

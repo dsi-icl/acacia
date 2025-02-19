@@ -49,6 +49,10 @@
             "pass": "change_this"
         }
     },
+    "lxdCertFile": {
+        "cert": "/path/mylxd.crt",
+        "key": "/path/mylxd.key"
+    },
     "adminEmail": "admin@example.com",
     "aeEndpoint": "http://localhost:9090",
     "useWebdav": true,

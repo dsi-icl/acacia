@@ -1,4 +1,5 @@
-{
+{   
+    "appName": "ITMAT Job Executor",
     "database": {
         "mongo_url": "mongodb://localhost:27017",
         "database": "itmat",
@@ -23,11 +24,16 @@
             "cache_collection": "CACHE_COLLECTION",
             "drives_collection": "DRIVE_COLLECTION",
             "colddata_collection": "COLDDATA_COLLECTION",
-            "domains_collection": "DOMAIN_COLLECTION"
+            "domains_collection": "DOMAIN_COLLECTION",
+            "webauthn_collection": "WEBAUTHN_COLLECTION",
+            "instance_collection": "INSTANCE_COLLECTION"
         }
     },
     "server": {
         "port": 3003
+    },
+    "bcrypt": {
+        "saltround": 2
     },
     "objectStore": {
         "host": "localhost",
@@ -37,5 +43,32 @@
         "bucketRegion": "region",
         "useSSL": false
     },
-    "pollingInterval": 10000
+    "sessionsSecret": "Change_Me",
+    "aesSecret": "change_this",
+    "nodemailer": {
+        "auth": {
+            "user": "change_this",
+            "pass": "change_this"
+        }
+    },
+    "adminEmail": "admin@example.com",
+    "aeEndpoint": "http://localhost:9090",
+    "useWebdav": false,
+    "webdavPort": 1900,
+    "webdavServer": "http://localhost:4200/webdav",
+    "pollingInterval": 10000,
+
+    "lxdEndpoint": "https://localhost:8443",
+    "lxdStoragePool": "newpool",
+    "lxdProject": "default",
+    "systemKey":{
+        "pubkey": "path/system_key.pub",
+        "privkey": "path/system_key.pem"
+    },
+    "lxdCertFile": {
+        "cert": "/path/mylxd.crt",
+        "key": "/path/mylxd.key"
+    },
+    "lxdRejectUnauthorized": false,
+    "jupyterPort": 8888
 }

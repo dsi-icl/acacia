@@ -23,3 +23,5 @@ export * from './trpc/tRPCRouter';
 export * from './trpc/userProcedure';
 export * from './trpc/middleware';
 export * from './trpc/webauthnProcedure';
+export * from './trpc/instanceProcedure';
+export * from './trpc/lxdProcedure';

@@ -24,7 +24,8 @@
             "drives_collection": "DRIVE_COLLECTION",
             "colddata_collection": "COLDDATA_COLLECTION",
             "domains_collection": "DOMAIN_COLLECTION",
-            "webauthn_collection": "WEBAUTHN_COLLECTION"
+            "webauthn_collection": "WEBAUTHN_COLLECTION",
+            "instance_collection": "INSTANCE_COLLECTION"
         }
     },
     "server": {
@@ -52,5 +53,19 @@
     "adminEmail": "admin@example.com",
     "aeEndpoint": "http://localhost:9090",
     "useWebdav": true,
-    "webdavPort": 1900
+    "webdavPort": 1900,
+    "lxdEndpoint": "https://localhost:8443",
+    "lxdStoragePool": "newpool",
+    "lxdProject": "ideafast-staging",
+    "webdavServer": "http://localhost",
+    "systemKey":{
+        "pubkey": "path/system_key.pub",
+        "privkey": "path/system_key.pem"
+    },
+    "lxdCertFile": {
+        "cert": "/path/mylxd.crt",
+        "key": "/path/mylxd.key"
+    },
+    "lxdRejectUnauthorized": false,
+    "jupyterPort": 8888
 }

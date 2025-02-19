@@ -53,11 +53,11 @@ const ZUserConfig = ZBase.extend({
     defaultMaximumRepoSize: z.number(),
     defaultFileBucketId: z.string(),
     defaultMaximumQPS: z.number(),
-    defaultLXDMaximumContainers: z.number(),
-    defaultLXDMaximumContainerCPUCores: z.number(),
-    defaultLXDMaximumContainerDiskSize: z.number(),
-    defaultLXDMaximumContainerMemory: z.number(),
-    defaultLXDMaximumContainerLife: z.number()
+    defaultLXDMaximumInstances: z.number(),
+    defaultLXDMaximumInstanceCPUCores: z.number(),
+    defaultLXDMaximumInstanceDiskSize: z.number(),
+    defaultLXDMaximumInstanceMemory: z.number(),
+    defaultLXDMaximumInstanceLife: z.number()
 });
 
 // ZOrganisationConfig schema

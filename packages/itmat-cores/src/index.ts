@@ -24,3 +24,6 @@ export * from './utils';
 export * from './webdav/dmpWebDAV';
 // webauthn
 export * from './coreFunc/webauthnCore';
+// instance, lxd, Analystic Environment
+export * from './coreFunc/instanceCore';
+export * from './lxd/lxdManager';

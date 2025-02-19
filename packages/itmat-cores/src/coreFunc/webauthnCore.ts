@@ -13,7 +13,6 @@ import {
     verifyRegistrationResponse,
     generateAuthenticationOptions,
     verifyAuthenticationResponse
-
 } from '@simplewebauthn/server';
 
 import type {

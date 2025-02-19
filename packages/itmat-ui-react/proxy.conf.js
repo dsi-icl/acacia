@@ -27,11 +27,12 @@ module.exports = [
         changeOrigin: true
     },
     {
-        context: ['/pun', '/node', '/rnode', '/public'],
+        context: ['/pun', '/node', '/rnode', '/public', '/rtc', '/jupyter'],
         target: API_SERVER,
         secure: false,
         changeOrigin: true,
         autoRewrite: true,
-        ws: true
+        ws: true,
+        xforward: true
     }
 ];

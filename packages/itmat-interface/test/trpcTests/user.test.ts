@@ -18,16 +18,6 @@ import { IOrganisation, enumUserTypes } from '@itmat-broker/itmat-types';
 import { encodeQueryParams } from './helper';
 import { errorCodes } from '@itmat-broker/itmat-cores';
 
-jest.mock('nodemailer', () => {
-    const { TEST_SMTP_CRED, TEST_SMTP_USERNAME } = process.env;
-    if (!TEST_SMTP_CRED || !TEST_SMTP_USERNAME || !config?.nodemailer?.auth?.pass || !config?.nodemailer?.auth?.user)
-        return {
-            createTransport: jest.fn().mockImplementation(() => ({
-                sendMail: jest.fn()
-            }))
-        };
-    return jest.requireActual('nodemailer');
-});
 
 if (global.hasMinio) {
     let app: Express;

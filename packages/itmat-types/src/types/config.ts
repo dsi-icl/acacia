@@ -1,6 +1,8 @@
 import { IBase, ILifeCircle } from './base';
 import { v4 as uuid } from 'uuid';
 import { enumReservedUsers } from './user';
+import { IJobSchedulerConfig, enumJobSchedulerStrategy } from './job';
+import { enumInstanceType } from './instance';
 
 export interface IConfig extends IBase {
     type: enumConfigType;
@@ -27,6 +29,14 @@ export interface ISystemConfig extends IBase {
     archiveAddress: string;
     defaultEventTimeConsumptionBar: number[];
     defaultUserExpireDays: number;
+    jobSchedulerConfig: IJobSchedulerConfig;
+    defaultLXDFlavor: {
+        [key in enumInstanceType]: {
+            cpuLimit: number;
+            memoryLimit: number;
+            diskLimit: number;
+        }
+    };
 }
 
 export enum enumStudyBlockColumnValueType {
@@ -57,12 +67,13 @@ export interface IUserConfig extends IBase {
     defaultFileBucketId: string;
     defaultMaximumQPS: number;
 
-    // LXD containers
-    defaultLXDMaximumContainers: number;
-    defaultLXDMaximumContainerCPUCores: number;
-    defaultLXDMaximumContainerDiskSize: number;
-    defaultLXDMaximumContainerMemory: number;
-    defaultLXDMaximumContainerLife: number;
+    // LXD instances
+    defaultLXDMaximumInstances: number;
+    defaultLXDMaximumInstanceCPUCores: number;
+    defaultLXDMaximumInstanceDiskSize: number;
+    defaultLXDMaximumInstanceMemory: number;
+    defaultLXDMaximumInstanceLife: number;
+    defaultLXDflavor: enumInstanceType[]; // e.g., ['small', 'medium']
 }
 
 export interface IOrganisationConfig extends IBase {
@@ -118,7 +129,20 @@ export class DefaultSettings implements IDefaultSettings {
         logoSize: ['24px', '24px'],
         archiveAddress: '',
         defaultEventTimeConsumptionBar: [50, 100],
-        defaultUserExpireDays: 90
+        defaultUserExpireDays: 90,
+        jobSchedulerConfig: {
+            strategy: enumJobSchedulerStrategy.FIFO,
+            usePriority: true,
+            // for errored jobs
+            reExecuteFailedJobs: true,
+            failedJobDelayTime: 10 * 60 * 1000, // unit timestamps
+            maxAttempts: 10 // the number of attempts should be stored in history
+        },
+        defaultLXDFlavor: {
+            [enumInstanceType.SMALL]: { cpuLimit: 4, memoryLimit: 16 * 1024 * 1024 * 1024, diskLimit: 40 * 1024 * 1024 * 1024 },
+            [enumInstanceType.MEDIUM]: { cpuLimit: 8, memoryLimit: 32 * 1024 * 1024 * 1024, diskLimit: 60 * 1024 * 1024 * 1024 },
+            [enumInstanceType.LARGE]: { cpuLimit: 16, memoryLimit: 64 * 1024 * 1024 * 1024, diskLimit: 80 * 1024 * 1024 * 1024 }
+        }
     };
 
     public readonly studyConfig: IStudyConfig = {
@@ -152,11 +176,14 @@ export class DefaultSettings implements IDefaultSettings {
         defaultMaximumRepoSize: 10 * 1024 * 1024 * 1024, // 10GB
         defaultFileBucketId: 'user',
         defaultMaximumQPS: 500,
-        defaultLXDMaximumContainers: 2,
-        defaultLXDMaximumContainerCPUCores: 2,
-        defaultLXDMaximumContainerDiskSize: 50 * 1024 * 1024 * 1024,
-        defaultLXDMaximumContainerMemory: 8 * 1024 * 1024 * 1024,
-        defaultLXDMaximumContainerLife: 8 * 60 * 60
+        // LXD instances
+        defaultLXDflavor: [enumInstanceType.SMALL],
+        defaultLXDMaximumInstances: 3, // number
+        defaultLXDMaximumInstanceCPUCores: 3 * 8,  // number
+        defaultLXDMaximumInstanceDiskSize: 3 * 40 * 1024 * 1024 * 1024,
+        defaultLXDMaximumInstanceMemory: 3 * 16  *  1024 * 1024 * 1024,
+        // set to 360 hours
+        defaultLXDMaximumInstanceLife: 360 * 60 * 60 * 1000 // set to suitable hours
     };
 
     public readonly docConfig: IDocConfig = {

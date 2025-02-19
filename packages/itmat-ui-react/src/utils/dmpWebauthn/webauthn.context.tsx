@@ -43,7 +43,7 @@ export const AuthProvider: FunctionComponent<AuthProviderProps> = ({ children })
     const navigate = useNavigate();
 
     const handleCancelRegistration = () => {
-        navigate('/');
+        navigate('/datasets');
     };
 
     useEffect(() => {

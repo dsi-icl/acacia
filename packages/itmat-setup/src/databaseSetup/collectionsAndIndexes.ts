@@ -141,6 +141,13 @@ const collections = {
             { key: { id: 1 }, unique: true },
             { key: { userId: 1 }, unique: false }
         ]
+    },
+    instance_collection: {
+        name: 'INSTANCE_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { userId: 1 }, unique: false }
+        ]
     }
 };
 

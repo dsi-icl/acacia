@@ -9,6 +9,8 @@ import css from './scaffold.module.css';
 import { DrivePage } from '../drive';
 import { DomainPage } from '../domain';
 import { OrganisationPage } from '../organisation';
+import { InstancePage } from '../instance';
+import { LXDPage } from '../lxd';
 
 export const MainPanel: FunctionComponent = () => {
     return (
@@ -24,6 +26,8 @@ export const MainPanel: FunctionComponent = () => {
                 <Route path='/profile' element={<ProfilePage />} />
                 <Route path='/drive' element={<DrivePage />} />
                 <Route path='/pun/sys/dashboard' />
+                <Route path='/instances' element={<InstancePage />} />
+                <Route path='/lxd' element={<LXDPage />} />
                 <Route path='*' element={<Navigate to='/datasets' />} />
             </Routes>
         </div>
