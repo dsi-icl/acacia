@@ -123,7 +123,7 @@ export class Router {
         // authentication middleware
         this.app.use((req, res, next) => {
             let token: string = req.headers.authorization || '';
-            if (token.startsWith('Bearer ')) {
+            if (token.startsWith('Bearer ') || token.startsWith('BEARER')) {
                 token = token.slice(7);
             }
             tokenAuthentication(token)
@@ -287,14 +287,6 @@ export class Router {
         );
 
         /* register the graphql subscription functionalities */
-        // Creating the WebSocket subscription server
-        // const wsServer = new WebSocketServer({
-        //     // This is the `httpServer` returned by createServer(app);
-        //     server: this.server,
-        //     // Pass a different path here if your ApolloServer serves at
-        //     // a different path.
-        //     path: '/graphql'
-        // });
         const graphqlWsServer = new WebSocketServer({
             noServer: true // We'll handle upgrades manually
         });
@@ -314,12 +306,59 @@ export class Router {
         // });
 
         // webdav
+
+        const webdav_target =  `http://localhost:${this.config.webdavPort}`;
         const webdav_proxy = createProxyMiddleware({
-            target: `http://localhost:${this.config.webdavPort}`,
+            target: webdav_target,
+            ws: true,
+            xfwd: true,
+            autoRewrite: true,
             changeOrigin: true,
             pathRewrite: (path) => {
                 const rewrittenPath = path.replace(/^\/webdav/, '/');
                 return rewrittenPath;
+            },
+            on: {
+                //TODO local test,  Change 'ProxyReq' to 'proxyReq' to match the correct event name
+                proxyReq: function (preq, req: Request, res: Response) {
+
+                    preq.setHeader('Host', req.headers['host'] || 'localhost');
+                    preq.setHeader('Origin', req.headers['origin'] || webdav_target);
+                    preq.setHeader('Accept', '*/*');
+                    preq.setHeader('Connection', 'keep-alive');
+                    preq.setHeader('Keep-Alive', 'timeout=120');
+
+
+                    // Handle authentication
+                    if (req.user) {
+                        // If user info is available, create Basic auth header
+                        const data = `${req.user.id}:token`;
+                        preq.setHeader('Authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                    } else {
+                        Logger.log('Unauthorized request, webdav_proxy redirecting...');
+                        res.status(403).redirect('/');
+                        return;
+                    }
+                    // Special handling for OPTIONS request
+                    if (req.method === 'OPTIONS') {
+                        preq.setHeader('MS-Author-Via', 'DAV');
+                        res.setHeader('DAV', '1,2');
+                        res.setHeader('Allow', 'OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK');
+                    }
+                },
+                proxyRes: function (proxyRes) {
+
+                    if (proxyRes.statusCode === 500) {
+                        console.error('WebDAV Server Error:', proxyRes.statusMessage);
+                        let body = '';
+                        proxyRes.on('data', chunk => {
+                            body += chunk.toString();
+                        });
+                        proxyRes.on('end', () => {
+                            Logger.error(`Response Body: ${JSON.stringify(body)}`);
+                        });
+                    }
+                }
             }
         });
 

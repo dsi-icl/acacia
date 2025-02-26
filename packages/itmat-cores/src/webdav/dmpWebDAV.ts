@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { v2 as webdav } from 'webdav-server';
 import { Readable, Writable } from 'stream';
-import jwt from 'jsonwebtoken';
-import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import nodeFetch from 'node-fetch';
 import { IDrive, IUserWithoutToken, enumFileTypes } from '@itmat-broker/itmat-types';
 import { FileCore } from '../coreFunc/fileCore';
@@ -10,7 +8,6 @@ import { DriveCore } from '../coreFunc/driveCore';
 import { DBType } from '../database/database';
 import { StudyCore } from '../coreFunc/studyCore';
 import { DataCore } from '../coreFunc/dataCore';
-
 
 class DMPFileSystemSerializer implements webdav.FileSystemSerializer {
     uid(): string {
@@ -65,6 +62,7 @@ export class DMPFileSystem extends webdav.FileSystem {
         const pathStr = path.toString();
         const pathArr = pathToArray(pathStr);
         const user = ctx.user as any;
+
         if (pathStr === '/') {
             callback(true);
             return;
@@ -310,6 +308,8 @@ export class DMPFileSystem extends webdav.FileSystem {
         const user = ctx.context.user as any;
         const depth: number = ctx.context.headers.depth ?? 1;
         const pathStr: string = path.toString();
+
+
         if (pathStr === '/') {
             callback(undefined, [this.myDriveDirName, this.sharedDirName, this.studyDirName]);
             return;
@@ -458,30 +458,72 @@ export class DMPWebDAVAuthentication implements HTTPAuthentication {
 
     getUser(ctx: webdav.HTTPRequestContext, callback: (error: Error | null, user?: IUserWithoutToken) => void): void {
         try {
-            const token = ctx.headers.find('authorization') ?? '';
-            const decodedPayload = jwt.decode(token);
-            let pubkey: string;
-            if (decodedPayload !== null && !(typeof decodedPayload === 'string')) {
-                pubkey = decodedPayload['publicKey'];
-            } else {
-                callback(new Error('JWT verification failed.'));
-                return;
-            }
-            // verify the JWT
-            jwt.verify(token, pubkey, function (error) {
-                if (error) {
-                    callback(new Error('JWT verification failed.'));
+
+            const authHeader = ctx.request.headers['authorization'];
+
+            if (authHeader) {
+                if (authHeader.startsWith('Basic ')) {
+                    const base64Credentials = authHeader.slice(6);
+
+                    // Logic to retrieve the user from the database using username and password
+                    // retrival the user according to the user_id
+                    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+                    const [userId] = credentials.split(':'); // Split the credentials into userId and token
+
+
+                    this.db.collections.users_collection.findOne(
+                        { 'life.deletedTime': null, 'id': userId },
+                        { projection: { password: 0, otpSecret: 0 } }
+                    )
+                        .then((user) => {
+                            if (!user) {
+                                callback(new Error('Invalid credentials'));
+                                return;
+                            }
+                            callback(null, user as IUserWithoutToken); // Pass the user object to the callback
+                        })
+                        .catch(() => {
+                            callback(new Error('Error retrieving user'));
+                        });
+                } else {
+                    callback(new Error('Unsupported authentication method'));
                 }
-            });
-            try {
-                userRetrieval(this.db, pubkey).then((associatedUser) => {
-                    callback(null, associatedUser);
-                }).catch(() => {
-                    callback(new Error('Invalid credentials'));
-                });
-            } catch {
-                callback(new Error('Invalid credentials'));
+            } else {
+                callback(new Error('No authentication provided'));
             }
+            // get the user from the request
+            // const user = ctx.user as any;
+            // if (!user) {
+            //     callback(new Error('Invalid credentials'));
+            //     return;
+            // } else {
+            //     callback(null, user);
+            //     return;
+            // }
+            // const token = ctx.headers.find('authorization') ?? '';
+            // const decodedPayload = jwt.decode(token);
+            // let pubkey: string;
+            // if (decodedPayload !== null && !(typeof decodedPayload === 'string')) {
+            //     pubkey = decodedPayload['publicKey'];
+            // } else {
+            //     callback(new Error('JWT verification failed.'));
+            //     return;
+            // }
+            // // verify the JWT
+            // jwt.verify(token, pubkey, function (error) {
+            //     if (error) {
+            //         callback(new Error('JWT verification failed.'));
+            //     }
+            // });
+            // try {
+            //     userRetrieval(this.db, pubkey).then((associatedUser) => {
+            //         callback(null, associatedUser);
+            //     }).catch(() => {
+            //         callback(new Error('Invalid credentials'));
+            //     });
+            // } catch {
+            //     callback(new Error('Invalid credentials'));
+            // }
         } catch {
             callback(new Error('Invalid credentials'));
         }

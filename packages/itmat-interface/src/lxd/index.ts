@@ -87,54 +87,12 @@ export const registerContainSocketServer = (server: WebSocketServer, lxdManager:
             });
 
             containerSocket.on('message', (message: ArrayBuffer | Uint8Array[], isBinary: boolean) => {
-                // let arrayBuffer;
-
-                // if (isBinary) {
-                //     // message will be one of ArrayBuffer | Buffer[] | Buffer
-                //     if (Array.isArray(message)) {
-                //         // If it's an array, we need to concatenate into a single buffer
-                //         const combinedBuffer = Buffer.concat(message);
-                //         arrayBuffer = combinedBuffer.buffer.slice(
-                //             combinedBuffer.byteOffset,
-                //             combinedBuffer.byteOffset + combinedBuffer.byteLength
-                //         );
-                //     } else if (message instanceof Buffer) {
-                //         // Node.js Buffer instance, we need to slice the ArrayBuffer it references
-                //         arrayBuffer = message.buffer.slice(
-                //             message.byteOffset,
-                //             message.byteOffset + message.byteLength
-                //         );
-                //     } else {
-                //         // It's already an ArrayBuffer
-                //         arrayBuffer = message;
-                //     }
-
-                //     const messageContent = `Binary message: ${textDecoder.decode(arrayBuffer)}`;
-
-                //     const asciiMessage = Array.from(new Uint8Array(arrayBuffer))
-                //         .map(byte => String.fromCharCode(byte))
-                //         .join('');
-                //     const hexMessage = Array.from(new Uint8Array(arrayBuffer))
-                //         .map(byte => byte.toString(16).padStart(2, '0'))
-                //         .join(' ');
-
-                //     console.log(`Message from container: ${messageContent}`);
-                //     console.log(`Message from container: Binary message (ASCII): ${asciiMessage}`);
-                //     console.log(`Message from container: Binary message (Hex): ${hexMessage}`);
-                //     console.log(`Message from container: type ${isBinary}, ${message}`);
-                // } else {
-                //     // If it's not binary, we expect a text message, which should be a string
-                //     console.log(`Message from container: type ${isBinary}, ${message}`);
-                //     const messageContent = `Text message: ${message.toString()}`;
-                //     console.log(`Message from container: ${messageContent}`);
-                // }
                 const tuple: [Buffer, boolean] = [Buffer.from(message as ArrayBuffer), isBinary];
                 containerMessageBuffers.push(tuple);
                 flushContainerMessageBuffers();
             });
 
             containerSocket.on('close', (code, reason) => {
-                // console.log('container websocket close:',code,  reason.toString());
                 flushContainerMessageBuffers();
                 if (clientSocket?.readyState === WebSocket.OPEN)
                     clientSocket?.close(4010, `The container socket was closed with code${code}: ${reason.toString()}`);
@@ -485,7 +443,6 @@ export const vncProxyMiddleware = async (
 ) => {
     const instance_id = req.params['instance_id'];
     // log
-    console.log('vncProxyMiddleware, instance_id', instance_id);
 
     if (!instance_id) {
         return res.status(404).send('Instance not found');
@@ -542,7 +499,6 @@ export const vncProxyMiddleware = async (
 
 
             proxy.on('error', (err: Error) => {
-                console.log('VNC Proxy error:', JSON.stringify(err));
                 Logger.error(`VNC Proxy error: ${err.message}`);
                 if (!res.headersSent) {
                     res.status(502).send('VNC Proxy Error');

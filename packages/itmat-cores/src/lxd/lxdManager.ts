@@ -77,8 +77,6 @@ export class LxdManager {
             await this.lxdInstance.get('/1.0');
             Logger.log('LXD connection established successfully');
 
-            // Add proper environment variable handling
-            process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = this.config.lxdRejectUnauthorized ? '0' : '1';
         } catch (error) {
             Logger.error(`Failed to initialize LXD client: ${error}`);
             throw new Error('LXD initialization failed');

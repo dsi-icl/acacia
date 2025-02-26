@@ -1,6 +1,6 @@
 import {LxdConfiguration} from '@itmat-broker/itmat-types';
 
-// sanitized the update playload
+// sanitized the update payload
 export const sanitizeUpdatePayload = (payload: LxdConfiguration) => {
     const sanitizedPayload: LxdConfiguration = { ...payload };
 
