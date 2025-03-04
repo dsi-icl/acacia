@@ -11,7 +11,7 @@ import { mailer } from './emailer/emailer';
 let interfaceRunner = new ITMATInterfaceRunner(config);
 let interfaceSockets: Socket[] = [];
 let interfaceServer: http.Server;
-let interfaceRouter: Express;
+let interfaceRouter: Express | undefined;
 
 function serverStart() {
     console.info(`Starting api server ${process.pid} ...`);
