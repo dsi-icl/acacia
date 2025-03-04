@@ -1,13 +1,16 @@
 // External node module imports
 import { v4 as uuid } from 'uuid';
-import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Runner } from './server/server';
 import { JobPoller } from '@itmat-broker/itmat-commons';
 import { JobDispatcher } from './jobDispatch/dispatcher';
 import { MongoClient } from 'mongodb';
-import { QueryHandler } from './query/queryHandler';
+import { APIHandler } from './jobHandlers/apiJobHandler';
+import { defaultSettings, enumJobType} from '@itmat-broker/itmat-types';
+import { LXDJobHandler} from './jobHandlers/lxdJobHandler';
+import { LXDMonitorHandler} from './jobHandlers/lxdMonitorHandler';
+import {db} from './database/database';
 
 class ITMATJobExecutorRunner extends Runner {
 
@@ -29,19 +32,23 @@ class ITMATJobExecutorRunner extends Runner {
             db.connect(this.config.database, MongoClient)
                 .then(async () => objStore.connect(this.config.objectStore))
                 .then(() => {
-
                     _this.router = new Router();
-
                     const jobDispatcher = new JobDispatcher();
 
                     /* TO_DO: can we figure out the files at runtime and import at runtime */
-                    jobDispatcher.registerJobType('QUERY_EXECUTION', QueryHandler.prototype.getInstance.bind(QueryHandler));
+                    // jobDispatcher.registerJobType('QUERY_EXECUTION', QueryHandler.prototype.getInstance.bind(QueryHandler));
+                    jobDispatcher.registerJobType(enumJobType.DMPAPI, APIHandler.getInstance.bind(APIHandler));
+                    // register the lxd jobhandler, bind the instance collection to LXDJobHandler
+                    jobDispatcher.registerJobType(enumJobType.LXD, LXDJobHandler.getInstance.bind(LXDJobHandler));
+                    // Register the LXD monitor handler
+                    jobDispatcher.registerJobType(enumJobType.LXD_MONITOR, LXDMonitorHandler.getInstance.bind(LXDMonitorHandler));
 
                     const poller = new JobPoller({
                         identity: uuid(),
                         jobCollection: db.collections.jobs_collection,
                         pollingInterval: this.config.pollingInterval,
-                        action: jobDispatcher.dispatch
+                        action: jobDispatcher.dispatch.bind(jobDispatcher),
+                        jobSchedulerConfig: defaultSettings.systemConfig.jobSchedulerConfig
                     });
                     poller.setInterval();
 

@@ -19,5 +19,6 @@ export default {
         "node_modules",
         "\\.pnp\\.[^\\\/]+$",
         "test[\\/]fixtures[\\/]_minio"
-    ]
+    ],
+    moduleNameMapper:{"^uuid$": "uuid"} 
 };

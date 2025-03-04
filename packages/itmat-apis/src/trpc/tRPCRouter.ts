@@ -9,6 +9,9 @@ import { StudyRouter } from './studyProcedure';
 import { TRPCRouter } from './trpc';
 import { UserRouter } from './userProcedure';
 import { WebAuthnRouter } from './webauthnProcedure';
+import { InstanceRouter } from './instanceProcedure';
+import { LXDRouter } from './lxdProcedure';
+
 
 export class TRPCAggRouter {
     router: TRPCRouter;
@@ -22,7 +25,10 @@ export class TRPCAggRouter {
     domainRouter: DomainRouter;
     organisationRouter: OrganisationRouter;
     webAuthnRouter: WebAuthnRouter;
-    constructor(router: TRPCRouter, userRouter: UserRouter, driveRouter: DriveRouter, studyRouter: StudyRouter, dataRouter: DataRouter, roleRouter: RoleRouter, configRouter: ConfigRouter, logRouter: LogRouter, domainRouter: DomainRouter, organisationRouter: OrganisationRouter, webAuthnRouter: WebAuthnRouter) {
+    instanceRouter: InstanceRouter;
+    lxdRouter: LXDRouter;
+
+    constructor(router: TRPCRouter, userRouter: UserRouter, driveRouter: DriveRouter, studyRouter: StudyRouter, dataRouter: DataRouter, roleRouter: RoleRouter, configRouter: ConfigRouter, logRouter: LogRouter, domainRouter: DomainRouter, organisationRouter: OrganisationRouter, webAuthnRouter: WebAuthnRouter, instanceRouter: InstanceRouter, lxdRouter: LXDRouter) {
         this.router = router;
         this.userRouter = userRouter;
         this.driveRouter = driveRouter;
@@ -34,6 +40,8 @@ export class TRPCAggRouter {
         this.domainRouter = domainRouter;
         this.organisationRouter = organisationRouter;
         this.webAuthnRouter = webAuthnRouter;
+        this.instanceRouter = instanceRouter;
+        this.lxdRouter = lxdRouter;
     }
 
     _routers() {
@@ -47,7 +55,9 @@ export class TRPCAggRouter {
             log: this.logRouter._router(),
             domain: this.domainRouter._router(),
             organisation: this.organisationRouter._router(),
-            webauthn: this.webAuthnRouter._router()
+            webauthn: this.webAuthnRouter._router(),
+            instance: this.instanceRouter._router(),
+            lxd: this.lxdRouter._router()
         });
     }
 }

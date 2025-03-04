@@ -25,6 +25,7 @@ export const WebAuthnRegistrationComponent: FunctionComponent = () => {
 
     const webauthnRegistration = trpc.webauthn.webauthnRegister.useMutation();
     const webauthnRegisterVerify = trpc.webauthn.webauthnRegisterVerify.useMutation();
+    const getCurrentDomain = trpc.domain.getCurrentDomain.useQuery();
 
     const { refetch: fetchWebAuthnID } = trpc.webauthn.getWebauthnID.useQuery(undefined, {
         enabled: false,
@@ -136,7 +137,11 @@ export const WebAuthnRegistrationComponent: FunctionComponent = () => {
         <div>
 
             <div className={webauthnStyles.registration_dialog}>
-                <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
+                <img
+                    src={`${window.location.origin}/file/${getCurrentDomain.data?.logo}`}
+                    width={200}
+                    alt="Logo"
+                />
                 <div className={webauthnStyles.userIconWrapper}>
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <KeyOutlined style={{ fontSize: '16px', marginRight: '-8px' }} />

@@ -10,7 +10,8 @@ export enum enumCoreErrors {
     FILE_STREAM_ERROR = 'FILE_STREAM_ERROR',
     OBJ_STORE_ERROR = 'OBJ_STORE_ERROR',
     UNQUALIFIED_ERROR = 'UNQUALIFIED_ERROR',
-    NOT_IMPLEMENTED = 'NOT_IMPLEMENTED'
+    NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
+    POLLING_ERROR = 'POLLING_ERROR' // error type for polling errors
 }
 
 export enum enumRequestErrorCodes {

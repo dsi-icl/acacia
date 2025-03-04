@@ -70,7 +70,7 @@ export const MainMenuBar: FunctionComponent = () => {
             </NavLink>
         </div>
         <div>
-            <NavLink to='/pun/sys/dashboard' target='_blank' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
+            <NavLink to='/instances' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                 <div className={css.button}><DesktopOutlined /> Analytical Environment</div>
             </NavLink>
         </div>
@@ -100,6 +100,11 @@ export const MainMenuBar: FunctionComponent = () => {
                                 <div>
                                     <NavLink to='/organisations' title='Organisations' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                                         <div className={css.button} style={{ color: 'black' }}><ClusterOutlined /> Organisations</div>
+                                    </NavLink>
+                                </div>
+                                <div>
+                                    <NavLink to='/lxd' title='LXDInstances' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
+                                        <div className={css.button} style={{ color: 'black' }}><DesktopOutlined /> LXD</div>
                                     </NavLink>
                                 </div>
                             </div>

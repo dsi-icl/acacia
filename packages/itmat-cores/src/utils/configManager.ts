@@ -18,6 +18,14 @@ export interface IConfiguration extends IServerConfig {
     aeEndpoint: string;
     useWebdav: boolean;
     webdavPort: number;
+    webdavServer: string;
+    lxdEndpoint: string;
+    lxdStoragePool: string;
+    lxdProject: string;
+    systemKey: Record<string, string>;
+    lxdCertFile: Record<string, string>;
+    lxdRejectUnauthorized: boolean;
+    jupyterPort: number;
 }
 
 export class ConfigurationManager {

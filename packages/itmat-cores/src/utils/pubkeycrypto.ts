@@ -142,11 +142,19 @@ export function eckeygen(curve = 'secp256k1') {
     return keyPair;
 }
 
-export function tokengen(payload: string | Buffer | object, secret: string, passphrase = 'idea-fast', algorithm: Algorithm = 'RS256', life = 12000) {
-    // Asymmetric JWT is used by default by setting algorithm = RS256.
+export function tokengen(payload: string | Buffer | object, secret: string, passphrase = 'idea-fast', algorithm: Algorithm = 'RS256', life?: number) {
+    const options: jwt.SignOptions = {
+        algorithm: algorithm
+    };
+
+    // Only add expiresIn if life is specified
+    if (life !== undefined && life !== null) {
+        options.expiresIn = life;
+    }
+
     return jwt.sign(payload,
         { key: secret, passphrase: passphrase },
-        { algorithm: algorithm, expiresIn: life }
+        options
     );
 }
 

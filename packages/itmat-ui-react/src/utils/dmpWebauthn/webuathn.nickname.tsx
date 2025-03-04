@@ -20,6 +20,7 @@ export const DeviceNicknameComponent: FunctionComponent = () => {
 
 
     const updateDeviceNameMutation = trpc.webauthn.updateWebauthnDeviceName.useMutation();
+    const getCurrentDomain = trpc.domain.getCurrentDomain.useQuery();
 
     const handleSetDeviceNickname = async () => {
         if (deviceName && newDeviceId) {
@@ -45,8 +46,9 @@ export const DeviceNicknameComponent: FunctionComponent = () => {
         <div>
             <div className={css.registration_dialog}>
                 <img
-                    alt='IDEA-FAST Logo'
-                    src='https://avatars3.githubusercontent.com/u/60649739?s=150'
+                    src={`${window.location.origin}/file/${getCurrentDomain.data?.logo}`}
+                    width={200}
+                    alt="Logo"
                 />
                 <h3>Pick a Nickname for Your Device</h3>
                 <p>Please pick a nickname that will help you identify this registered device later.</p>
