@@ -17,7 +17,6 @@
                 "assets": [
                     "packages/itmat-models/*.md"
                 ],
-                "generatePackageJson": true,
                 "thirdParty": true
             }
         },

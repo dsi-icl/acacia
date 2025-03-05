@@ -4,7 +4,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { graphqlUploadExpress, GraphQLUpload } from 'graphql-upload-minimal';
 import { execute, subscribe } from 'graphql';
 import { WebSocketServer } from 'ws';
-import { useServer } from 'graphql-ws/lib/use/ws';
+import { useServer } from 'graphql-ws/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import MongoStore from 'connect-mongo';
 import express from 'express';
@@ -17,6 +17,7 @@ import passport from 'passport';
 import { db } from '../database/database';
 import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
+import 'json-bigint-patch';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { FileUploadSchema, IUserConfig, enumConfigType, enumUserTypes } from '@itmat-broker/itmat-types';
 import { logPluginInstance } from '../log/logPlugin';
@@ -249,7 +250,7 @@ export class Router {
 
         // webdav
 
-        const webdav_target =  `http://localhost:${this.config.webdavPort}`;
+        const webdav_target = `http://localhost:${this.config.webdavPort}`;
         const webdav_proxy = createProxyMiddleware({
             target: webdav_target,
             ws: true,
@@ -405,7 +406,7 @@ export class Router {
                 graphqlWsServer.handleUpgrade(req, socket, head, (ws) => {
                     graphqlWsServer.emit('connection', ws, req); // Forward the upgrade to the GraphQL WebSocket server
                 });
-            } else if(req.url?.startsWith('/jupyter')) {
+            } else if (req.url?.startsWith('/jupyter')) {
                 const instance_id = req.url.split('/')[2];  // Extract instance ID from the URL
 
                 if (!instance_id) {
@@ -422,7 +423,8 @@ export class Router {
                 } catch (error) {
                     Logger.log(`error ${JSON.stringify(error)}`);
                     socket.end();  // End socket if there's an error creating the proxy
-                    return; }
+                    return;
+                }
             }
             // handle VNC websocket connections
             else if (req.url?.startsWith('/matlab')) {

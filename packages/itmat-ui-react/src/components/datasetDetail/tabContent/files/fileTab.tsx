@@ -61,11 +61,11 @@ export const FileRepositoryTabContent: FunctionComponent<{ study: IStudy }> = ({
             </List.Item>
         </List>
         {
-            ((getStudyConfig.data.properties as IStudyConfig).defaultFileBlocks ?? []).map((block, index) => (
+            (getStudyConfig.data ? (getStudyConfig.data.properties as IStudyConfig).defaultFileBlocks : []).map((block, index) => (
                 <FileBlock
                     key={`Fileblock_${index}`}
                     user={whoAmI.data}
-                    fields={getStudyFields.data}
+                    fields={getStudyFields.data ?? []}
                     study={study}
                     block={block}
                 />
@@ -342,7 +342,7 @@ export const FileBlock: FunctionComponent<{ user: IUserWithoutToken, fields: IFi
         });
     }
 
-    const filteredFiles = getFiles.data.filter(el => {
+    const filteredFiles = getFiles.data?.filter(el => {
         if (!searchedKeyword) {
             return true;
         } else {
@@ -356,7 +356,7 @@ export const FileBlock: FunctionComponent<{ user: IUserWithoutToken, fields: IFi
             }
             return false;
         }
-    }).sort((a, b) => (b.life?.createdTime ?? 0) - (a.life?.createdTime ?? 0));
+    }).sort((a, b) => (b.life?.createdTime ?? 0) - (a.life?.createdTime ?? 0)) ?? [];
 
     const summaryByMonth = (filteredFiles) => {
         // Create a map to hold the counts per month

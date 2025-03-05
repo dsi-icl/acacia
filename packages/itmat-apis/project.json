@@ -17,7 +17,6 @@
                 "assets": [
                     "packages/itmat-apis/*.md"
                 ],
-                "generatePackageJson": true,
                 "thirdParty": true,
                 "external": [
                     "bcrypt"

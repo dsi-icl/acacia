@@ -1,49 +1,49 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "target": "ES2022",
-    "module": "ES2022",
-    "lib": [
-      "ES2022",
-      "dom"
-    ],
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "@itmat-broker/itmat-apis": [
-        "packages/itmat-apis/src/index.ts"
-      ],
-      "@itmat-broker/itmat-commons": [
-        "packages/itmat-commons/src/index.ts"
-      ],
-      "@itmat-broker/itmat-cores": [
-        "packages/itmat-cores/src/index.ts"
-      ],
-      "@itmat-broker/itmat-models": [
-        "packages/itmat-models/src/index.ts"
-      ],
-      "@itmat-broker/itmat-setup": [
-        "packages/itmat-setup/src/index.ts"
-      ],
-      "@itmat-broker/itmat-types": [
-        "packages/itmat-types/src/index.ts"
-      ]
-    }
-  },
-  "exclude": [
-    "node_modules",
-    "tmp"
-  ]
+    "compileOnSave": false,
+    "compilerOptions": {
+        "rootDir": ".",
+        "sourceMap": true,
+        "declaration": false,
+        "moduleResolution": "bundler",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "target": "ES2022",
+        "module": "ES2022",
+        "lib": [
+            "ES2022",
+            "dom"
+        ],
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "strict": true,
+        "baseUrl": ".",
+        "paths": {
+            "@itmat-broker/itmat-apis": [
+                "packages/itmat-apis/src/index.ts"
+            ],
+            "@itmat-broker/itmat-commons": [
+                "packages/itmat-commons/src/index.ts"
+            ],
+            "@itmat-broker/itmat-cores": [
+                "packages/itmat-cores/src/index.ts"
+            ],
+            "@itmat-broker/itmat-models": [
+                "packages/itmat-models/src/index.ts"
+            ],
+            "@itmat-broker/itmat-setup": [
+                "packages/itmat-setup/src/index.ts"
+            ],
+            "@itmat-broker/itmat-types": [
+                "packages/itmat-types/src/index.ts"
+            ]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "tmp"
+    ]
 }
