@@ -17,6 +17,7 @@ export interface IInstance extends IBase{
     webDavToken?: string; // webDav cert token
     config: Record<string, unknown>;
     lxdState?: LXDInstanceState; // Optional field for LXD instance state details
+    hostMapPort?: number; // Host map port number for the instance
 }
 
 export enum enumInstanceStatus {

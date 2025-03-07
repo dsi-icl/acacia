@@ -243,6 +243,101 @@ export class LxdManager {
         }
     }
 
+
+    /**
+     * Get the instance location and the host IP by its node name
+     * For cluster mode: GET /1.0/cluster/members/{nodeName}
+     * For single node: Use server environment information
+     *
+     * @param nodeName - The name of the cluster node
+     * @returns Promise<string> - The host IP address
+     */
+    async getInstanceHostIp(nodeName: string): Promise<string> {
+        await this.ensureInitialized();
+
+        try {
+        // First check if we're in a cluster
+            const serverInfo = await this.lxdInstance.get('/1.0');
+            const isClustered = serverInfo.data.metadata?.environment?.server_clustered || false;
+
+            if (isClustered) {
+                try {
+                // cluster mode, get the specific node info
+                    const response = await this.lxdInstance.get(`/1.0/cluster/members/${encodeURIComponent(nodeName)}`);
+
+                    if (response.status === 200 && response.data.metadata?.url) {
+                    // Extract the host from URL (e.g., "https://ideafast-lxd-c1-0-1:8443" → "ideafast-lxd-c1-0-1")
+                        const url = new URL(response.data.metadata.url);
+                        return url.hostname;
+                    }
+                } catch (clusterError) {
+                    Logger.error(`Error fetching cluster member "${nodeName}" info: ${clusterError}`);
+                    throw clusterError;
+                // Fall through to return the default server address
+                }
+            }
+
+            // For non-clustered environments or if cluster member lookup failed
+            // Use the server's primary address
+            if (serverInfo.data.metadata?.environment?.addresses &&
+            serverInfo.data.metadata.environment.addresses.length > 0) {
+                const address = serverInfo.data.metadata.environment.addresses[0];
+                return address.includes(':') ? address.split(':')[0] : address;
+            }
+
+            // If no addresses found, use the hostname from the endpoint URL
+            const endpointUrl = new URL(this.config.lxdEndpoint);
+            return endpointUrl.hostname;
+        } catch (error) {
+            Logger.error(`Error fetching host IP from LXD: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Get the node name where an instance is running
+     *
+     * @param instanceName - The name of the instance
+     * @param project - The LXD project name
+     * @returns Promise<string> - The node name where the instance is running
+     */
+    async getInstanceLocation(instanceName: string, project: string): Promise<string> {
+        await this.ensureInitialized();
+
+        try {
+        // Get instance info to find its location
+            const response = await this.lxdInstance.get(
+                `/1.0/instances/${encodeURIComponent(instanceName)}?project=${encodeURIComponent(project)}`
+            );
+
+            if (response.status !== 200) {
+                throw new Error(`Failed to get instance info: ${response.status} ${JSON.stringify(response.data)}`);
+            }
+
+            // For clustered environments, the location field contains the node name
+            const location = response.data.metadata?.location;
+
+            if (location) {
+                return location;
+            }
+
+            // For non-clustered environments, extract hostname from the LXD endpoint
+            const serverInfo = await this.lxdInstance.get('/1.0');
+            const serverName = serverInfo.data.metadata?.environment?.server_name;
+
+            if (serverName) {
+                return serverName;
+            }
+
+            // Last resort: use the hostname from the endpoint URL
+            const endpointUrl = new URL(this.config.lxdEndpoint);
+            return endpointUrl.hostname;
+        } catch (error) {
+            Logger.error(`Error determining instance location for ${instanceName}: ${error}`);
+            throw error;
+        }
+    }
+
     async getInstanceConsole(instanceName: string, options: { height: number; width: number; type: string; }): Promise<LxdGetInstanceConsoleResponse>  {
         try {
             instanceName = encodeURIComponent(instanceName);

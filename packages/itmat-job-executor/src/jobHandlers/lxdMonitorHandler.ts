@@ -56,10 +56,14 @@ export class LXDMonitorHandler extends APIHandler {
         for (const instance of instances) {
             try {
                 const project = instance.project || 'default';
+                const instanceLocation = await this.lxdManager.getInstanceLocation(instance.name, instance.project || 'default');
+                const hostIp = await this.lxdManager.getInstanceHostIp(instanceLocation);
+
                 const response = await this.lxdManager.getInstanceState(instance.name, project);
 
                 if (response.data) {
                     const instanceState = response.data as LXDInstanceState;
+                    instanceState.hostIp = hostIp;  // add the host ip to the instance state
 
                     await this.instanceCollection.updateOne(
                         { id: instance.id },
