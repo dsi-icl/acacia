@@ -202,7 +202,6 @@ export const registerJupyterSocketServer = (server: WebSocketServer, lxdManager:
                 flushClientMessageBuffers();
             });
             clientSocket.on('open', () => {
-                console.log('client socket open');
                 clientSocket.ping();
             }   );
 
@@ -323,15 +322,37 @@ interface ProxyCache {
 
 const proxyCache: ProxyCache = {};
 
-// Retrieve dynamic instance IP and port
-const getInstanceTarget =  async ( instance_id: string, instanceCore: InstanceCore, user_id?: string | undefined) => {
-    // get the target IP from the instance_id, better to get the ip from database instead of the container directly to avoid the delay
+
+// Replace the existing getInstanceTarget function
+const getInstanceTarget = async (instance_id: string, instanceCore: InstanceCore, user_id?: string | undefined) => {
+    // Get the instance information from the database
+    const instance = await instanceCore.getInstanceById(instance_id);
+
+    if (!instance) {
+        throw new Error('Failed to retrieve instance');
+    }
+
+    // If we have both hostIp and hostMapPort, use those directly
+    if (instance.lxdState?.hostIp && instance.hostMapPort) {
+
+        return {
+            ip: instance.lxdState.hostIp,
+            port: instance.hostMapPort
+        };
+    }
+
+
+
+    // Fall back to the previous approach if no host IP or mapped port is available
     const containerIP = await instanceCore.getContainerIP(instance_id, user_id);
     if (!containerIP || !containerIP.ip) {
         throw new Error('Failed to retrieve container IP');
     }
-    const { ip, port } = containerIP;
-    return { ip, port };
+
+    return {
+        ip: containerIP.ip,
+        port: containerIP.port || 8888
+    };
 };
 
 // Middleware to handle HTTP and WebSocket proxying for Jupyter instances
@@ -364,8 +385,6 @@ export const jupyterProxyMiddleware = async (req: Request & { user?: { id: strin
         proxy.on('proxyReq', (proxyReq: http.ClientRequest, req: http.IncomingMessage & { body?: unknown }) => {
 
             if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') {
-                // Do not modify the path for WebSocket upgrade requests
-                console.log('WebSocket request detected, not modifying proxyReq.path');
                 return;
             }
 

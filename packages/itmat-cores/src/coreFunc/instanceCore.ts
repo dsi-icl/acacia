@@ -89,7 +89,36 @@ export class InstanceCore {
         }
         return instance;
     }
+    /**
+     * TODO: get the instance by name
+     * create the host map port for the instance according to the latest valid port (port range: 30000 - 40000)
+     * @returns the valid port number
+     */
+    private async getValidHostPort(): Promise<number> {
+        const instances = await this.db.collections.instance_collection.find({}).toArray();
+        // Filter out null/undefined values and then sort
+        const existingPorts = instances
+            .map(instance => instance.hostMapPort)
+            .filter(port => port !== undefined && port !== null);
 
+        // If no valid ports are found, start from the base port
+        if (existingPorts.length === 0) {
+            return 30000;
+        }
+
+        // Find the highest port and increment
+        const latestPort = Math.max(...existingPorts);
+        // Wrap around if we reach the maximum port
+        return latestPort >= 40000 ? 30000 : latestPort + 1;
+    }
+
+    private formatProxyAddress(address: string): string {
+        // Remove any protocol prefixes if present
+        if (address.includes('://')) {
+            address = address.split('://')[1];
+        }
+        return address;
+    }
     /**
      * Create an instance.
      *
@@ -121,11 +150,10 @@ export class InstanceCore {
         const webdavServer = this.config.webdavServer;
         const webdavMountPath = `/home/ubuntu/${username}_Drive`; // Ensure the correct path is used
 
-        // const instanceProfile = type===LXDInstanceTypeEnum.VIRTUAL_MACHINE? 'matlab-profile' : 'jupyter-profile';
         const instanceProfile = appType===enumAppType.MATLAB? 'matlab-profile' : 'jupyter-profile';
 
+        const instanceMapPort = await this.getValidHostPort();
 
-        // const cloudInitUserData = appType ===enumAppType.MATLAB? cloudInitUserDataMatlabContainer : cloudInitUserDataJupyterContainer;
         // Prepare user-data for cloud-init to initialize the instance
         const cloudInitUserData = appType === enumAppType.MATLAB
             ? cloudInitUserDataMatlabContainer(instanceSystemToken, username, instance_id, webdavServer, webdavMountPath)
@@ -137,7 +165,6 @@ export class InstanceCore {
             'user.disk': diskLimit ? diskLimit : '20GB',
             'user.username': username, // store username to instance config
             'user.user-data': cloudInitUserData // set the cloud-init user-data
-            // 'cloud-init.user-data': cloudInitUserData // set the cloud-init user-data
         };
 
         const instanceEntry: IInstance = {
@@ -160,7 +187,9 @@ export class InstanceCore {
                 deletedUser: null
             },
             metadata: {},
-            config: instaceConfig
+            config: instaceConfig,
+            // add the port mapping for the instance
+            hostMapPort: instanceMapPort
         };
 
         await this.db.collections.instance_collection.insertOne(instanceEntry);
@@ -188,22 +217,34 @@ export class InstanceCore {
                 architecture: 'x86_64',
                 config: instaceConfig,
                 devices: {
-                    eth0: {
-                        name: 'eth0',
-                        nictype: 'bridged',
-                        parent: 'lxdbr0', // Ensure the correct bridge is used
-                        type: 'nic'
-                    },
+                    // eth0: {
+                    //     name: 'eth0',
+                    //     nictype: 'bridged',
+                    //     parent: 'lxdbr0', // Ensure the correct bridge is used
+                    //     type: 'nic'
+                    // },
                     root: {
                         path: '/',
                         pool: this.config.lxdStoragePool,
                         size: diskLimit ? diskLimit : '20GB',
                         type: 'disk'
+                    },
+                    // add a squid proxy device for the container, get the squid ip from config
+                    squid0: {
+                        bind: 'instance',
+                        connect: `tcp:${this.formatProxyAddress(this.config.lxdSquidProxy)}`,
+                        listen: 'tcp:0.0.0.0:3128',
+                        type: 'proxy'
+                    },
+                    // Add proxy device for Jupyter
+                    jupyter0: {
+                        connect: `tcp:127.0.0.1:${this.config.jupyterPort || 8888}`,
+                        listen: `tcp:0.0.0.0:${instanceMapPort}`,
+                        type: 'proxy'
                     }
                 },
                 source: {
                     type: 'image',
-                    // alias: type===LXDInstanceTypeEnum.VIRTUAL_MACHINE? 'ubuntu-matlab-image' : 'ubuntu-jupyter-container-image'
                     alias: appType ===enumAppType.MATLAB? 'ubuntu-matlab-container-image' : 'ubuntu-jupyter-container-image'
                 },
                 profiles: [instanceProfile],

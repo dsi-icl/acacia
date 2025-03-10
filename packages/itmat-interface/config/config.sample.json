@@ -55,6 +55,7 @@
     "webdavPort": 1900,
     "aeEndpoint": "http://localhost:9090",
     "lxdEndpoint": "https://localhost:8443",
+    "lxdSquidProxy": "traget_ip:3128",
     "systemKey":{
         "pubkey": "/path/system_key.pub",
         "privkey": "/path/system_key.pem"

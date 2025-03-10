@@ -51,6 +51,7 @@ export interface LXDInstanceState {
   pid: number;
   processes: number;
   status: string;
+  hostIp?: string;
 }
 
 export enum LXDInstanceTypeEnum {
