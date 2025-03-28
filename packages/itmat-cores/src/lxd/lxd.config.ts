@@ -3,6 +3,8 @@ export const cloudInitUserDataJupyterContainer = (instanceSystemToken: string, u
 #cloud-config
 packages:
   - davfs2
+  - python3.10
+  - python3-pip
 users:
   - name: ubuntu
     groups: sudo
@@ -166,6 +168,21 @@ runcmd:
       }
     }
     EOF
+    /usr/bin/python3.10 -m pip install --proxy=http://127.0.0.1:3128 ipykernel
+    mkdir -p /usr/local/share/jupyter/kernels/python3.10
+    cat > /usr/local/share/jupyter/kernels/python3.10/kernel.json << EOF
+    {
+    "argv": ["/usr/bin/python3.10", "-m", "ipykernel_launcher", "-f", "{connection_file}"],
+    "display_name": "Python 3.10",
+    "language": "python",
+    "env": {
+        "HTTP_PROXY": "http://127.0.0.1:3128",
+        "HTTPS_PROXY": "http://127.0.0.1:3128",
+        "NO_PROXY": "127.0.0.1,localhost"
+    }
+    }
+    EOF
+    chmod -R 755 /usr/local/share/jupyter/kernels
   - sleep 10
   - systemctl daemon-reload
   - systemctl restart systemd-journald
@@ -187,6 +204,8 @@ export  const cloudInitUserDataMatlabContainer =  (instanceSystemToken: string, 
 packages:
   - davfs2
   - nginx
+  - python3.10
+  - python3-pip
 users:
   - name: ubuntu
     groups: sudo
