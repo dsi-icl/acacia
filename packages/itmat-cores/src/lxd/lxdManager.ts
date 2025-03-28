@@ -31,55 +31,101 @@ export class LxdManager {
 
     private async initializeLXDClient(): Promise<void> {
         try {
-            let lxdSslCert: string;
-            let lxdSslKey: string;
+            let lxdSslCert = '';
+            let lxdSslKey = '';
 
-            // Load the SSL certificate and key
-            if (this.config.lxdCertFile['cert'].includes('-----BEGIN')) {
-                lxdSslCert = this.config.lxdCertFile['cert'];
-            } else {
-                lxdSslCert = fs.readFileSync(this.config.lxdCertFile['cert'], 'utf8');
+            // Load the SSL certificate and key with error handling
+            try {
+                if (!this.config.lxdCertFile['cert']) {
+                    Logger.warn('LXD SSL certificate path/content is empty');
+                } else if (this.config.lxdCertFile['cert'].includes('-----BEGIN')) {
+                    lxdSslCert = this.config.lxdCertFile['cert'];
+                    Logger.log('Using provided LXD SSL certificate content');
+                } else {
+                    try {
+                        lxdSslCert = fs.readFileSync(this.config.lxdCertFile['cert'], 'utf8');
+                        Logger.log('Loaded LXD SSL certificate from file');
+                    } catch (fileError) {
+                        Logger.error(`Failed to read LXD SSL certificate file: ${fileError}`);
+                        // Continue with empty cert - this will fail later but not crash the app
+                    }
+                }
+
+                if (!this.config.lxdCertFile['key']) {
+                    Logger.warn('LXD SSL key path/content is empty');
+                } else if (this.config.lxdCertFile['key'].includes('-----BEGIN')) {
+                    lxdSslKey = this.config.lxdCertFile['key'];
+                    Logger.log('Using provided LXD SSL key content');
+                } else {
+                    try {
+                        lxdSslKey = fs.readFileSync(this.config.lxdCertFile['key'], 'utf8');
+                        Logger.log('Loaded LXD SSL key from file');
+                    } catch (fileError) {
+                        Logger.error(`Failed to read LXD SSL key file: ${fileError}`);
+                        // Continue with empty key - this will fail later but not crash the app
+                    }
+                }
+            } catch (certError) {
+                Logger.error(`Error processing LXD certificates: ${certError}`);
+                // Continue with empty cert/key
             }
 
-            if (this.config.lxdCertFile['key'].includes('-----BEGIN')) {
-                lxdSslKey = this.config.lxdCertFile['key'];
-            } else {
-                lxdSslKey = fs.readFileSync(this.config.lxdCertFile['key'], 'utf8');
+            // Don't proceed with HTTPS agent creation if certificates are empty
+            if (!lxdSslCert || !lxdSslKey) {
+                Logger.error('Cannot create HTTPS agent: LXD SSL certificate or key is missing');
+                return; // Exit early but don't throw - allows app to start in degraded mode
             }
 
             // Create HTTPS agent with proper error handling
-            this.lxdAgent = new https.Agent({
-                cert: lxdSslCert,
-                key: lxdSslKey,
-                rejectUnauthorized: this.config.lxdRejectUnauthorized,
-                timeout: 60000, // Increased timeout for HTTPS agent
-                keepAlive: true
-            });
+            try {
+                this.lxdAgent = new https.Agent({
+                    cert: lxdSslCert,
+                    key: lxdSslKey,
+                    rejectUnauthorized: this.config.lxdRejectUnauthorized,
+                    timeout: 60000, // Increased timeout for HTTPS agent
+                    keepAlive: true
+                });
 
-            // Initialize axios instance with retry logic
-            this.lxdInstance = axios.create({
-                baseURL: this.config.lxdEndpoint,
-                httpsAgent: this.lxdAgent,
-                timeout: 60000,
-                validateStatus: (status) => status < 500,
-                maxRedirects: 10
-            });
+                // Initialize axios instance with retry logic
+                this.lxdInstance = axios.create({
+                    baseURL: this.config.lxdEndpoint,
+                    httpsAgent: this.lxdAgent,
+                    timeout: 60000,
+                    validateStatus: (status) => status < 500,
+                    maxRedirects: 10
+                });
 
-            axiosRetry(this.lxdInstance, {
-                retries: 3,
-                retryDelay: (retryCount) => retryCount * 1000, // Exponential backoff
-                retryCondition: (error) =>
-                    error.code === 'ECONNABORTED' || (error.response?.status ?? 0) >= 500
-            });
+                axiosRetry(this.lxdInstance, {
+                    retries: 3,
+                    retryDelay: (retryCount) => retryCount * 1000, // Exponential backoff
+                    retryCondition: (error) =>
+                        error.code === 'ECONNABORTED' || (error.response?.status ?? 0) >= 500
+                });
 
-
-            // Test connection
-            await this.lxdInstance.get('/1.0');
-            Logger.log('LXD connection established successfully');
+                Logger.log('LXD client initialized successfully');
+            } catch (agentError) {
+                Logger.error(`Failed to create HTTPS agent: ${agentError}`);
+                // Don't throw - allow app to start without LXD capabilities
+            }
 
         } catch (error) {
             Logger.error(`Failed to initialize LXD client: ${error}`);
-            throw new Error('LXD initialization failed');
+            // Don't throw - allow app to start without LXD capabilities
+        }
+    }
+
+    // Add a separate method to test the connection
+    async testConnection(): Promise<boolean> {
+        try {
+            if (!this.isInitialized()) {
+                await this.initialize();
+            }
+            const __unusedResponse = await this.lxdInstance.get('/1.0');
+            Logger.log('LXD connection test successful');
+            return true;
+        } catch (error) {
+            Logger.warn(`LXD connection test failed: ${error}`);
+            return false;
         }
     }
 

@@ -261,14 +261,7 @@ export const InstanceSection: FunctionComponent = () => {
             <div className={css.marginBottom}>
                 <div style={{ marginTop: '10px' }} />
                 <Space size="large"> {}
-                    {/* <Button
-                        type="primary"
-                        size="large" // Increase the size for better emphasis
-                        style={{ backgroundColor: '#108ee9', borderColor: '#108ee9' }}
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                    Create New Instance
-                    </Button> */}
+                    <h2 style={{ marginBottom: '0px' }}>My Instances</h2>
                     <Tooltip
                         title={
                             isAtOrOverQuota
@@ -286,7 +279,7 @@ export const InstanceSection: FunctionComponent = () => {
                             Create New Instance
                         </Button>
                     </Tooltip>
-                    <Button
+                    {/* <Button
                         type="default"
                         size="large" // Match the size with "Create New Instance" button
                         style={{
@@ -298,7 +291,7 @@ export const InstanceSection: FunctionComponent = () => {
                         rel="noopener noreferrer"
                     >
                     Go back to old AE v2
-                    </Button>
+                    </Button> */}
                 </Space>
 
             </div>

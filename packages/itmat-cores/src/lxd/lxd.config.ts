@@ -186,6 +186,7 @@ export  const cloudInitUserDataMatlabContainer =  (instanceSystemToken: string, 
 #cloud-config
 packages:
   - davfs2
+  - nginx
 users:
   - name: ubuntu
     groups: sudo
@@ -308,6 +309,9 @@ write_files:
         }
     permissions: '0644'
 runcmd:
+  - ln -sf /etc/nginx/sites-available/vnc_proxy /etc/nginx/sites-enabled/
+  - systemctl enable nginx
+  - systemctl restart nginx
   - |
     DEFAULT_USER="\${USERNAME:-ubuntu}"
     if ! getent group nopasswdlogin > /dev/null; then
