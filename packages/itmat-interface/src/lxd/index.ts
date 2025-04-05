@@ -1,4 +1,3 @@
-
 import httpProxy from 'http-proxy';
 import { WebSocketServer, WebSocket, RawData} from 'ws';
 import { NextFunction, Request, Response} from 'express';
@@ -119,7 +118,7 @@ export const registerContainSocketServer = (server: WebSocketServer, lxdManager:
 
 
 
-export const registerJupyterSocketServer = (server: WebSocketServer, lxdManager: LxdManager, instanceCore: InstanceCore) => {
+export const registerJupyterSocketServer = (server: WebSocketServer, instanceCore: InstanceCore) => {
 
     server.on('connection', (clientSocket, req) => {
         const handleConnection = async () => {
@@ -311,17 +310,97 @@ export const registerJupyterSocketServer = (server: WebSocketServer, lxdManager:
 
 
 
+// Enhanced ProxyCache interface with lastUsed timestamp
 interface ProxyCache {
     [instance_id: string]: {
-        // proxy is the instance of http-proxy
         proxy: httpProxy;
         ip: string;
         port: number;
+        lastUsed: number; // timestamp when last used
     };
 }
 
-const proxyCache: ProxyCache = {};
+// How long a proxy should remain cached without being used (30 minutes)
+const PROXY_CACHE_TTL = 30 * 60 * 1000;
 
+const proxyCache: ProxyCache = {};
+const vncProxyCache: ProxyCache = {};
+
+// Track our cleanup interval ID to prevent duplicate intervals
+let cleanupIntervalId: NodeJS.Timeout | null = null;
+
+/**
+ * Cleanup function for proxy caches
+ * Removes entries that haven't been used for PROXY_CACHE_TTL milliseconds
+ */
+function cleanupProxyCaches() {
+    const now = Date.now();
+
+    // Clean HTTP proxy cache
+    Object.entries(proxyCache).forEach(([instanceId, cacheEntry]) => {
+        if (now - cacheEntry.lastUsed > PROXY_CACHE_TTL) {
+            Logger.log(`Cleaning up stale proxy cache for instance ${instanceId}`);
+            // Close the proxy to clean up any open connections
+            cacheEntry.proxy.close();
+            delete proxyCache[instanceId];
+        }
+    });
+
+    // Clean VNC proxy cache
+    Object.entries(vncProxyCache).forEach(([instanceId, cacheEntry]) => {
+        if (now - cacheEntry.lastUsed > PROXY_CACHE_TTL) {
+            Logger.log(`Cleaning up stale VNC proxy cache for instance ${instanceId}`);
+            cacheEntry.proxy.close();
+            delete vncProxyCache[instanceId];
+        }
+    });
+}
+
+/**
+ * Initialize the cleanup interval if it hasn't been initialized yet.
+ * This function is idempotent and can be called multiple times safely.
+ */
+export function initializeProxyCacheCleanup() {
+    if (!cleanupIntervalId) {
+        cleanupIntervalId = setInterval(cleanupProxyCaches, 30 * 60 * 1000);
+        Logger.log('Proxy cache cleanup interval initialized');
+
+        // Make sure we clear the interval when the process exits
+        process.once('SIGTERM', stopProxyCacheCleanup);
+        process.once('SIGINT', stopProxyCacheCleanup);
+    }
+}
+
+/**
+ * Stop the cleanup interval explicitly if needed
+ */
+export function stopProxyCacheCleanup() {
+    if (cleanupIntervalId) {
+        clearInterval(cleanupIntervalId);
+        cleanupIntervalId = null;
+        Logger.log('Proxy cache cleanup interval stopped');
+
+        // Close all active proxies
+        Object.entries(proxyCache).forEach(([instanceId, entry]) => {
+            entry.proxy.close();
+            Logger.log(`Closed Jupyter proxy for ${instanceId} on shutdown`);
+        });
+
+        Object.entries(vncProxyCache).forEach(([instanceId, entry]) => {
+            entry.proxy.close();
+            Logger.log(`Closed VNC proxy for ${instanceId} on shutdown`);
+        });
+    }
+}
+
+// Helper functions to update cache entries with current timestamp
+function updateProxyCache(instanceId: string, proxy: httpProxy, ip: string, port: number) {
+    proxyCache[instanceId] = { proxy, ip, port, lastUsed: Date.now() };
+}
+
+function updateVncProxyCache(instanceId: string, proxy: httpProxy, ip: string, port: number) {
+    vncProxyCache[instanceId] = { proxy, ip, port, lastUsed: Date.now() };
+}
 
 // Replace the existing getInstanceTarget function
 const getInstanceTarget = async (instance_id: string, instanceCore: InstanceCore, user_id?: string | undefined) => {
@@ -368,91 +447,91 @@ export const jupyterProxyMiddleware = async (req: Request & { user?: { id: strin
         return;
     }
 
-    // Retrieve the instance-specific target if not already cached
-    if (!proxyCache[instance_id]) {
-        const { ip, port } =  await getInstanceTarget( instance_id, instanceCore, req.user?.id);
-        const target = `http://${ip}:${port}`;
-
-        // Create an instance of http-proxy
-        const proxy = httpProxy.createProxyServer({
-            target,
-            xfwd: true, // Add X-Forwarded-For header to the request
-            autoRewrite: true,
-            changeOrigin: true
-        });
-
-        // Attach event listeners for proxy events
-        proxy.on('proxyReq', (proxyReq: http.ClientRequest, req: http.IncomingMessage & { body?: unknown }) => {
-
-            if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') {
-                return;
-            }
-
-            const instancePrefix = `/jupyter/${instance_id}`;
-
-            proxyReq.path = (req.url || '').startsWith(instancePrefix)
-                ? (req.url || '')
-                : `${instancePrefix}${req.url
-                    || ''}`;
-
-            // Set the request headers
-            proxyReq.setHeader('Host', `${ip}:${port}`);
-            proxyReq.setHeader('Origin', `http://${ip}:${port}`);
-
-            if (req.body && Object.keys(req.body).length) {
-                const contentType = proxyReq.getHeader('Content-Type');
-
-                const writeBody = (bodyData: string) => {
-                    proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-                    proxyReq.write(bodyData);
-                    proxyReq.end();
-                };
-
-                if (contentType === 'application/json') {
-                    writeBody(JSON.stringify(req.body));
-                } else if (contentType === 'application/x-www-form-urlencoded') {
-                    writeBody(qs.stringify(req.body));
-                }
-            }
-
-        });
-
-        proxy.on('error', (err: Error, req: http.IncomingMessage, res: http.ServerResponse | net.Socket, target?: string | url.UrlObject) => {
-            Logger.error(`Proxy error for target ${JSON.stringify(target)}: error ${err.message}`);
-
-            if (res instanceof http.ServerResponse && !res.headersSent) {
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end('Proxy Error');
-            } else if (res instanceof net.Socket) {
-                res.end('Proxy Error');
-            }
-        });
-        // Cache the proxy handler for the instance
-        proxyCache[instance_id] = { proxy, ip, port };
-    }
-
-    // Handle regular HTTP requests
     try {
+        // Retrieve the instance-specific target if not already cached
+        if (!proxyCache[instance_id]) {
+            const { ip, port } = await getInstanceTarget(instance_id, instanceCore, req.user?.id);
+            if (!ip) {
+                throw new Error(`Could not determine IP for instance ${instance_id}`);
+            }
+
+            const target = `http://${ip}:${port}`;
+            Logger.log(`Creating new proxy for instance ${instance_id} to ${target}`);
+
+            // Create proxy instance
+            const proxy = httpProxy.createProxyServer({
+                target,
+                xfwd: true,
+                autoRewrite: true,
+                changeOrigin: true
+            });
+
+            // Add event listeners (same as before)
+            proxy.on('proxyReq', (proxyReq: http.ClientRequest, req: http.IncomingMessage & { body?: unknown }) => {
+                if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') {
+                    return;
+                }
+
+                const instancePrefix = `/jupyter/${instance_id}`;
+                proxyReq.path = (req.url || '').startsWith(instancePrefix)
+                    ? (req.url || '')
+                    : `${instancePrefix}${req.url || ''}`;
+
+                // Set the request headers
+                proxyReq.setHeader('Host', `${ip}:${port}`);
+                proxyReq.setHeader('Origin', `http://${ip}:${port}`);
+
+                if (req.body && Object.keys(req.body).length) {
+                    const contentType = proxyReq.getHeader('Content-Type');
+
+                    const writeBody = (bodyData: string) => {
+                        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                        proxyReq.write(bodyData);
+                        proxyReq.end();
+                    };
+
+                    if (contentType === 'application/json') {
+                        writeBody(JSON.stringify(req.body));
+                    } else if (contentType === 'application/x-www-form-urlencoded') {
+                        writeBody(qs.stringify(req.body));
+                    }
+                }
+            });
+
+            proxy.on('error', (err: Error, req: http.IncomingMessage, res: http.ServerResponse | net.Socket, target?: string | url.UrlObject) => {
+                Logger.error(`Proxy error for target ${JSON.stringify(target)}: error ${err.message}`);
+
+                if (res instanceof http.ServerResponse && !res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end('Proxy Error');
+                } else if (res instanceof net.Socket) {
+                    res.end('Proxy Error');
+                }
+            });
+
+            // Store in cache with timestamp using helper function
+            updateProxyCache(instance_id, proxy, ip, port);
+
+            // Make sure cleanup is initialized
+            initializeProxyCacheCleanup();
+        } else {
+            // Update the lastUsed timestamp
+            proxyCache[instance_id].lastUsed = Date.now();
+        }
+
+        // Handle the request
         proxyCache[instance_id].proxy.web(req, res);
-    }   catch (error) {
-        Logger.error(`error ${error}`);
+        return; // Add explicit return for consistency with vncProxyMiddleware
+    } catch (error) {
+        Logger.error(`Jupyter proxy error: ${error}`);
+        if (!res.headersSent) {
+            res.status(500).send(`Proxy setup error: ${error}`);
+        }
+        next(error); // Consider if you want to call next with the error or just return
     }
 
 };
 
-
-
-// matlab vncProxyMiddleware
-
-interface VNCProxyCache {
-    [instance_id: string]: {
-        proxy: httpProxy;
-        ip: string;
-        port: number;
-    };
-}
-
-const vncProxyCache: VNCProxyCache = {};
 
 export const vncProxyMiddleware = async (
     req: Request & { user?: { id: string } },
@@ -461,7 +540,6 @@ export const vncProxyMiddleware = async (
     instanceCore: InstanceCore
 ) => {
     const instance_id = req.params['instance_id'];
-    // log
 
     if (!instance_id) {
         return res.status(404).send('Instance not found');
@@ -470,10 +548,13 @@ export const vncProxyMiddleware = async (
     try {
         // Get or create proxy instance
         if (!vncProxyCache[instance_id]) {
-
-            const { ip, port } =  await getInstanceTarget( instance_id, instanceCore, req.user?.id);
+            const { ip, port } = await getInstanceTarget(instance_id, instanceCore, req.user?.id);
+            if (!ip) {
+                throw new Error(`Could not determine IP for instance ${instance_id}`);
+            }
 
             const target = `http://${ip}:${port}`;
+            Logger.log(`Creating new VNC proxy for instance ${instance_id} to ${target}`);
 
             const proxy = httpProxy.createProxyServer({
                 target: target,
@@ -483,8 +564,8 @@ export const vncProxyMiddleware = async (
                 secure: false
             });
 
+            // Add event listeners (same as before)
             proxy.on('proxyReq', (proxyReq: http.ClientRequest, req: http.IncomingMessage & { body?: unknown }) => {
-
                 const originalUrl = req.url || '';
                 const instancePrefix = `/matlab/${instance_id}`;
 
@@ -516,7 +597,6 @@ export const vncProxyMiddleware = async (
                 }
             });
 
-
             proxy.on('error', (err: Error) => {
                 Logger.error(`VNC Proxy error: ${err.message}`);
                 if (!res.headersSent) {
@@ -524,19 +604,42 @@ export const vncProxyMiddleware = async (
                 }
             });
 
-            vncProxyCache[instance_id] = { proxy, ip, port: 8888 };
+            // Store with timestamp using helper function
+            updateVncProxyCache(instance_id, proxy, ip, port);
+
+            // Make sure cleanup is initialized
+            initializeProxyCacheCleanup();
+        } else {
+            // Update timestamp on use
+            vncProxyCache[instance_id].lastUsed = Date.now();
         }
 
         // Handle the request
         vncProxyCache[instance_id].proxy.web(req, res);
         return;
-
     } catch (error) {
         Logger.error(`VNC proxy error: ${error}`);
         next(error);
         return;
     }
 };
+
+/**
+ * Function to explicitly clear caches when instances are terminated
+ */
+export function clearProxyCacheForInstance(instanceId: string): void {
+    if (proxyCache[instanceId]) {
+        proxyCache[instanceId].proxy.close();
+        delete proxyCache[instanceId];
+        Logger.log(`Explicitly cleared Jupyter proxy cache for instance ${instanceId}`);
+    }
+
+    if (vncProxyCache[instanceId]) {
+        vncProxyCache[instanceId].proxy.close();
+        delete vncProxyCache[instanceId];
+        Logger.log(`Explicitly cleared VNC proxy cache for instance ${instanceId}`);
+    }
+}
 
 // WebSocket handler for VNC
 export const registerVNCSocketServer = (server: WebSocketServer, instanceCore: InstanceCore) => {

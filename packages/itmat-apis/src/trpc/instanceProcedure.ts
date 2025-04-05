@@ -140,7 +140,7 @@ export class InstanceRouter {
             ).mutation(async ({ input, ctx }) => {
                 const user = ctx.req.user;
                 const instance = await this.instanceCore.getInstanceById(input.instanceId);
-                if (user.type !==  enumUserTypes.ADMIN || user.id !== instance.userId) {
+                if (user.type !==  enumUserTypes.ADMIN && user.id !== instance.userId) {
                     throw new CoreError(
                         enumCoreErrors.NO_PERMISSION_ERROR,
                         'Insufficient permissions.'

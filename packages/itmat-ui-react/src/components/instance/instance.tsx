@@ -201,8 +201,24 @@ export const InstanceSection: FunctionComponent = () => {
 
     const handleDeleteInstance = (instance) => {
         Modal.confirm({
-            title: 'Are you sure to delete this instance?',
-            content: `This will delete the instance "${instance.name}". This action cannot be undone.`,
+            title: (
+                <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
+                    Confirm Deletion
+                </span>
+            ),
+            content: (
+                <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
+                    <p>
+                        <strong>Warning:</strong> You are about to delete the instance <strong>"{instance.name}"</strong>.
+                    </p>
+                    <p>
+                        <span style={{ color: '#fa8c16' }}>
+                            All data inside this instance will be permanently removed.
+                        </span>
+                    </p>
+                    <p>This action <strong>cannot</strong> be undone. Please proceed with caution.</p>
+                </div>
+            ),
             okText: 'Yes, delete it',
             okType: 'danger',
             cancelText: 'No, cancel',
