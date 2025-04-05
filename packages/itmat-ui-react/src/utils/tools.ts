@@ -1,6 +1,7 @@
 import jStat from 'jstat';
 import { IField, IOntologyTree, IOntologyRoute, enumStudyBlockColumnValueType } from '@itmat-broker/itmat-types';
 import { RcFile, UploadFile } from 'antd/es/upload';
+import dayjs from 'dayjs';
 
 export function get_t_test(t_array1: number[], t_array2: number[], digits: number) {
     if (t_array1.length <= 1 || t_array2.length <= 1) {
@@ -326,8 +327,29 @@ export function tableColumnRender(data, bcolumn) {
         return data.properties[bcolumn.property] ?? 'NA';
     } else if (bcolumn.type === enumStudyBlockColumnValueType.TIME) {
         const input = data.properties[bcolumn.property];
-        const date = new Date(input);
-        const value = isNaN(date.getTime()) ? 'NA' : date.toLocaleDateString();
+        // Handle various date formats and normalize to yyyy-mm-dd
+        let value = 'NA';
+
+        if (input) {
+            // Try parsing with dayjs
+            const dateObj = dayjs(input);
+
+            // If it's a valid date
+            if (dateObj.isValid()) {
+                value = dateObj.format('YYYY-MM-DD');
+            } else {
+                // Try alternative formats if standard parsing fails
+                const formats = ['YYYYMMDD', 'DDMMYYYY', 'DD-MM-YYYY', 'DD/MM/YYYY'];
+                for (const format of formats) {
+                    const altDate = dayjs(input, format);
+                    if (altDate.isValid()) {
+                        value = altDate.format('YYYY-MM-DD');
+                        break;
+                    }
+                }
+            }
+        }
+
         return value;
     }
     return data.properties[bcolumn.property] ?? 'NA';
