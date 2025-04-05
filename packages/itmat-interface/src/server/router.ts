@@ -18,8 +18,7 @@ import { db } from '../database/database';
 import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import qs from 'qs';
-import { FileUploadSchema, IUser, IUserConfig, enumConfigType, enumUserTypes } from '@itmat-broker/itmat-types';
+import { FileUploadSchema, IUserConfig, enumConfigType, enumUserTypes } from '@itmat-broker/itmat-types';
 import { logPluginInstance } from '../log/logPlugin';
 import { IConfiguration, spaceFixing } from '@itmat-broker/itmat-cores';
 import { userLoginUtils } from '../utils/userLoginUtils';
@@ -30,7 +29,7 @@ import { Readable } from 'stream';
 import { z } from 'zod';
 import { ApolloServerContext, DMPContext, createtRPCContext, typeDefs } from '@itmat-broker/itmat-apis';
 import { APICalls } from './helper';
-import { registerContainSocketServer, registerJupyterSocketServer, jupyterProxyMiddleware, vncProxyMiddleware, registerVNCSocketServer} from '../lxd';
+import { registerContainSocketServer, registerJupyterSocketServer, jupyterProxyMiddleware, vncProxyMiddleware, registerVNCSocketServer, initializeProxyCacheCleanup } from '../lxd';
 import { Socket } from 'node:net';
 import { Logger } from '@itmat-broker/itmat-commons';
 
@@ -160,7 +159,7 @@ export class Router {
     async init() {
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const _this = this;
+        // const _this = this;
 
         const apiCalls = new APICalls();
 
@@ -218,48 +217,48 @@ export class Router {
 
         /* AE proxy middleware */
         // initial this before graphqlUploadExpress middleware
-        const ae_proxy = createProxyMiddleware({
-            target: _this.config.aeEndpoint,
-            ws: true,
-            xfwd: true,
-            autoRewrite: true,
-            changeOrigin: true,
-            on: {
-                proxyReq: function (preq, req: Request, res: Response) {
-                    preq.path = req.baseUrl + req.path;
-                    if (!req.user)
-                        return res.status(403).redirect('/');
-                    res.cookie('ae_proxy', req.headers['host']);
-                    const data = (req.user as IUser).username + ':token';
-                    preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-                    if (req.body && Object.keys(req.body).length) {
-                        const contentType = preq.getHeader('Content-Type');
-                        preq.setHeader('origin', _this.config.aeEndpoint);
-                        const writeBody = (bodyData: string) => {
-                            preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-                            preq.write(bodyData);
-                            preq.end();
-                        };
+        // const ae_proxy = createProxyMiddleware({
+        //     target: _this.config.aeEndpoint,
+        //     ws: true,
+        //     xfwd: true,
+        //     autoRewrite: true,
+        //     changeOrigin: true,
+        //     on: {
+        //         proxyReq: function (preq, req: Request, res: Response) {
+        //             preq.path = req.baseUrl + req.path;
+        //             if (!req.user)
+        //                 return res.status(403).redirect('/');
+        //             res.cookie('ae_proxy', req.headers['host']);
+        //             const data = (req.user as IUser).username + ':token';
+        //             preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+        //             if (req.body && Object.keys(req.body).length) {
+        //                 const contentType = preq.getHeader('Content-Type');
+        //                 preq.setHeader('origin', _this.config.aeEndpoint);
+        //                 const writeBody = (bodyData: string) => {
+        //                     preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        //                     preq.write(bodyData);
+        //                     preq.end();
+        //                 };
 
-                        if (contentType === 'application/json') {
-                            writeBody(JSON.stringify(req.body));
-                        }
+        //                 if (contentType === 'application/json') {
+        //                     writeBody(JSON.stringify(req.body));
+        //                 }
 
-                        if (contentType === 'application/x-www-form-urlencoded') {
-                            writeBody(qs.stringify(req.body));
-                        }
+        //                 if (contentType === 'application/x-www-form-urlencoded') {
+        //                     writeBody(qs.stringify(req.body));
+        //                 }
 
-                    }
-                },
-                proxyReqWs: function (preq) {
-                    const data = 'username:token';
-                    preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-                },
-                error: function (err, _req, _res, target) {
-                    console.error(err, target);
-                }
-            }
-        });
+        //             }
+        //         },
+        //         proxyReqWs: function (preq) {
+        //             const data = 'username:token';
+        //             preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+        //         },
+        //         error: function (err, _req, _res, target) {
+        //             console.error(err, target);
+        //         }
+        //     }
+        // });
 
         // this.proxies.push(ae_proxy);
 
@@ -267,11 +266,11 @@ export class Router {
         // pun for AE portal
         // node and rnode for AE application
         // public for public resource like favicon and logo
-        const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
+        // const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
 
-        proxy_routers.forEach(router => {
-            this.app.use(router, ae_proxy as NativeRequestHandler);
-        });
+        // proxy_routers.forEach(router => {
+        //     this.app.use(router, ae_proxy as NativeRequestHandler);
+        // });
 
         await gqlServer.start();
 
@@ -446,9 +445,9 @@ export class Router {
             noServer: true
         });
 
-        registerJupyterSocketServer(targetWsServer, apiCalls.lxdManager, apiCalls.instanceCore);
+        registerJupyterSocketServer(targetWsServer, apiCalls.instanceCore);
 
-
+        // Create WebSocket server for VNC connections
         const vncWsServer = new WebSocketServer({
             noServer: true
         });
@@ -500,8 +499,6 @@ export class Router {
                 containerWsServer.handleUpgrade(req, socket, head, (ws) => {
                     containerWsServer.emit('connection', ws, req);  // Forward the upgrade to the container WebSocket server
                 });
-            } else if (req.url?.startsWith('/pun') || req.url?.startsWith('/node') || req.url?.startsWith('/rnode') || req.url?.startsWith('/public')) {
-                ae_proxy.upgrade?.(req, socket, head); // Forward the upgrade to the AE proxy
             }
             // Invalid WebSocket request
             else {
@@ -509,6 +506,9 @@ export class Router {
                 socket.destroy();  // Close socket if the request is not valid
             }
         });
+
+        // Initialize the proxy cache cleanup system
+        initializeProxyCacheCleanup();
 
     }
 

@@ -217,12 +217,6 @@ export class InstanceCore {
                 architecture: 'x86_64',
                 config: instaceConfig,
                 devices: {
-                    // eth0: {
-                    //     name: 'eth0',
-                    //     nictype: 'bridged',
-                    //     parent: 'lxdbr0', // Ensure the correct bridge is used
-                    //     type: 'nic'
-                    // },
                     root: {
                         path: '/',
                         pool: this.config.lxdStoragePool,
@@ -242,7 +236,7 @@ export class InstanceCore {
                         listen: `tcp:0.0.0.0:${instanceMapPort}`,
                         type: 'proxy'
                     }
-                },
+                } as Record<string, unknown>,
                 source: {
                     type: 'image',
                     alias: appType ===enumAppType.MATLAB? 'ubuntu-matlab-container-image' : 'ubuntu-jupyter-container-image'
@@ -252,6 +246,16 @@ export class InstanceCore {
                 project: this.lxdProject // Ensure the correct project is used
             }
         };
+        // Add eth0 network interface only for MATLAB instances
+        if (appType === enumAppType.MATLAB) {
+            lxd_metadata.payload.devices['eth0'] = {
+                name: 'eth0',
+                nictype: 'bridged',
+                parent: 'br1',
+                type: 'nic'
+            };
+        }
+
 
         // Call the createJob method of JobCore to create a new job
         await this.JobCore.createJob(

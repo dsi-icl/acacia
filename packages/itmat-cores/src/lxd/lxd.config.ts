@@ -1,24 +1,43 @@
 // Prepare user-data for cloud-init to initialize the instance
 export const cloudInitUserDataJupyterContainer = (instanceSystemToken: string, username: string, instance_id: string, webdavServer: string, webdavMountPath: string, jupyterPort: number) =>`
 #cloud-config
-packages:
-  - davfs2
-  - python3.10
-  - python3-pip
 users:
   - name: ubuntu
     groups: sudo
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     shell: /bin/bash
 write_files:
+  - path: /etc/profile.d/instance_token.sh
+    content: |
+      #!/bin/bash
+      export DMP_TOKEN="${instanceSystemToken}"
+      export HTTP_PROXY=http://127.0.0.1:3128  
+      export HTTPS_PROXY=http://127.0.0.1:3128  
+      export NO_PROXY=127.0.0.1,localhost  
+    permissions: '0755'
+  - path: /etc/apt/apt.conf.d/95proxy
+    content: |
+      Acquire::http::Proxy "http://127.0.0.1:3128";
+      Acquire::https::Proxy "http://127.0.0.1:3128";
+    permissions: '0644'
   - path: /etc/bash.bashrc
     append: true
     content: |
-      # Set proxy environment variables
       export HTTP_PROXY=http://127.0.0.1:3128
       export HTTPS_PROXY=http://127.0.0.1:3128
       export NO_PROXY=127.0.0.1,localhost
+      export http_proxy=$HTTP_PROXY
+      export https_proxy=$HTTPS_PROXY
+      export no_proxy=$NO_PROXY
     permissions: '0644'
+  - path: /usr/local/MATLAB/R2023b/bin/matlab_env.sh  
+    content: |  
+      #!/bin/bash  
+      export DMP_TOKEN="${instanceSystemToken}"  
+      export HTTP_PROXY=http://127.0.0.1:3128  
+      export HTTPS_PROXY=http://127.0.0.1:3128  
+      export NO_PROXY=127.0.0.1,localhost  
+    permissions: '0755'  
   - path: /etc/systemd/system.conf.d/proxy.conf
     content: |
       [Manager]
@@ -27,9 +46,12 @@ write_files:
   - path: /root/.ipython/profile_default/startup/00-proxy.py
     content: |
       import os
+      import sys
       os.environ['HTTP_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['NO_PROXY'] = '127.0.0.1,localhost'
+      os.environ['DMP_TOKEN'] = '${instanceSystemToken}'
+      sys.path.insert(0, '/root/dmpy')
     permissions: '0644'
   - path: /etc/davfs2/davfs2.conf
     content: |
@@ -124,16 +146,24 @@ write_files:
       Environment="HTTP_PROXY=http://127.0.0.1:3128"
       Environment="HTTPS_PROXY=http://127.0.0.1:3128"
       Environment="NO_PROXY=127.0.0.1,localhost"
-      ExecStartPre=/bin/bash -c 'pkill -f jupyter || true'
-      ExecStartPre=/bin/sleep 2
+      EnvironmentFile=-/etc/environment
       ExecStart=/usr/bin/python3 /usr/local/bin/jupyter-notebook --config=/root/.jupyter/jupyter_notebook_config.py --allow-root
       WorkingDirectory=/root
       Restart=always
-      EnvironmentFile=/etc/environment
+      RestartSec=60
+      StartLimitInterval=300
+      StartLimitBurst=5
       [Install]
       WantedBy=multi-user.target
     permissions: '0644'
 runcmd:
+  - |
+    export HTTP_PROXY=http://127.0.0.1:3128
+    export HTTPS_PROXY=http://127.0.0.1:3128
+    export NO_PROXY=127.0.0.1,localhost
+    echo "davfs2 davfs2/suid boolean true" | sudo debconf-set-selections
+    apt-get update
+    apt-get install -y davfs2 nginx
   - |
     DEFAULT_USER="\${USERNAME:-ubuntu}"
     if ! getent group nopasswdlogin > /dev/null; then
@@ -162,27 +192,13 @@ runcmd:
       "display_name": "Python 3",
       "language": "python",
       "env": {
+        "PYTHONPATH": "/root/dmpy:$PYTHONPATH", 
         "HTTP_PROXY": "http://127.0.0.1:3128",
         "HTTPS_PROXY": "http://127.0.0.1:3128",
         "NO_PROXY": "127.0.0.1,localhost"
       }
     }
     EOF
-    /usr/bin/python3.10 -m pip install --proxy=http://127.0.0.1:3128 ipykernel
-    mkdir -p /usr/local/share/jupyter/kernels/python3.10
-    cat > /usr/local/share/jupyter/kernels/python3.10/kernel.json << EOF
-    {
-    "argv": ["/usr/bin/python3.10", "-m", "ipykernel_launcher", "-f", "{connection_file}"],
-    "display_name": "Python 3.10",
-    "language": "python",
-    "env": {
-        "HTTP_PROXY": "http://127.0.0.1:3128",
-        "HTTPS_PROXY": "http://127.0.0.1:3128",
-        "NO_PROXY": "127.0.0.1,localhost"
-    }
-    }
-    EOF
-    chmod -R 755 /usr/local/share/jupyter/kernels
   - sleep 10
   - systemctl daemon-reload
   - systemctl restart systemd-journald
@@ -201,24 +217,34 @@ runcmd:
 // to the cloud-init file  as the container's environment variables
 export  const cloudInitUserDataMatlabContainer =  (instanceSystemToken: string, username: string, instance_id: string, webdavServer: string, webdavMountPath: string) =>`
 #cloud-config
-packages:
-  - davfs2
-  - nginx
-  - python3.10
-  - python3-pip
 users:
   - name: ubuntu
     groups: sudo
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     shell: /bin/bash
 write_files:
+  - path: /etc/profile.d/instance_token.sh
+    content: |
+      #!/bin/bash
+      export DMP_TOKEN="${instanceSystemToken}"
+      export HTTP_PROXY=http://127.0.0.1:3128  
+      export HTTPS_PROXY=http://127.0.0.1:3128  
+      export NO_PROXY=127.0.0.1,localhost  
+    permissions: '0755'
+  - path: /etc/apt/apt.conf.d/95proxy
+    content: |
+      Acquire::http::Proxy "http://127.0.0.1:3128";
+      Acquire::https::Proxy "http://127.0.0.1:3128";
+    permissions: '0644'
   - path: /etc/bash.bashrc
     append: true
     content: |
-      # Set proxy environment variables
       export HTTP_PROXY=http://127.0.0.1:3128
       export HTTPS_PROXY=http://127.0.0.1:3128
       export NO_PROXY=127.0.0.1,localhost
+      export http_proxy=$HTTP_PROXY
+      export https_proxy=$HTTPS_PROXY
+      export no_proxy=$NO_PROXY
     permissions: '0644'
   - path: /etc/systemd/system.conf.d/proxy.conf
     content: |
@@ -231,6 +257,7 @@ write_files:
       os.environ['HTTP_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['NO_PROXY'] = '127.0.0.1,localhost'
+      os.environ['DMP_TOKEN'] = '${instanceSystemToken}'
     permissions: '0644'
   - path: /etc/davfs2/davfs2.conf
     content: |
@@ -263,6 +290,11 @@ write_files:
       After=network.target
       [Service]
       Type=oneshot
+      RemainAfterExit=yes  
+      User=ubuntu  
+      Group=ubuntu
+      Restart=on-failure
+      EnvironmentFile=-/etc/environment
 
       ExecStartPre=/bin/bash -c '\
           if [ -d ${webdavMountPath} ]; then \
@@ -292,11 +324,6 @@ write_files:
           fusermount -u ${webdavMountPath} 2>/dev/null; \
           rmdir ${webdavMountPath} 2>/dev/null'
 
-      RemainAfterExit=yes
-      User=root
-      Group=root
-      Restart=always
-      EnvironmentFile=/etc/environment
       [Install]
       WantedBy=multi-user.target
     permissions: '0644'
@@ -328,6 +355,18 @@ write_files:
         }
     permissions: '0644'
 runcmd:
+  - |  
+    grep -qxF 'DMP_TOKEN="${instanceSystemToken}"' /etc/environment || \
+    echo 'DMP_TOKEN="${instanceSystemToken}"' >> /etc/environment  
+    grep -qxF 'HTTP_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTP_PROXY=http://127.0.0.1:3128' >> /etc/environment  
+  - |
+    export HTTP_PROXY=http://127.0.0.1:3128
+    export HTTPS_PROXY=http://127.0.0.1:3128
+    export NO_PROXY=127.0.0.1,localhost
+    echo "davfs2 davfs2/suid boolean true" | sudo debconf-set-selections
+    apt-get update
+    apt-get install -y davfs2 nginx
   - ln -sf /etc/nginx/sites-available/vnc_proxy /etc/nginx/sites-enabled/
   - systemctl enable nginx
   - systemctl restart nginx
@@ -369,6 +408,7 @@ runcmd:
   - systemctl daemon-reload
   - systemctl enable webdav-mount.service
   - systemctl start webdav-mount.service
+  - rm -rf /usr/local/MATLAB/R2022b/licenses/*
   - |
     if [ -d "/home/\${DEFAULT_USER}" ]; then
       if [ ! -e "/home/\${DEFAULT_USER}/${username}_Drive" ]; then

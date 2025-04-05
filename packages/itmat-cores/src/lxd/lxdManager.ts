@@ -302,7 +302,7 @@ export class LxdManager {
         await this.ensureInitialized();
 
         try {
-        // First check if we're in a cluster
+        // First check if it's in a cluster
             const serverInfo = await this.lxdInstance.get('/1.0');
             const isClustered = serverInfo.data.metadata?.environment?.server_clustered || false;
 
@@ -311,10 +311,23 @@ export class LxdManager {
                 // cluster mode, get the specific node info
                     const response = await this.lxdInstance.get(`/1.0/cluster/members/${encodeURIComponent(nodeName)}`);
 
-                    if (response.status === 200 && response.data.metadata?.url) {
-                    // Extract the host from URL (e.g., "https://ideafast-lxd-c1-0-1:8443" → "ideafast-lxd-c1-0-1")
-                        const url = new URL(response.data.metadata.url);
-                        return url.hostname;
+                    if (response.status === 200) {
+                        // Check for custom public IP field first
+                        const publicIpAddress = response.data.metadata?.config?.['user.public_address'];
+                        if (publicIpAddress) {
+                            const publicIp = publicIpAddress.replace(/^https?:\/\//, '');
+                            // regard it to like as single host ip or the url like 'https://146.169.10.90:8443'
+                            const publicHostIp = publicIp.includes(':') ? publicIp.split(':')[0] : publicIp;
+                            // Logger.log(`Using custom public IP ${publicHostIp} for node ${nodeName}`);
+                            return publicHostIp;
+                        }
+
+                        // Fall back to URL if no custom IP is set
+                        if (response.data.metadata?.url) {
+                            // Extract the host from URL (e.g., "https://ideafast-lxd-c1-0-1:8443" → "ideafast-lxd-c1-0-1")
+                            const url = new URL(response.data.metadata.url);
+                            return url.hostname;
+                        }
                     }
                 } catch (clusterError) {
                     Logger.error(`Error fetching cluster member "${nodeName}" info: ${clusterError}`);
