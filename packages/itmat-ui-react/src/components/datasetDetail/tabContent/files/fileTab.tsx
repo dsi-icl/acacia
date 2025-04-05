@@ -215,9 +215,9 @@ export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IFi
                                 const endDate = dayjs(particules[6], 'YYYYMMDD');
                                 if (startDate.isSame(endDate) || startDate.isBefore(endDate)) {
                                     if (startDate.isValid())
-                                        properties.startDate = startDate.valueOf();
+                                        properties.startDate = startDate.format('YYYYMMDD');
                                     if (endDate.isValid() && (endDate.isSame(dayjs()) || endDate.isBefore(dayjs())))
-                                        properties.endDate = endDate.valueOf();
+                                        properties.endDate = endDate.format('YYYYMMDD');
                                 }
                             }
                             const fieldId = `Device_${deviceTypes[particules[3]].replace(/ /g, '_')}`;
@@ -233,7 +233,7 @@ export const UploadFileComponent: FunctionComponent<{ study: IStudy, fields: IFi
                             });
                             selectedField = fields.filter(el => el.fieldId === fieldId)[0];
                         } catch {
-                            void message.error('Failed to upload file.');
+                            void message.error('Failed to upload file. Please check the file name format.');
                         }
                     }
                     setFileList(validFiles);
