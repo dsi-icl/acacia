@@ -29,15 +29,8 @@ write_files:
       export http_proxy=$HTTP_PROXY
       export https_proxy=$HTTPS_PROXY
       export no_proxy=$NO_PROXY
+      export DMP_TOKEN="${instanceSystemToken}"
     permissions: '0644'
-  - path: /usr/local/MATLAB/R2023b/bin/matlab_env.sh  
-    content: |  
-      #!/bin/bash  
-      export DMP_TOKEN="${instanceSystemToken}"  
-      export HTTP_PROXY=http://127.0.0.1:3128  
-      export HTTPS_PROXY=http://127.0.0.1:3128  
-      export NO_PROXY=127.0.0.1,localhost  
-    permissions: '0755'  
   - path: /etc/systemd/system.conf.d/proxy.conf
     content: |
       [Manager]
@@ -130,9 +123,11 @@ write_files:
       c.NotebookApp.base_url = "/jupyter/${instance_id}"
       c.NotebookApp.notebook_dir = "/home/ubuntu"
       c.Spawner.environment = {
+        'PYTHONPATH': '/root/dmpy:$PYTHONPATH',
         'HTTP_PROXY': 'http://127.0.0.1:3128',
         'HTTPS_PROXY': 'http://127.0.0.1:3128',
-        'NO_PROXY': '127.0.0.1,localhost'
+        'NO_PROXY': '127.0.0.1,localhost',
+        'DMP_TOKEN': '${instanceSystemToken}'
       }
     permissions: '0644'
   - path: /etc/systemd/system/jupyter.service
@@ -147,7 +142,7 @@ write_files:
       Environment="HTTPS_PROXY=http://127.0.0.1:3128"
       Environment="NO_PROXY=127.0.0.1,localhost"
       EnvironmentFile=-/etc/environment
-      ExecStart=/usr/bin/python3 /usr/local/bin/jupyter-notebook --config=/root/.jupyter/jupyter_notebook_config.py --allow-root
+      ExecStart=/usr/bin/python3 /usr/local/bin/jupyter-notebook --config=/root/.jupyter/jupyter_notebook_config.py  --allow-root
       WorkingDirectory=/root
       Restart=always
       RestartSec=60
@@ -157,6 +152,17 @@ write_files:
       WantedBy=multi-user.target
     permissions: '0644'
 runcmd:
+  - |  
+    grep -qxF 'DMP_TOKEN="${instanceSystemToken}"' /etc/environment || \
+    echo 'DMP_TOKEN="${instanceSystemToken}"' >> /etc/environment 
+    grep -qxF 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' /etc/environment || \
+    echo 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' >> /etc/environment 
+    grep -qxF 'HTTP_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTP_PROXY=http://127.0.0.1:3128' >> /etc/environment
+    grep -qxF 'HTTPS_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTPS_PROXY=http://127.0.0.1:3128' >> /etc/environment   
+    grep -qxF 'NO_PROXY=127.0.0.1,localhost' /etc/environment || \
+    echo 'NO_PROXY=127.0.0.1,localhost' >> /etc/environment    
   - |
     export HTTP_PROXY=http://127.0.0.1:3128
     export HTTPS_PROXY=http://127.0.0.1:3128
@@ -195,7 +201,8 @@ runcmd:
         "PYTHONPATH": "/root/dmpy:$PYTHONPATH", 
         "HTTP_PROXY": "http://127.0.0.1:3128",
         "HTTPS_PROXY": "http://127.0.0.1:3128",
-        "NO_PROXY": "127.0.0.1,localhost"
+        "NO_PROXY": "127.0.0.1,localhost",
+        "DMP_TOKEN": "${instanceSystemToken}"
       }
     }
     EOF
@@ -246,6 +253,14 @@ write_files:
       export https_proxy=$HTTPS_PROXY
       export no_proxy=$NO_PROXY
     permissions: '0644'
+  - path: /usr/local/MATLAB/R2023b/bin/matlab_env.sh  
+    content: |  
+      #!/bin/bash  
+      export DMP_TOKEN="${instanceSystemToken}"  
+      export HTTP_PROXY=http://127.0.0.1:3128  
+      export HTTPS_PROXY=http://127.0.0.1:3128  
+      export NO_PROXY=127.0.0.1,localhost  
+    permissions: '0755'  
   - path: /etc/systemd/system.conf.d/proxy.conf
     content: |
       [Manager]
@@ -357,9 +372,15 @@ write_files:
 runcmd:
   - |  
     grep -qxF 'DMP_TOKEN="${instanceSystemToken}"' /etc/environment || \
-    echo 'DMP_TOKEN="${instanceSystemToken}"' >> /etc/environment  
+    echo 'DMP_TOKEN="${instanceSystemToken}"' >> /etc/environment 
+    grep -qxF 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' /etc/environment || \
+    echo 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' >> /etc/environment 
     grep -qxF 'HTTP_PROXY=http://127.0.0.1:3128' /etc/environment || \
-    echo 'HTTP_PROXY=http://127.0.0.1:3128' >> /etc/environment  
+    echo 'HTTP_PROXY=http://127.0.0.1:3128' >> /etc/environment
+    grep -qxF 'HTTPS_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTPS_PROXY=http://127.0.0.1:3128' >> /etc/environment   
+    grep -qxF 'NO_PROXY=127.0.0.1,localhost' /etc/environment || \
+    echo 'NO_PROXY=127.0.0.1,localhost' >> /etc/environment  
   - |
     export HTTP_PROXY=http://127.0.0.1:3128
     export HTTPS_PROXY=http://127.0.0.1:3128

@@ -523,9 +523,9 @@ export const jupyterProxyMiddleware = async (req: Request & { user?: { id: strin
         proxyCache[instance_id].proxy.web(req, res);
         return; // Add explicit return for consistency with vncProxyMiddleware
     } catch (error) {
-        Logger.error(`Jupyter proxy error: ${error}`);
+        Logger.error(`Jupyter proxy error: ${JSON.stringify(error)}`);
         if (!res.headersSent) {
-            res.status(500).send(`Proxy setup error: ${error}`);
+            res.status(500).send(`Proxy setup error: ${JSON.stringify(error)}`);
         }
         next(error); // Consider if you want to call next with the error or just return
     }
@@ -542,7 +542,7 @@ export const vncProxyMiddleware = async (
     const instance_id = req.params['instance_id'];
 
     if (!instance_id) {
-        return res.status(404).send('Instance not found');
+        return res.status(404).send('Invalid instance ID');
     }
 
     try {
