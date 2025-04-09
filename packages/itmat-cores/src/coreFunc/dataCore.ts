@@ -1182,8 +1182,8 @@ export class DataCore {
             if (!fieldIds) {
                 fieldIds = (await this.getStudyFields(requester, studyId, availableDataVersions)).filter(el => el.dataType === enumDataTypes.FILE).map(el => el.fieldId);
             } else {
-                const fields = await this.db.collections.field_dictionary_collection.find({ studyId: studyId, fieldId: { $in: fieldIds } }).toArray();
-                fieldIds = fields.filter(el => el.dataType === enumDataTypes.FILE).map(el => el.fieldId);
+                const fields = (await this.getStudyFields(requester, studyId, availableDataVersions)).filter(el => el.dataType === enumDataTypes.FILE).map(el => el.fieldId);
+                fieldIds = fieldIds.filter(el => fields.includes(el));
             }
             if (fieldIds.length === 0) {
                 return [];
