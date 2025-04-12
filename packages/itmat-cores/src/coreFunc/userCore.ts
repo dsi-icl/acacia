@@ -840,7 +840,7 @@ export class UserCore {
      * @param life - The life of the token.
      * @returns - The token.
      */
-    public async getAccessToken(username: string, hashedPrivateKey: string, signature: string, life = 12000) {
+    public async getAccessToken(username: string, hashedPrivateKey: string, signature: string, life = 120000) {
         const user = await this.db.collections.users_collection.findOne({ 'username': username, 'life.deletedTime': null });
         if (!user) {
             throw new CoreError(
@@ -894,7 +894,7 @@ export class UserCore {
      * @param life - The life of the token.
      * @returns
      */
-    public async issueAccessToken(pubkey: string, signature: string, life?: number) {
+    public async issueAccessToken(pubkey: string, signature: string, life = 120000) {
         // refine the public-key parameter from browser
         pubkey = pubkey.replace(/\\n/g, '\n');
 
