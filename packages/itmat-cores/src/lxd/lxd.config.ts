@@ -3,7 +3,7 @@ export const cloudInitUserDataJupyterContainer = (instanceSystemToken: string, u
 #cloud-config
 users:
   - name: ubuntu
-    groups: sudo
+    groups: sudo,root
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     shell: /bin/bash
 write_files:
@@ -19,6 +19,8 @@ write_files:
     content: |
       Acquire::http::Proxy "http://127.0.0.1:3128";
       Acquire::https::Proxy "http://127.0.0.1:3128";
+      Acquire::http::Proxy "http://[::1]:3128";
+      Acquire::https::Proxy "http://[::1]:3128";  
     permissions: '0644'
   - path: /etc/bash.bashrc
     append: true
@@ -226,7 +228,7 @@ export  const cloudInitUserDataMatlabContainer =  (instanceSystemToken: string, 
 #cloud-config
 users:
   - name: ubuntu
-    groups: sudo
+    groups: sudo,root
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     shell: /bin/bash
 write_files:
@@ -242,6 +244,8 @@ write_files:
     content: |
       Acquire::http::Proxy "http://127.0.0.1:3128";
       Acquire::https::Proxy "http://127.0.0.1:3128";
+      Acquire::http::Proxy "http://[::1]:3128";
+      Acquire::https::Proxy "http://[::1]:3128";  
     permissions: '0644'
   - path: /etc/bash.bashrc
     append: true
@@ -369,6 +373,45 @@ write_files:
             }
         }
     permissions: '0644'
+  - path: /root/dummy-mac.sh
+    content: |
+      #!/bin/bash
+      
+      # Read the machine-id (persistent across reboots)
+      MACHINE_ID=$(cat /etc/machine-id)
+      
+      # Generate a deterministic MAC address from the machine-id
+      # - Use a hash to derive 6 bytes (SHA-256 truncated to 48 bits)
+      # - Ensure it's a locally administered unicast MAC (second bit of first byte = 1)
+      MAC_ADDR=$(echo "\${MACHINE_ID}" | sha256sum | awk '{print $1}' | head -c 12 | sed 's/\\(..\\)\\(..\\)\\(..\\)\\(..\\)\\(..\\)\\(..\\)/\\1:\\2:\\3:\\4:\\5:\\6/')
+      
+      # Force the first byte to be locally administered (e.g., 0x02, 0x06, etc.)
+      FIRST_BYTE=$(echo "\${MAC_ADDR}" | cut -d':' -f1)
+      FIRST_BYTE_HEX=$(( 0x\${FIRST_BYTE} | 0x02 ))  # Set the second bit
+      FIRST_BYTE=$(printf "%02x" "\${FIRST_BYTE_HEX}")
+      
+      # Rebuild the MAC address
+      MAC_ADDR="\${FIRST_BYTE}:$(echo "\${MAC_ADDR}" | cut -d':' -f2-6)"
+      
+      # Create the dummy interface and set the MAC
+      ip link add eth0 type dummy
+      ip link set eth0 address "\${MAC_ADDR}" 
+      ip link set eth0 up
+    permissions: '0755'
+  - path: /etc/systemd/system/dummy-eth0.service
+    content: |
+      [Unit]
+      Description=Create dummy eth0 with persistent MAC
+      After=network.target
+      
+      [Service]
+      Type=oneshot
+      ExecStart=/root/dummy-mac.sh
+      RemainAfterExit=yes
+      
+      [Install]
+      WantedBy=multi-user.target
+    permissions: '0644'
 runcmd:
   - |  
     grep -qxF 'DMP_TOKEN="${instanceSystemToken}"' /etc/environment || \
@@ -388,8 +431,13 @@ runcmd:
     echo "davfs2 davfs2/suid boolean true" | sudo debconf-set-selections
     apt-get update
     apt-get install -y davfs2 nginx
+  - systemctl enable vncserver.service
+  - systemctl start vncserver.service
+  - systemctl enable novnc.service
+  - systemctl start novnc.service
   - ln -sf /etc/nginx/sites-available/vnc_proxy /etc/nginx/sites-enabled/
   - systemctl enable nginx
+  - systemctl start nginx
   - systemctl restart nginx
   - |
     DEFAULT_USER="\${USERNAME:-ubuntu}"
@@ -429,6 +477,9 @@ runcmd:
   - systemctl daemon-reload
   - systemctl enable webdav-mount.service
   - systemctl start webdav-mount.service
+  - netplan apply
+  - systemctl enable dummy-eth0.service
+  - systemctl start dummy-eth0.service
   - rm -rf /usr/local/MATLAB/R2022b/licenses/*
   - |
     if [ -d "/home/\${DEFAULT_USER}" ]; then
@@ -438,7 +489,6 @@ runcmd:
       fi
     fi
 `;
-
 
 
 export const __unused_cloudInitUserDataVM =  (instanceSystemToken: string, username: string, webdavServer: string, webdavMountPath: string) =>`

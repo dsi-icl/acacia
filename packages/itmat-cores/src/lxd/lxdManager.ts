@@ -517,7 +517,8 @@ export class LxdManager {
             const lxdResponse = await this.lxdInstance.post(`/1.0/instances?project=${encodeURIComponent(project)}`, payload, {
                 headers: { 'Content-Type': 'application/json' },
                 httpsAgent: this.lxdAgent,
-                timeout: 30000 // adjust as needed
+                timeout: 30000, // adjust as needed,
+                params: { force: true } // Add force parameter
             });
             return lxdResponse.data;
         } catch (error) {
@@ -547,9 +548,8 @@ export class LxdManager {
         try {
             const response = await this.lxdInstance.put(`/1.0/instances/${instanceName}/state?project=${project}`, {
                 action: action,
-                timeout: 300, // adjust as needed
-                force: false,
-                stateful: false
+                timeout: 300, // adjust as needed,
+                force: true // Add force parameter
             });
             return response.data;
         } catch (error) {
@@ -562,11 +562,54 @@ export class LxdManager {
 
     async deleteInstance(instanceName: string, project: string) {
         try {
-            const response = await this.lxdInstance.delete(`/1.0/instances/${instanceName}?project=${project}`);
+            // Ensure correct encoding and add logging for debugging
+            instanceName = encodeURIComponent(instanceName);
+            Logger.log(`Attempting to delete instance ${instanceName} in project ${project}`);
+
+            // First check if instance exists to provide clearer error messages
+            try {
+                await this.getInstanceState(instanceName, project);
+            } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : String(error);
+                if (errorMsg.includes('404') || errorMsg.includes('Instance not found')) {
+                    Logger.warn(`Instance ${instanceName} not found in project ${project} - may have been already deleted`);
+                    return {
+                        data: {
+                            message: `Instance ${instanceName} already deleted or not found`
+                        }
+                    };
+                }
+                // For other errors, continue with deletion attempt
+            }
+
+            const response = await this.lxdInstance.delete(`/1.0/instances/${instanceName}?project=${project}`, {
+                params: { force: true } // Add force parameter
+            });
+
+            Logger.log(`Successfully initiated deletion for instance ${instanceName}`);
             return response.data;
         } catch (error) {
-            Logger.error(`Error deleting instance ${instanceName} on LXD: ${error}`);
-            throw error; // Propagate the error
+            // Enhanced error handling with more detailed information
+            if (isAxiosError(error)) {
+                const statusCode = error.response?.status;
+                const errorData = error.response?.data;
+
+                Logger.error(`Error deleting instance ${instanceName} on LXD (Status ${statusCode}): ${JSON.stringify(errorData)}`);
+
+                // Return a more structured error
+                return {
+                    error: true,
+                    status: statusCode,
+                    message: `Error deleting instance: ${error.message}`,
+                    details: errorData
+                };
+            }
+
+            Logger.error(`Unexpected error deleting instance ${instanceName} on LXD: ${error}`);
+            return {
+                error: true,
+                message: `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+            };
         }
     }
 }
