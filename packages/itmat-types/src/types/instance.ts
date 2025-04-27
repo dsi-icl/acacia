@@ -49,6 +49,7 @@ export enum enumOpeType {
 //monitor operation for instances
 export enum enumMonitorType {
     STATE = 'state',
+    SYNC_DELETION = 'sync-deletion',
 }
 
 export enum enumInstanceType {

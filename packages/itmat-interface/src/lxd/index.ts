@@ -525,7 +525,7 @@ export const jupyterProxyMiddleware = async (req: Request & { user?: { id: strin
     } catch (error) {
         Logger.error(`Jupyter proxy error: ${JSON.stringify(error)}`);
         if (!res.headersSent) {
-            res.status(500).send(`Proxy setup error: ${JSON.stringify(error)}`);
+            res.status(500).send('Proxy setup error occurred. Please contact an administrator.');
         }
         next(error); // Consider if you want to call next with the error or just return
     }

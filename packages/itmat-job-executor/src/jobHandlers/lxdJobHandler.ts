@@ -108,6 +108,34 @@ export class LXDJobHandler extends APIHandler {
                     }
                     // For non-polling errors, rethrow to be caught by outer catch
                     Logger.error(`Error polling operation for instance ${instanceId}: ${error}`);
+
+                    // if  the instance is failed out of space or other errors, set the instance status to failed
+
+                    // Handle specific error cases for instance creation failures
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    Logger.error(`Instance creation failed for ${instanceId}: ${errorMessage}`);
+
+                    // Check for specific error types
+                    const errorDetails = {
+                        message: errorMessage,
+                        timestamp: new Date(),
+                        type: 'creation_failure'
+                    };
+
+                    if (errorMessage.includes('out of space') || errorMessage.includes('no space left')) {
+                        errorDetails.type = 'storage_space_error';
+                    } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+                        errorDetails.type = 'network_error';
+                    } else if (errorMessage.includes('timeout')) {
+                        errorDetails.type = 'timeout_error';
+                    }
+
+                    // Update instance with error details and failed status
+                    await this.updateInstanceMetadata(
+                        instanceId,
+                        { ...data, error: errorDetails },
+                        enumInstanceStatus.FAILED
+                    );
                     throw error;
                 }
             }

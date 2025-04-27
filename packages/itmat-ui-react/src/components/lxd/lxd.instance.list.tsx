@@ -2,7 +2,7 @@ import React, { useEffect, useState} from 'react';
 import { Table, Button, message, Spin, Modal, Space, Form, InputNumber, Input } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 // Additional imports
-import { PoweroffOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { PoweroffOutlined, PlayCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { LXDInstanceType, enumOpeType} from '@itmat-broker/itmat-types';
 
 // import { instanceCreationTypes } from './instanceOptions';
@@ -10,7 +10,7 @@ import InstanceStatusIcon from '././lxd.Instance.statusIcon';
 import { trpc } from '../../utils/trpc';
 import { formatCPUInfo, formatMemoryInfo, formatStorageInfo, formatGPUInfo} from './util/formatUtils';
 
-
+const { confirm } = Modal;
 
 const LXDInstanceList = () => {
     const [instances, setInstances] = useState<LXDInstanceType[]>([]);
@@ -74,16 +74,37 @@ const LXDInstanceList = () => {
             void message.error(`Failed to delete instance: ${error.message}`);
         }
     });
+
     const handleStartStop = (instanceName: string , action: enumOpeType.START | enumOpeType.STOP, project: string) => {
         startStopInstance.mutate({ instanceName, action, project});
     };
 
     const handleDelete = (instanceName: string, project: string) => {
-        deleteInstance.mutate({ instanceName, project});
+        confirm({
+            title: 'Are you sure you want to delete this instance?',
+            icon: <ExclamationCircleOutlined style={{ color: 'red' }} />,
+            content: (
+                <div>
+                    <p>Instance: <strong>{instanceName}</strong></p>
+                    <p>This action cannot be undone. The instance will be permanently deleted.</p>
+                </div>
+            ),
+            okText: 'Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                deleteInstance.mutate({ instanceName, project});
+            }
+        });
     };
 
     const openUpdateConfigModal = (instance: LXDInstanceType) => {
         setEditingInstance(instance);
+        // Pre-populate the form with existing values
+        updateConfigForm.setFieldsValue({
+            cpuLimit: parseInt(instance.cpuLimit as string) || 1,
+            memoryLimit: parseInt(instance.memoryLimit as string) || 1
+        });
         setIsUpdateConfigModalOpen(true);
     };
 
@@ -212,6 +233,7 @@ const LXDInstanceList = () => {
             });
 
             setIsUpdateConfigModalOpen(false);
+            await refreshInstancesList(); // Refresh the list to show updated values
 
         } catch (error) {
             void message.error(`Failed to update instance configuration: ${error instanceof Error ? error.message : String(error)}`);

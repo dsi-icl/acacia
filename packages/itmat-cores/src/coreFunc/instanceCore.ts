@@ -212,6 +212,7 @@ export class InstanceCore {
         const lxd_metadata = {
             operation: enumOpeType.CREATE,
             instanceId: instanceEntry.id,
+            userId: userId,
             payload: {
                 name: name,
                 architecture: 'x86_64',
@@ -246,16 +247,6 @@ export class InstanceCore {
                 project: this.lxdProject // Ensure the correct project is used
             }
         };
-        // Add eth0 network interface only for MATLAB instances
-        if (appType === enumAppType.MATLAB) {
-            lxd_metadata.payload.devices['eth0'] = {
-                name: 'eth0',
-                nictype: 'bridged',
-                parent: 'br1',
-                type: 'nic'
-            };
-        }
-
 
         // Call the createJob method of JobCore to create a new job
         await this.JobCore.createJob(
@@ -267,7 +258,7 @@ export class InstanceCore {
             { path: executorPath, type: 'lxd', id: instance_id },
             null,
             null,
-            5,
+            8, // High priority for create operations
             lxd_metadata);
 
         return instanceEntry;
@@ -297,7 +288,8 @@ export class InstanceCore {
 
         const lxd_metadata = {
             operation: action,
-            instanceId: instance.id
+            instanceId: instance.id,
+            userId: userId // Include userId in metadata
         };
 
         // Call the createJob method of JobCore to create a new job for starting/stopping the instance
@@ -338,11 +330,12 @@ export class InstanceCore {
 
         const lxd_metadata = {
             operation: enumOpeType.START,
-            instanceId: instance.id
+            instanceId: instance.id,
+            userId: userId // Include userId in metadata
         };
 
         // Call the createJob method of JobCore to create a new job for restarting the instance
-        await this.JobCore.createJob(userId, jobName, jobType, undefined, undefined, { id: instanceId, type: 'lxd', path: executorPath }, null, null, 2, lxd_metadata);
+        await this.JobCore.createJob(userId, jobName, jobType, undefined, undefined, { id: instanceId, type: 'lxd', path: executorPath }, null, null, 5, lxd_metadata);
 
 
         return instance;
@@ -381,18 +374,32 @@ export class InstanceCore {
 
         const lxd_metadata = {
             operation: enumOpeType.DELETE,
-            instanceId: instance.id
+            instanceId: instance.id,
+            userId: UserId // Include userId in metadata
         };
 
-        // Call the createJob method of JobCore to create a new job for deleting the instance
-        await this.JobCore.createJob(instance.userId, jobName, jobType, undefined, undefined, { id: instanceId, type: 'lxd', path: executorPath }, null, null, 2, lxd_metadata);
+        // Create the delete job and get its id
+        const deleteJobResult = await this.JobCore.createJob(
+            instance.userId,
+            jobName,
+            jobType,
+            undefined,
+            undefined,
+            { id: instanceId, type: 'lxd', path: executorPath },
+            null,
+            null,
+            10,
+            lxd_metadata
+        );
 
-        // remove all the job related to the instance
-        // Find and cancel all pending jobs related to this instance
+        // Get the ID of the newly created delete job
+        const deleteJobId = deleteJobResult?.id;
+
+        // Cancel all other pending jobs related to this instance, except the delete job
         await this.db.collections.jobs_collection.updateMany(
             {
-            // Match jobs that are pending and have metadata containing this instanceId
                 status: enumJobStatus.PENDING,
+                id: { $ne: deleteJobId }, // Exclude the delete job we just created
                 $or: [
                     { 'metadata.instanceId': instanceId },
                     { 'executor.id': instanceId }
@@ -439,6 +446,35 @@ export class InstanceCore {
             };
             const instanceIds = instances.map(instance => instance.id).join('|');
             await this.JobCore.createJob(userId, jobName, jobType, undefined, period, { id: instanceIds, type: 'lxd', path: executorPath }, null, null, 1, metadata);
+        }
+
+        // Create a job for synchronizing instance deletion status between DB and LXD server
+        const syncDeletionJobName = `Synchronize Deleted Instances for User: ${userId}`;
+        const existingSyncDeletionJobs = await this.JobCore.getJob({
+            name: syncDeletionJobName,
+            type: jobType,
+            status: enumJobStatus.PENDING
+        });
+
+        if (existingSyncDeletionJobs.length === 0) {
+            const syncDeletionMetadata = {
+                operation: enumMonitorType.SYNC_DELETION,
+                userId: userId
+            };
+            // Create the sync deletion job with a slightly longer period to avoid resource contention
+            const syncDeletionPeriod = 5 * 60 * 1000; // 5 minutes
+            await this.JobCore.createJob(
+                userId,
+                syncDeletionJobName,
+                jobType,
+                undefined,
+                syncDeletionPeriod,
+                { id: 'sync-deletion', type: 'lxd', path: executorPath },
+                null,
+                null,
+                1,
+                syncDeletionMetadata
+            );
         }
 
         const now = Date.now();
