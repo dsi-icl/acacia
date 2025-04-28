@@ -120,7 +120,7 @@ export const registerContainSocketServer = (server: WebSocketServer, lxdManager:
 
 export const registerJupyterSocketServer = (server: WebSocketServer, instanceCore: InstanceCore) => {
 
-    server.on('connection', (clientSocket, req) => {
+    server.on('connection', (clientSocket, req: http.IncomingMessage & { user?: { id: string } }) => {
         const handleConnection = async () => {
 
             clientSocket.pause();
@@ -129,15 +129,38 @@ export const registerJupyterSocketServer = (server: WebSocketServer, instanceCor
             // Extract subprotocol from the client's WebSocket request
             const clientSubprotocol = req.headers['sec-websocket-protocol'] || '';
 
-
             let containerSocket: WebSocket | undefined;
 
             if ( !req.url ||!req.url?.startsWith('/jupyter')){
-                Logger.log(`error request ${req.url}`);
-                clientSocket.close();
+                Logger.log(`Error request ${req.url}`);
+                clientSocket.close(4004, 'Invalid Jupyter path');
+                return;
             }
+
             // get the instance_id from the url
             const instance_id = req.url?.split('/')[2] ?? '';
+            if (!instance_id) {
+                clientSocket.close(4004, 'Missing instance ID');
+                return;
+            }
+
+            // Extract user ID from the request user object
+            const user_id = req.user?.id;
+
+            // Verify instance ownership
+            try {
+                const hasAccess = await verifyInstanceAccess(instance_id, user_id, instanceCore);
+                if (!hasAccess) {
+                    Logger.warn(`WebSocket: Unauthorized access attempt to Jupyter instance ${instance_id}`);
+                    clientSocket.close(4003, 'Access denied: You do not have permission to access this instance');
+                    return;
+                }
+            } catch (error) {
+                Logger.error(`WebSocket: Error verifying instance ownership: ${error instanceof Error ? error.message : String(error)}`);
+                clientSocket.close(4003, 'Access verification failed');
+                return;
+            }
+
             const clientMessageBuffers: Array<[RawData, boolean]> = [];
             const containerMessageBuffers: Array<[RawData, boolean]> = [];
 
@@ -145,11 +168,11 @@ export const registerJupyterSocketServer = (server: WebSocketServer, instanceCor
             let port = 0; // Initialize with a default value
             try {
                 // Get the container IP according to the instance_id
-                const result = await getInstanceTarget(instance_id, instanceCore);
+                const result = await getInstanceTarget(instance_id, instanceCore, user_id);
                 ({ ip, port } = result); // Wrap destructuring in parentheses
             } catch (error) {
                 Logger.error(`Failed to retrieve container IP: ${JSON.stringify(error)}`);
-                clientSocket.close();
+                clientSocket.close(4013, 'Failed to get container IP');
                 return;
             }
 
@@ -402,6 +425,29 @@ function updateVncProxyCache(instanceId: string, proxy: httpProxy, ip: string, p
     vncProxyCache[instanceId] = { proxy, ip, port, lastUsed: Date.now() };
 }
 
+// Verify if the user has access to the specified instance
+async function verifyInstanceAccess(instance_id: string, user_id: string | undefined, instanceCore: InstanceCore): Promise<boolean> {
+    if (!user_id) {
+        return false;
+    }
+
+    try {
+        // Get the instance information from the database
+        const instance = await instanceCore.getInstanceById(instance_id);
+
+        // Verify that the requesting user owns this instance
+        if (instance.userId !== user_id) {
+            Logger.warn(`User ${user_id} attempted to access instance ${instance_id} owned by ${instance.userId}`);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        Logger.error(`Error verifying instance ownership: ${error instanceof Error ? error.message : String(error)}`);
+        return false;
+    }
+}
+
 // Replace the existing getInstanceTarget function
 const getInstanceTarget = async (instance_id: string, instanceCore: InstanceCore, user_id?: string | undefined) => {
     // Get the instance information from the database
@@ -443,6 +489,16 @@ export const jupyterProxyMiddleware = async (req: Request & { user?: { id: strin
         if (!res.headersSent) {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             res.end('Instance not found');
+        }
+        return;
+    }
+
+    // Verify instance ownership
+    const hasAccess = await verifyInstanceAccess(instance_id, req.user?.id, instanceCore);
+    if (!hasAccess) {
+        if (!res.headersSent) {
+            res.writeHead(403, { 'Content-Type': 'text/plain' });
+            res.end('Access denied');
         }
         return;
     }
@@ -542,7 +598,21 @@ export const vncProxyMiddleware = async (
     const instance_id = req.params['instance_id'];
 
     if (!instance_id) {
-        return res.status(404).send('Invalid instance ID');
+        if (!res.headersSent) {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Instance not found');
+        }
+        return;
+    }
+
+    // Verify instance ownership
+    const hasAccess = await verifyInstanceAccess(instance_id, req.user?.id, instanceCore);
+    if (!hasAccess) {
+        if (!res.headersSent) {
+            res.writeHead(403, { 'Content-Type': 'text/plain' });
+            res.end('Access denied: You do not have permission to access this instance');
+        }
+        return;
     }
 
     try {
@@ -619,6 +689,9 @@ export const vncProxyMiddleware = async (
         return;
     } catch (error) {
         Logger.error(`VNC proxy error: ${error}`);
+        if (!res.headersSent) {
+            res.status(500).send('Proxy setup error occurred. Please contact an administrator.');
+        }
         next(error);
         return;
     }
@@ -643,7 +716,7 @@ export function clearProxyCacheForInstance(instanceId: string): void {
 
 // WebSocket handler for VNC
 export const registerVNCSocketServer = (server: WebSocketServer, instanceCore: InstanceCore) => {
-    server.on('connection', (clientSocket, req) => {
+    server.on('connection', (clientSocket, req: http.IncomingMessage & { user?: { id: string } }) => {
         const handleConnection = async () => {
             clientSocket.pause();
             clientSocket.binaryType = 'arraybuffer';
@@ -666,6 +739,23 @@ export const registerVNCSocketServer = (server: WebSocketServer, instanceCore: I
                 return;
             }
 
+            // Extract user ID from the request user object
+            const user_id = req.user?.id;
+
+            // Verify instance ownership
+            try {
+                const hasAccess = await verifyInstanceAccess(instance_id, user_id, instanceCore);
+                if (!hasAccess) {
+                    Logger.warn(`WebSocket: Unauthorized access attempt to VNC instance ${instance_id}`);
+                    clientSocket.close(4003, 'Access denied: You do not have permission to access this instance');
+                    return;
+                }
+            } catch (error) {
+                Logger.error(`WebSocket: Error verifying VNC instance ownership: ${error instanceof Error ? error.message : String(error)}`);
+                clientSocket.close(4003, 'Access verification failed');
+                return;
+            }
+
             const clientMessageBuffers: Array<[RawData, boolean]> = [];
             const containerMessageBuffers: Array<[RawData, boolean]> = [];
 
@@ -673,7 +763,7 @@ export const registerVNCSocketServer = (server: WebSocketServer, instanceCore: I
             let ip = ''; // Initialize with a default value
             let port = 0; // Initialize with a default value
             try {
-                const result = await getInstanceTarget(instance_id, instanceCore);
+                const result = await getInstanceTarget(instance_id, instanceCore, user_id);
 
                 // ip = 'localhost';
                 ({ ip, port } = result);
