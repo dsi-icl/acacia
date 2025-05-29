@@ -103,6 +103,16 @@ export const InstanceSection: FunctionComponent = () => {
 
     const [createForm] = Form.useForm<CreateInstanceFormValues>();
 
+    const extendInstanceLifespan = trpc.instance.extendInstanceLifespan.useMutation({
+        onSuccess: async () => {
+            void message.success('Instance lifespan extended successfully.');
+            await getInstances.refetch();
+        },
+        onError: (error) => {
+            void message.error(`Failed to extend instance lifespan: ${error.message}`);
+        }
+    });
+
     // Define the initial form values including the default instanceType
     const initialFormValues: Partial<CreateInstanceFormValues> = {
         instanceType: enumInstanceType.SMALL,
@@ -281,7 +291,7 @@ export const InstanceSection: FunctionComponent = () => {
                     <Tooltip
                         title={
                             isAtOrOverQuota
-                                ? `Over the quota of ${quotaAndFlavors?.userQuota.defaultLXDMaximumInstances} instances. Please delete an instance to create a new one.`
+                                ? `⚠️ Instance Quota Reached: You've used all ${quotaAndFlavors?.userQuota.defaultLXDMaximumInstances} allowed instances. To create a new one, you must first delete an existing instance or request a quota increase from your administrator.`
                                 : ''
                         }
                     >
@@ -295,19 +305,6 @@ export const InstanceSection: FunctionComponent = () => {
                             Create New Instance
                         </Button>
                     </Tooltip>
-                    {/* <Button
-                        type="default"
-                        size="large" // Match the size with "Create New Instance" button
-                        style={{
-                            borderColor: '#108ee9',
-                            color: '#108ee9'
-                        }}
-                        href="/pun/sys/dashboard"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                    Go back to old AE v2
-                    </Button> */}
                 </Space>
 
             </div>
@@ -327,7 +324,40 @@ export const InstanceSection: FunctionComponent = () => {
                         <Col span={16}>
                             <p>Application Type: {instance.appType}</p>
                             <p>Created At: {new Date(instance.createAt).toLocaleString()}</p>
-                            <p>Life Span: <strong>{(Number(instance.lifeSpan) / 1000 / 3600 ).toFixed(2)}</strong> (hours)</p>
+                            <p>
+                                Life Span: <strong>{(Number(instance.lifeSpan) / 1000 / 3600).toFixed(2)}</strong> (hours)
+                                {/* Add Extend button inline with lifespan for instances with less than 7 days remaining */}
+                                {instance.lifeSpan > 0 && instance.lifeSpan < 7 * 24 * 60 * 60 * 1000 && (
+                                    <Tooltip title={
+                                        instance.lifeSpan < 24 * 60 * 60 * 1000
+                                            ? 'Critical! Your instance will stop soon. Please extend lifespan now!'
+                                            : 'Low lifespan. Consider extending to avoid instance termination.'
+                                    }>
+                                        <Button
+                                            type="primary"
+                                            size="small"
+                                            danger={instance.lifeSpan < 24 * 60 * 60 * 1000} // Use danger type for critical lifespan
+                                            style={{
+                                                backgroundColor: instance.lifeSpan < 24 * 60 * 60 * 1000 ? '#ff4d4f' : '#722ed1',
+                                                borderColor: instance.lifeSpan < 24 * 60 * 60 * 1000 ? '#ff4d4f' : '#722ed1',
+                                                marginLeft: '12px',
+                                                fontSize: '12px'
+                                            }}
+                                            onClick={() => {
+                                                // Extend by 360 hours (same as restart)
+                                                const additionalTime = 360 * 60 * 60 * 1000;
+                                                extendInstanceLifespan.mutate({
+                                                    instanceId: instance.id,
+                                                    additionalTime: additionalTime
+                                                });
+                                            }}
+                                            disabled={extendInstanceLifespan.isLoading}
+                                        >
+                                            {instance.lifeSpan < 24 * 60 * 60 * 1000 ? 'Extend Now!' : 'Extend'}
+                                        </Button>
+                                    </Tooltip>
+                                )}
+                            </p>
                             <p>
                                 CPU: {instance.config && typeof instance.config['limits.cpu'] === 'string' ? instance.config['limits.cpu'] : 'N/A'} Cores,
                                 Memory: {instance.config && typeof instance.config['limits.memory'] === 'string' ? instance.config['limits.memory'] : 'N/A'}
@@ -370,7 +400,6 @@ export const InstanceSection: FunctionComponent = () => {
                         {instance.status === enumInstanceStatus.RUNNING && (
                             // change the danger to warning color
                             <Button type="primary" danger style={{ backgroundColor: '#ffe7ba', borderColor: '#ffd591', color: '#fa8c16', marginRight: '8px' }}  onClick={() => startStopInstance.mutate({ instanceId: instance.id, action: enumOpeType.STOP })}>Stop</Button>
-                            // <Button type="primary" danger style={{ marginRight: '8px' }} onClick={() => startStopInstance.mutate({ instanceId: instance.id, action: 'stop' })}>Stop</Button>
                         )}
                         {/* Only show Delete button for STOPPED status */}
                         {(instance.status === enumInstanceStatus.STOPPED || instance.status === enumInstanceStatus.FAILED) && (
@@ -383,12 +412,12 @@ export const InstanceSection: FunctionComponent = () => {
                                     void handleRestartInstance({ instance_id: instance.id, lifeSpan: 360 * 60 * 60 * 1000 });
                                 }}>Restart</Button>
                         )}
+                        {/** Remove the extend button from here since we moved it next to the lifespan */}
                         {/** console connection button, only show for RUNNING status */}
                         {instance.appType === enumAppType.MATLAB && instance.status === enumInstanceStatus.RUNNING &&  (
                             // set the button color to green
                             <Button type="primary"
                                 style={{ backgroundColor: '#1890ff', borderColor: '#1890ff', marginRight: '8px' }}
-                                // onClick={() => handleConsoleConnect(instance)
                                 onClick={() => {
                                     void connectToVNCHandler(instance.id);
                                 }}

@@ -92,7 +92,7 @@ write_files:
           chown ubuntu:ubuntu ${webdavMountPath}; \
           chmod 755 ${webdavMountPath}'
 
-      ExecStart=/bin/mount -t davfs ${webdavServer} ${webdavMountPath} \
+      ExecStart=/bin/mount -t davfs ${webdavServer}/webdav ${webdavMountPath} \
           -o rw,uid=ubuntu,gid=ubuntu,_netdev,auto
       
       ExecStartPost=/bin/bash -c '\
@@ -327,7 +327,7 @@ write_files:
           chown ubuntu:ubuntu ${webdavMountPath}; \
           chmod 755 ${webdavMountPath}'
 
-      ExecStart=/bin/mount -t davfs ${webdavServer} ${webdavMountPath} \
+      ExecStart=/bin/mount -t davfs ${webdavServer}/webdav ${webdavMountPath} \
           -o rw,uid=ubuntu,gid=ubuntu,_netdev,auto
       
       ExecStartPost=/bin/bash -c '\
@@ -511,7 +511,7 @@ write_files:
         permissions: '0644'
     - path: /etc/davfs2/secrets
         content: |
-          ${webdavServer} ubuntu ${instanceSystemToken}
+          ${webdavServer}/webdav ubuntu ${instanceSystemToken}
         permissions: '0600'
     - path: /etc/systemd/system/webdav-mount.service
         content: |
@@ -520,7 +520,7 @@ write_files:
           After=network.target
           [Service]
           Type=oneshot
-          ExecStart=/bin/mount -t davfs ${webdavServer} ${webdavMountPath} -o rw,uid=ubuntu,gid=ubuntu
+          ExecStart=/bin/mount -t davfs ${webdavServer}/webdav ${webdavMountPath} -o rw,uid=ubuntu,gid=ubuntu
           ExecStartPre=/bin/mkdir -p ${webdavMountPath}
           RemainAfterExit=true
           [Install]
