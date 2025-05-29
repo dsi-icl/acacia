@@ -215,63 +215,6 @@ export class Router {
             }
         });
 
-        /* AE proxy middleware */
-        // initial this before graphqlUploadExpress middleware
-        // const ae_proxy = createProxyMiddleware({
-        //     target: _this.config.aeEndpoint,
-        //     ws: true,
-        //     xfwd: true,
-        //     autoRewrite: true,
-        //     changeOrigin: true,
-        //     on: {
-        //         proxyReq: function (preq, req: Request, res: Response) {
-        //             preq.path = req.baseUrl + req.path;
-        //             if (!req.user)
-        //                 return res.status(403).redirect('/');
-        //             res.cookie('ae_proxy', req.headers['host']);
-        //             const data = (req.user as IUser).username + ':token';
-        //             preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-        //             if (req.body && Object.keys(req.body).length) {
-        //                 const contentType = preq.getHeader('Content-Type');
-        //                 preq.setHeader('origin', _this.config.aeEndpoint);
-        //                 const writeBody = (bodyData: string) => {
-        //                     preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-        //                     preq.write(bodyData);
-        //                     preq.end();
-        //                 };
-
-        //                 if (contentType === 'application/json') {
-        //                     writeBody(JSON.stringify(req.body));
-        //                 }
-
-        //                 if (contentType === 'application/x-www-form-urlencoded') {
-        //                     writeBody(qs.stringify(req.body));
-        //                 }
-
-        //             }
-        //         },
-        //         proxyReqWs: function (preq) {
-        //             const data = 'username:token';
-        //             preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-        //         },
-        //         error: function (err, _req, _res, target) {
-        //             console.error(err, target);
-        //         }
-        //     }
-        // });
-
-        // this.proxies.push(ae_proxy);
-
-        /* AE routers */
-        // pun for AE portal
-        // node and rnode for AE application
-        // public for public resource like favicon and logo
-        // const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
-
-        // proxy_routers.forEach(router => {
-        //     this.app.use(router, ae_proxy as NativeRequestHandler);
-        // });
-
         await gqlServer.start();
 
         this.app.use(
