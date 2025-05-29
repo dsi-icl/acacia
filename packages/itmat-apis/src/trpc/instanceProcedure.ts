@@ -149,6 +149,23 @@ export class InstanceRouter {
 
                 return await this.instanceCore.deleteInstance(user.id, input.instanceId);
             }),
+
+            /**
+             * Extend the lifespan of an instance
+             */
+            extendInstanceLifespan: this.baseProcedure.input(
+                z.object({
+                    instanceId: z.string(),
+                    additionalTime: z.number()
+                })
+            ).mutation(async ({ input, ctx }) => {
+                if (!ctx.req.user || !ctx.req.user.id) {
+                    throw new CoreError(enumCoreErrors.NOT_LOGGED_IN, 'User must be authenticated.');
+                }
+
+                return await this.instanceCore.extendInstanceLifespan(ctx.req.user.id, input.instanceId, input.additionalTime);
+            }),
+
             getQuotaAndFlavors: this.baseProcedure.query(async ({ ctx }) => {
                 if (!ctx.req.user || !ctx.req.user.id) {
                     throw new CoreError(enumCoreErrors.NOT_LOGGED_IN, 'User must be authenticated.');

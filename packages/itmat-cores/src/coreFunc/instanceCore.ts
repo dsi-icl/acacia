@@ -762,6 +762,67 @@ export class InstanceCore {
         }
     }
 
+    /**
+     * Extend the lifespan of an instance
+     *
+     * @param userId - The ID of the user extending the instance
+     * @param instanceId - The ID of the instance to extend
+     * @param additionalTime - The additional time to add in milliseconds
+     * @returns The updated instance
+     */
+    public async extendInstanceLifespan(userId: string, instanceId: string, additionalTime: number): Promise<IInstance> {
+        // Retrieve instance details from the database
+        const instance = await this.db.collections.instance_collection.findOne({ id: instanceId });
+        if (!instance) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Instance not found.'
+            );
+        }
+
+        // Get the current time to check for cooldown period
+        const now = Date.now();
+
+        // Check if user has permission to extend this instance
+        if (instance.userId !== userId) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'User does not have permission to extend this instance.'
+            );
+        }
+
+        // Calculate remaining lifespan
+        const lifeDuration = now - instance.createAt;
+        const remainingLifespan = instance.lifeSpan - lifeDuration;
+
+        // Check if lifespan is already sufficiently long (more than 7 days)
+        if (remainingLifespan > 7 * 24 * 60 * 60 * 1000) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'Instance already has sufficient lifespan (more than 7 days). No need to extend now.'
+            );
+        }
+
+        const newLifespan = instance.lifeSpan + additionalTime;
+
+        // Update the instance's lifespan
+        const result = await this.db.collections.instance_collection.findOneAndUpdate(
+            { id: instanceId },
+            { $set: { lifeSpan: newLifespan } },
+            { returnDocument: 'after' }
+        );
+
+        if (!result) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Failed to update the instance lifespan.'
+            );
+        }
+
+        Logger.log(`Extended lifespan of instance ${instanceId} by ${additionalTime / (3600 * 1000)} hours`);
+
+        return result;
+    }
 
     public async getQuotaAndFlavors(requester: IUser) {
 
