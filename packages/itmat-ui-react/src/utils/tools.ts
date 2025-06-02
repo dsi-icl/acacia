@@ -331,15 +331,32 @@ export function tableColumnRender(data, bcolumn) {
         let value = 'NA';
 
         if (input) {
+            // Check for 8-digit numbers or strings representing YYYYMMDD
+            if (/^\d{8}$/.test(String(input))) {
+                // Force the input to be treated as a YYYYMMDD string
+                const year = String(input).substring(0, 4);
+                const month = String(input).substring(4, 6);
+                const day = String(input).substring(6, 8);
+
+                // Manually create a date string in YYYY-MM-DD format
+                const formattedDate = `${year}-${month}-${day}`;
+
+                // Validate the date is correct
+                const dateObj = dayjs(formattedDate);
+                if (dateObj.isValid()) {
+                    return formattedDate;
+                }
+            }
+
             // Try parsing with dayjs
             const dateObj = dayjs(input);
 
             // If it's a valid date
-            if (dateObj.isValid()) {
+            if (dateObj.isValid() && dayjs(input).year() > 1970) {
                 value = dateObj.format('YYYY-MM-DD');
             } else {
                 // Try alternative formats if standard parsing fails
-                const formats = ['YYYYMMDD', 'DDMMYYYY', 'DD-MM-YYYY', 'DD/MM/YYYY'];
+                const formats = ['DDMMYYYY', 'DD-MM-YYYY', 'DD/MM/YYYY'];
                 for (const format of formats) {
                     const altDate = dayjs(input, format);
                     if (altDate.isValid()) {
