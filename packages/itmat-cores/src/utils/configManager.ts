@@ -20,6 +20,7 @@ export interface IConfiguration extends IServerConfig {
     webdavPort: number;
     webdavServer: string;
     lxdEndpoint: string;
+    lxdPortRange: number[];  // the port range for lxd  a list of numbers
     lxdSquidProxy: string; // the squid proxy server for lxd
     lxdStoragePool: string;
     lxdProject: string;

@@ -55,6 +55,10 @@
     "useWebdav": true,
     "webdavPort": 1900,
     "lxdEndpoint": "https://localhost:8443",
+    "lxdPortRange": [
+        0,
+        100
+    ],
     "lxdSquidProxy": "http://traget_ip:3128",
     "lxdStoragePool": "newpool",
     "lxdProject": "ideafast-staging",

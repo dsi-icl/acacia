@@ -23,7 +23,7 @@ export class FileDownloadController {
             const requestedFile = req.params['fileId'];
             const token = req.headers.authorization || '';
             let associatedUser = requester;
-            const file = await this._db.collections.files_collection.findOne({ 'id': requestedFile, 'life.deletedTime': null });
+
             const log: ILog = {
                 id: uuid(),
                 requester: req.user?.username ?? 'NA',
@@ -38,13 +38,25 @@ export class FileDownloadController {
                 timeConsumed: null,
                 life: {
                     createdTime: Date.now(),
-                    createdUser: requester.id,
+                    createdUser: requester?.id || 'anonymous',
                     deletedTime: null,
                     deletedUser: null
                 },
                 metadata: {
                 }
             };
+
+            // Handle authentication first, before any file operations
+            if (!requester && token === '') {
+                res.status(403).json({ error: 'Please log in.' });
+                await this._db.collections.log_collection.insertOne({
+                    ...log,
+                    errors: 'Please log in.'
+                });
+                return;
+            }
+
+            const file = await this._db.collections.files_collection.findOne({ 'id': requestedFile, 'life.deletedTime': null });
 
             if (!file || file.fileCategory !== enumFileCategories.DOMAIN_FILE) {
                 if ((token !== '') && (req.user === undefined)) {
