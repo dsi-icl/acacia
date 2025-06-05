@@ -59,6 +59,10 @@
     "pollingInterval": 10000,
 
     "lxdEndpoint": "https://localhost:8443",
+    "lxdPortRange": [
+        0,
+        10
+    ],
     "lxdSquidProxy": "traget_ip:3128",
     "lxdStoragePool": "newpool",
     "lxdProject": "default",

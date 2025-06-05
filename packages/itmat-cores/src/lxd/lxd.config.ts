@@ -20,7 +20,7 @@ write_files:
       Acquire::http::Proxy "http://127.0.0.1:3128";
       Acquire::https::Proxy "http://127.0.0.1:3128";
       Acquire::http::Proxy "http://[::1]:3128";
-      Acquire::https::Proxy "http://[::1]:3128";  
+      Acquire::https::Proxy "http://[::1]:3128";
     permissions: '0644'
   - path: /etc/bash.bashrc
     append: true

@@ -97,19 +97,23 @@ export class InstanceCore {
     private async getValidHostPort(): Promise<number> {
         const instances = await this.db.collections.instance_collection.find({}).toArray();
         // Filter out null/undefined values and then sort
+        // get the base port range from config, default to [30000, 40000]
+        const lxdPortRange: number[] = this.config.lxdPortRange || [30000, 40000];
+
         const existingPorts = instances
             .map(instance => instance.hostMapPort)
             .filter(port => port !== undefined && port !== null);
 
         // If no valid ports are found, start from the base port
         if (existingPorts.length === 0) {
-            return 30000;
+            return lxdPortRange[0]; // Default to 30000 if no instances exist
         }
+
 
         // Find the highest port and increment
         const latestPort = Math.max(...existingPorts);
         // Wrap around if we reach the maximum port
-        return latestPort >= 40000 ? 30000 : latestPort + 1;
+        return latestPort < lxdPortRange[1] ? latestPort + 1 : lxdPortRange[0];
     }
 
     private formatProxyAddress(address: string): string {
