@@ -88,8 +88,7 @@ export class InstanceCore {
             );
         }
         return instance;
-    }
-    /**
+    }    /**
      * TODO: get the instance by name
      * create the host map port for the instance according to the latest valid port (port range: 30000 - 40000)
      * @returns the valid port number
@@ -100,20 +99,24 @@ export class InstanceCore {
         // get the base port range from config, default to [30000, 40000]
         const lxdPortRange: number[] = this.config.lxdPortRange || [30000, 40000];
 
+        // Ensure we have a valid port range - if the minimum port is 0, use 30000 as minimum
+        const minPort = lxdPortRange[0] === 0 ? 30000 : lxdPortRange[0];
+        const maxPort = lxdPortRange[1] === 0 ? 40000 : lxdPortRange[1];
+
         const existingPorts = instances
             .map(instance => instance.hostMapPort)
             .filter(port => port !== undefined && port !== null);
 
         // If no valid ports are found, start from the base port
         if (existingPorts.length === 0) {
-            return lxdPortRange[0]; // Default to 30000 if no instances exist
+            return minPort; // Use the corrected minimum port
         }
-
 
         // Find the highest port and increment
         const latestPort = Math.max(...existingPorts);
         // Wrap around if we reach the maximum port
-        return latestPort < lxdPortRange[1] ? latestPort + 1 : lxdPortRange[0];
+        const nextPort = latestPort < maxPort ? latestPort + 1 : minPort;
+        return nextPort; // Return the next port, wrapping around if necessary;
     }
 
     private formatProxyAddress(address: string): string {
@@ -151,8 +154,8 @@ export class InstanceCore {
             throw new Error('Error generating instance token.');
         }
 
-        const webdavServer = this.config.webdavServer;
-        const webdavMountPath = `/home/ubuntu/${username}_Drive`; // Ensure the correct path is used
+        // const webdavServer = this.config.webdavServer;
+        // const webdavMountPath = `/home/ubuntu/${username}_Drive`; // Ensure the correct path is used
 
         const instanceProfile = appType===enumAppType.MATLAB? 'matlab-profile' : 'jupyter-profile';
 
@@ -160,8 +163,8 @@ export class InstanceCore {
 
         // Prepare user-data for cloud-init to initialize the instance
         const cloudInitUserData = appType === enumAppType.MATLAB
-            ? cloudInitUserDataMatlabContainer(instanceSystemToken, username, instance_id, webdavServer, webdavMountPath)
-            : cloudInitUserDataJupyterContainer(instanceSystemToken, username, instance_id, webdavServer, webdavMountPath, this.config.jupyterPort);
+            ? cloudInitUserDataMatlabContainer(instanceSystemToken, username, instance_id)
+            : cloudInitUserDataJupyterContainer(instanceSystemToken, username, instance_id, this.config.jupyterPort);
         // add boot-time script, to be executed on first boot
         const instaceConfig = {
             'limits.cpu': cpuLimit ? cpuLimit.toString() : '4',
@@ -240,7 +243,15 @@ export class InstanceCore {
                         connect: `tcp:127.0.0.1:${this.config.jupyterPort || 8888}`,
                         listen: `tcp:0.0.0.0:${instanceMapPort}`,
                         type: 'proxy'
+                    },
+                    // Add proxy device for dmp server
+                    dmp0: {
+                        bind: 'instance',
+                        listen: 'tcp:127.0.0.1:3080',
+                        connect: `tcp:${this.config.dmp['host']}:${this.config.dmp['port']}`,
+                        type: 'proxy'
                     }
+
                 } as Record<string, unknown>,
                 source: {
                     type: 'image',
@@ -344,7 +355,6 @@ export class InstanceCore {
 
         return instance;
     }
-
 
     /**
      * Delete an instance.

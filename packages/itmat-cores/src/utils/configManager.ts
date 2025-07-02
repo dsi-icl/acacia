@@ -28,6 +28,7 @@ export interface IConfiguration extends IServerConfig {
     lxdCertFile: Record<string, string>;
     lxdRejectUnauthorized: boolean;
     jupyterPort: number;
+    dmp:  Record<string, unknown>;
 }
 
 export class ConfigurationManager {
