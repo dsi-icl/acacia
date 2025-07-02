@@ -74,16 +74,72 @@
     width: 120%; /* adjust width as needed */
     max-width: 400px; /* set a maximum width */
     margin: 10% auto;
-    padding-bottom: 10px;
+    padding-bottom: 80px; /* Add space for floating buttons */
+    max-height: calc(100vh - 120px); /* Ensure dialog doesn't exceed viewport */
+    overflow-y: auto; /* Allow scrolling if content is too tall */
+}
+
+/* Responsive adjustments for the dialog */
+@media (max-width: 768px) {
+    .registration_dialog {
+        width: 90%;
+        margin: 5% auto;
+        padding-bottom: 100px; /* More space on mobile for floating buttons */
+        max-height: calc(100vh - 140px);
+    }
+}
+
+@media (max-width: 480px) {
+    .registration_dialog {
+        width: 95%;
+        padding: 15px;
+        padding-bottom: 120px; /* Even more space on small screens */
+        max-height: calc(100vh - 160px);
+    }
 }
 
 .primaryButton {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    justify-content: center;
-    gap: 80px;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    padding: 0;
+    justify-content: space-between;
+    gap: 100px;
+    z-index: 1001;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 15px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(5px);
+    min-width: 320px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .primaryButton {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        gap: 60px;
+        padding: 12px 20px;
+        min-width: auto;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .primaryButton {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        justify-content: center;
+    }
+
+    .primaryButton button {
+        width: 100%;
+    }
 }
 
 .userIconWrapper {

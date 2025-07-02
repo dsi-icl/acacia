@@ -284,10 +284,17 @@ export class LXDMonitorHandler extends APIHandler {
                     if (instance.status === enumInstanceStatus.DELETED && instanceExistsOnLXD) {
                         try {
                             await this.lxdManager.deleteInstance(instance.name, project);
+                            // Reduce verbosity for routine cleanup operations with longer throttling intervals
                             LogThrottler.throttledLog(
                                 `sync-deletion-success-${instance.name}`,
                                 `Successfully deleted instance ${instance.name} from LXD server that was already marked as deleted in DB`,
-                                'info'
+                                'info',
+                                {
+                                    initialLogInterval: 300000,     // 5 minutes
+                                    subsequentLogInterval: 1800000, // 30 minutes
+                                    maxOccurrences: 5,              // Reduce logging frequency after 5 occurrences
+                                    summarizeInterval: 7200000      // Summarize every 2 hours
+                                }
                             );
                             syncCount++;
                         } catch (deleteError) {
@@ -311,7 +318,13 @@ export class LXDMonitorHandler extends APIHandler {
                         LogThrottler.throttledLog(
                             `sync-status-updated-${instance.name}`,
                             `Updated instance ${instance.name} status to DELETED in DB as it no longer exists on LXD server`,
-                            'info'
+                            'info',
+                            {
+                                initialLogInterval: 300000,     // 5 minutes
+                                subsequentLogInterval: 1800000, // 30 minutes
+                                maxOccurrences: 5,              // Reduce logging frequency after 5 occurrences
+                                summarizeInterval: 7200000      // Summarize every 2 hours
+                            }
                         );
                         syncCount++;
                     }

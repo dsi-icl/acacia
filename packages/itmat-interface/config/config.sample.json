@@ -56,8 +56,8 @@
     "aeEndpoint": "http://localhost:9090",
     "lxdEndpoint": "https://localhost:8443",
     "lxdPortRange": [
-        0,
-        100
+        30000,
+        40000
     ],
     "lxdSquidProxy": "traget_ip:3128",
     "systemKey":{
@@ -69,5 +69,9 @@
         "key": "/path/mylxd.key"
     },
     "lxdRejectUnauthorized": false,
-    "jupyterPort": 8888
+    "jupyterPort": 8888,
+    "dmp": {
+        "host": "localhost",
+        "port": 3080
+    }
 }

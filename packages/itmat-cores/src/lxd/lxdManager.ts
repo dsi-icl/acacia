@@ -561,18 +561,18 @@ export class LxdManager {
     // restart , set the stateful to true
 
     async deleteInstance(instanceName: string, project: string) {
-        try {
-            // Ensure correct encoding and add logging for debugging
+        try {            // Ensure correct encoding and reduce verbosity for routine operations
             instanceName = encodeURIComponent(instanceName);
-            Logger.log(`Attempting to delete instance ${instanceName} in project ${project}`);
+            // Commented out to reduce log verbosity for routine operations
+            // Logger.warn(`Attempting to delete instance ${instanceName} in project ${project}`);
 
             // First check if instance exists to provide clearer error messages
             try {
                 await this.getInstanceState(instanceName, project);
             } catch (error) {
                 const errorMsg = error instanceof Error ? error.message : String(error);
-                if (errorMsg.includes('404') || errorMsg.includes('Instance not found')) {
-                    Logger.warn(`Instance ${instanceName} not found in project ${project} - may have been already deleted`);
+                if (errorMsg.includes('404') || errorMsg.includes('Instance not found')) {                    // Commented out to reduce log verbosity for routine operations
+                    // Logger.warn(`Instance ${instanceName} not found in project ${project} - may have been already deleted`);
                     return {
                         data: {
                             message: `Instance ${instanceName} already deleted or not found`
@@ -586,7 +586,7 @@ export class LxdManager {
                 params: { force: true } // Add force parameter
             });
 
-            Logger.log(`Successfully initiated deletion for instance ${instanceName}`);
+            // Logger.log(`Successfully initiated deletion for instance ${instanceName}`);
             return response.data;
         } catch (error) {
             // Enhanced error handling with more detailed information
