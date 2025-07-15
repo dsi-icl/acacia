@@ -15,7 +15,6 @@ export const RegisterNewUser: FunctionComponent = () => {
             setCompletedCreation(true);
         },
         onError: () => {
-            addUserToPublicStudies(createUser.variables?.username);
             return;
         }
     });
