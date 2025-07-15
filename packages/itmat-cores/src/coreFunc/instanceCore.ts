@@ -88,8 +88,7 @@ export class InstanceCore {
             );
         }
         return instance;
-    }
-    /**
+    }    /**
      * TODO: get the instance by name
      * create the host map port for the instance according to the latest valid port (port range: 30000 - 40000)
      * @returns the valid port number
@@ -97,19 +96,27 @@ export class InstanceCore {
     private async getValidHostPort(): Promise<number> {
         const instances = await this.db.collections.instance_collection.find({}).toArray();
         // Filter out null/undefined values and then sort
+        // get the base port range from config, default to [30000, 40000]
+        const lxdPortRange: number[] = this.config.lxdPortRange || [30000, 40000];
+
+        // Ensure we have a valid port range - if the minimum port is 0, use 30000 as minimum
+        const minPort = lxdPortRange[0] === 0 ? 30000 : lxdPortRange[0];
+        const maxPort = lxdPortRange[1] === 0 ? 40000 : lxdPortRange[1];
+
         const existingPorts = instances
             .map(instance => instance.hostMapPort)
             .filter(port => port !== undefined && port !== null);
 
         // If no valid ports are found, start from the base port
         if (existingPorts.length === 0) {
-            return 30000;
+            return minPort; // Use the corrected minimum port
         }
 
         // Find the highest port and increment
         const latestPort = Math.max(...existingPorts);
         // Wrap around if we reach the maximum port
-        return latestPort >= 40000 ? 30000 : latestPort + 1;
+        const nextPort = latestPort < maxPort ? latestPort + 1 : minPort;
+        return nextPort; // Return the next port, wrapping around if necessary;
     }
 
     private formatProxyAddress(address: string): string {
@@ -147,8 +154,8 @@ export class InstanceCore {
             throw new Error('Error generating instance token.');
         }
 
-        const webdavServer = this.config.webdavServer;
-        const webdavMountPath = `/home/ubuntu/${username}_Drive`; // Ensure the correct path is used
+        // const webdavServer = this.config.webdavServer;
+        // const webdavMountPath = `/home/ubuntu/${username}_Drive`; // Ensure the correct path is used
 
         const instanceProfile = appType===enumAppType.MATLAB? 'matlab-profile' : 'jupyter-profile';
 
@@ -156,8 +163,8 @@ export class InstanceCore {
 
         // Prepare user-data for cloud-init to initialize the instance
         const cloudInitUserData = appType === enumAppType.MATLAB
-            ? cloudInitUserDataMatlabContainer(instanceSystemToken, username, instance_id, webdavServer, webdavMountPath)
-            : cloudInitUserDataJupyterContainer(instanceSystemToken, username, instance_id, webdavServer, webdavMountPath, this.config.jupyterPort);
+            ? cloudInitUserDataMatlabContainer(instanceSystemToken, username, instance_id)
+            : cloudInitUserDataJupyterContainer(instanceSystemToken, username, instance_id, this.config.jupyterPort);
         // add boot-time script, to be executed on first boot
         const instaceConfig = {
             'limits.cpu': cpuLimit ? cpuLimit.toString() : '4',
@@ -212,17 +219,12 @@ export class InstanceCore {
         const lxd_metadata = {
             operation: enumOpeType.CREATE,
             instanceId: instanceEntry.id,
+            userId: userId,
             payload: {
                 name: name,
                 architecture: 'x86_64',
                 config: instaceConfig,
                 devices: {
-                    // eth0: {
-                    //     name: 'eth0',
-                    //     nictype: 'bridged',
-                    //     parent: 'lxdbr0', // Ensure the correct bridge is used
-                    //     type: 'nic'
-                    // },
                     root: {
                         path: '/',
                         pool: this.config.lxdStoragePool,
@@ -241,8 +243,16 @@ export class InstanceCore {
                         connect: `tcp:127.0.0.1:${this.config.jupyterPort || 8888}`,
                         listen: `tcp:0.0.0.0:${instanceMapPort}`,
                         type: 'proxy'
+                    },
+                    // Add proxy device for dmp server
+                    dmp0: {
+                        bind: 'instance',
+                        listen: 'tcp:127.0.0.1:3080',
+                        connect: `tcp:${this.config.dmp['host']}:${this.config.dmp['port']}`,
+                        type: 'proxy'
                     }
-                },
+
+                } as Record<string, unknown>,
                 source: {
                     type: 'image',
                     alias: appType ===enumAppType.MATLAB? 'ubuntu-matlab-container-image' : 'ubuntu-jupyter-container-image'
@@ -263,7 +273,7 @@ export class InstanceCore {
             { path: executorPath, type: 'lxd', id: instance_id },
             null,
             null,
-            5,
+            8, // High priority for create operations
             lxd_metadata);
 
         return instanceEntry;
@@ -293,7 +303,8 @@ export class InstanceCore {
 
         const lxd_metadata = {
             operation: action,
-            instanceId: instance.id
+            instanceId: instance.id,
+            userId: userId // Include userId in metadata
         };
 
         // Call the createJob method of JobCore to create a new job for starting/stopping the instance
@@ -334,16 +345,16 @@ export class InstanceCore {
 
         const lxd_metadata = {
             operation: enumOpeType.START,
-            instanceId: instance.id
+            instanceId: instance.id,
+            userId: userId // Include userId in metadata
         };
 
         // Call the createJob method of JobCore to create a new job for restarting the instance
-        await this.JobCore.createJob(userId, jobName, jobType, undefined, undefined, { id: instanceId, type: 'lxd', path: executorPath }, null, null, 2, lxd_metadata);
+        await this.JobCore.createJob(userId, jobName, jobType, undefined, undefined, { id: instanceId, type: 'lxd', path: executorPath }, null, null, 5, lxd_metadata);
 
 
         return instance;
     }
-
 
     /**
      * Delete an instance.
@@ -377,18 +388,32 @@ export class InstanceCore {
 
         const lxd_metadata = {
             operation: enumOpeType.DELETE,
-            instanceId: instance.id
+            instanceId: instance.id,
+            userId: UserId // Include userId in metadata
         };
 
-        // Call the createJob method of JobCore to create a new job for deleting the instance
-        await this.JobCore.createJob(instance.userId, jobName, jobType, undefined, undefined, { id: instanceId, type: 'lxd', path: executorPath }, null, null, 2, lxd_metadata);
+        // Create the delete job and get its id
+        const deleteJobResult = await this.JobCore.createJob(
+            instance.userId,
+            jobName,
+            jobType,
+            undefined,
+            undefined,
+            { id: instanceId, type: 'lxd', path: executorPath },
+            null,
+            null,
+            10,
+            lxd_metadata
+        );
 
-        // remove all the job related to the instance
-        // Find and cancel all pending jobs related to this instance
+        // Get the ID of the newly created delete job
+        const deleteJobId = deleteJobResult?.id;
+
+        // Cancel all other pending jobs related to this instance, except the delete job
         await this.db.collections.jobs_collection.updateMany(
             {
-            // Match jobs that are pending and have metadata containing this instanceId
                 status: enumJobStatus.PENDING,
+                id: { $ne: deleteJobId }, // Exclude the delete job we just created
                 $or: [
                     { 'metadata.instanceId': instanceId },
                     { 'executor.id': instanceId }
@@ -435,6 +460,35 @@ export class InstanceCore {
             };
             const instanceIds = instances.map(instance => instance.id).join('|');
             await this.JobCore.createJob(userId, jobName, jobType, undefined, period, { id: instanceIds, type: 'lxd', path: executorPath }, null, null, 1, metadata);
+        }
+
+        // Create a job for synchronizing instance deletion status between DB and LXD server
+        const syncDeletionJobName = `Synchronize Deleted Instances for User: ${userId}`;
+        const existingSyncDeletionJobs = await this.JobCore.getJob({
+            name: syncDeletionJobName,
+            type: jobType,
+            status: enumJobStatus.PENDING
+        });
+
+        if (existingSyncDeletionJobs.length === 0) {
+            const syncDeletionMetadata = {
+                operation: enumMonitorType.SYNC_DELETION,
+                userId: userId
+            };
+            // Create the sync deletion job with a slightly longer period to avoid resource contention
+            const syncDeletionPeriod = 5 * 60 * 1000; // 5 minutes
+            await this.JobCore.createJob(
+                userId,
+                syncDeletionJobName,
+                jobType,
+                undefined,
+                syncDeletionPeriod,
+                { id: 'sync-deletion', type: 'lxd', path: executorPath },
+                null,
+                null,
+                1,
+                syncDeletionMetadata
+            );
         }
 
         const now = Date.now();
@@ -722,6 +776,67 @@ export class InstanceCore {
         }
     }
 
+    /**
+     * Extend the lifespan of an instance
+     *
+     * @param userId - The ID of the user extending the instance
+     * @param instanceId - The ID of the instance to extend
+     * @param additionalTime - The additional time to add in milliseconds
+     * @returns The updated instance
+     */
+    public async extendInstanceLifespan(userId: string, instanceId: string, additionalTime: number): Promise<IInstance> {
+        // Retrieve instance details from the database
+        const instance = await this.db.collections.instance_collection.findOne({ id: instanceId });
+        if (!instance) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Instance not found.'
+            );
+        }
+
+        // Get the current time to check for cooldown period
+        const now = Date.now();
+
+        // Check if user has permission to extend this instance
+        if (instance.userId !== userId) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'User does not have permission to extend this instance.'
+            );
+        }
+
+        // Calculate remaining lifespan
+        const lifeDuration = now - instance.createAt;
+        const remainingLifespan = instance.lifeSpan - lifeDuration;
+
+        // Check if lifespan is already sufficiently long (more than 7 days)
+        if (remainingLifespan > 7 * 24 * 60 * 60 * 1000) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'Instance already has sufficient lifespan (more than 7 days). No need to extend now.'
+            );
+        }
+
+        const newLifespan = instance.lifeSpan + additionalTime;
+
+        // Update the instance's lifespan
+        const result = await this.db.collections.instance_collection.findOneAndUpdate(
+            { id: instanceId },
+            { $set: { lifeSpan: newLifespan } },
+            { returnDocument: 'after' }
+        );
+
+        if (!result) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Failed to update the instance lifespan.'
+            );
+        }
+
+        Logger.log(`Extended lifespan of instance ${instanceId} by ${additionalTime / (3600 * 1000)} hours`);
+
+        return result;
+    }
 
     public async getQuotaAndFlavors(requester: IUser) {
 

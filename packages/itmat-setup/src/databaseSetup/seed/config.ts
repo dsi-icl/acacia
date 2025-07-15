@@ -25,7 +25,7 @@ export const seedConfigs = [{
         defaultMaximumQPS: 500,
 
         // LXD instances
-        defaultLXDflavor: [enumInstanceType.SMALL],
+        defaultLXDflavor: [enumInstanceType.SMALL, enumInstanceType.MEDIUM],
         defaultLXDMaximumInstances: 3, // number
         defaultLXDMaximumInstanceCPUCores: 3 * 8,  // number
         defaultLXDMaximumInstanceDiskSize: 3 * 40 * 1024 * 1024 * 1024,
@@ -54,7 +54,7 @@ export const seedConfigs = [{
         defaultMaximumQPS: 500,
 
         // LXD instances
-        defaultLXDflavor: [enumInstanceType.SMALL],
+        defaultLXDflavor: [enumInstanceType.SMALL, enumInstanceType.MEDIUM],
         defaultLXDMaximumInstances: 3, // number
         defaultLXDMaximumInstanceCPUCores: 3 * 8,  // number
         defaultLXDMaximumInstanceDiskSize: 3 * 40 * 1024 * 1024 * 1024,

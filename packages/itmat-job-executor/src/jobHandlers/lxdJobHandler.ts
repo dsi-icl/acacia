@@ -100,6 +100,30 @@ export class LXDJobHandler extends APIHandler {
                 } catch (error) {
                     if (error instanceof CoreError && error.errorCode === enumCoreErrors.POLLING_ERROR) {
                         Logger.error(`LXD polling error for instance ${instanceId}: ${error.message}`);
+
+                        // Handle the case where instance already exists
+                        const errorMessage = error.message || '';
+                        if (errorMessage.includes('Instance') && errorMessage.includes('already exists')) {
+                            Logger.warn(`Instance ${instanceId} already exists, treating as successful creation`);
+                            await this.updateInstanceMetadata(instanceId, {}, enumInstanceStatus.STOPPED);
+                            return {
+                                successful: true,
+                                result: { message: 'Instance already exists' }
+                            };
+                        }
+
+                        // Check for read-only filesystem error or other fatal storage errors
+                        if (errorMessage.includes('read-only file system') ||
+                            errorMessage.includes('Failed creating instance') ||
+                            errorMessage.includes('Failed to create mount directory')) {
+                            Logger.error(`Fatal storage error for instance ${instanceId}: ${errorMessage}`);
+                            await this.updateInstanceMetadata(instanceId, { error: errorMessage }, enumInstanceStatus.FAILED);
+                            return {
+                                successful: false,
+                                error: `Fatal storage error: ${errorMessage}`
+                            };
+                        }
+
                         // Don't update status, keep it as is for polling errors
                         return {
                             successful: false,
@@ -108,6 +132,34 @@ export class LXDJobHandler extends APIHandler {
                     }
                     // For non-polling errors, rethrow to be caught by outer catch
                     Logger.error(`Error polling operation for instance ${instanceId}: ${error}`);
+
+                    // if  the instance is failed out of space or other errors, set the instance status to failed
+
+                    // Handle specific error cases for instance creation failures
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    Logger.error(`Instance creation failed for ${instanceId}: ${errorMessage}`);
+
+                    // Check for specific error types
+                    const errorDetails = {
+                        message: errorMessage,
+                        timestamp: new Date(),
+                        type: 'creation_failure'
+                    };
+
+                    if (errorMessage.includes('out of space') || errorMessage.includes('no space left')) {
+                        errorDetails.type = 'storage_space_error';
+                    } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+                        errorDetails.type = 'network_error';
+                    } else if (errorMessage.includes('timeout')) {
+                        errorDetails.type = 'timeout_error';
+                    }
+
+                    // Update instance with error details and failed status
+                    await this.updateInstanceMetadata(
+                        instanceId,
+                        { ...data, error: errorDetails },
+                        enumInstanceStatus.FAILED
+                    );
                     throw error;
                 }
             }
@@ -150,7 +202,32 @@ export class LXDJobHandler extends APIHandler {
             const data = await this.lxdManager.startStopInstance(instanceData.name, action, project);
 
             if (data?.operation) {
-                await pollOperation(this.lxdManager, data.operation, project);
+                try {
+                    await pollOperation(this.lxdManager, data.operation, project);
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+
+                    // Handle "already running" case for START operation
+                    if (action === enumOpeType.START && errorMessage.includes('already running')) {
+                        Logger.warn(`Instance ${instanceData.name} is already running, treating as successful start`);
+                        return {
+                            successful: true,
+                            result: { message: 'Instance already running' }
+                        };
+                    }
+
+                    // Handle "already stopped" case for STOP operation
+                    if (action === enumOpeType.STOP && errorMessage.includes('already stopped')) {
+                        Logger.warn(`Instance ${instanceData.name} is already stopped, treating as successful stop`);
+                        return {
+                            successful: true,
+                            result: { message: 'Instance already stopped' }
+                        };
+                    }
+
+                    // Re-throw error for other cases
+                    throw error;
+                }
             }
             // update the status of the instance by the state monitor
             // const newStatus = action === enumOpeType.START ? enumInstanceStatus.RUNNING : enumInstanceStatus.STOPPED;
@@ -158,8 +235,28 @@ export class LXDJobHandler extends APIHandler {
 
             return { successful: true, result: data };
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            // Handle "already running" error outside the poll operation
+            if (action === enumOpeType.START && errorMessage.includes('already running')) {
+                Logger.warn(`Instance ${instanceData.name} is already running, treating as successful start`);
+                return {
+                    successful: true,
+                    result: { message: 'Instance already running' }
+                };
+            }
+
+            // Handle "already stopped" error outside the poll operation
+            if (action === enumOpeType.STOP && errorMessage.includes('already stopped')) {
+                Logger.warn(`Instance ${instanceData.name} is already stopped, treating as successful stop`);
+                return {
+                    successful: true,
+                    result: { message: 'Instance already stopped' }
+                };
+            }
+
             Logger.error(`Error in startStopInstance ${instanceData.name}: ${error}`);
-            return { successful: false, error: error instanceof Error ? error.message : String(error) };
+            return { successful: false, error: errorMessage };
         }
     }
 

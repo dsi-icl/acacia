@@ -1,21 +1,37 @@
 // Prepare user-data for cloud-init to initialize the instance
-export const cloudInitUserDataJupyterContainer = (instanceSystemToken: string, username: string, instance_id: string, webdavServer: string, webdavMountPath: string, jupyterPort: number) =>`
+export const cloudInitUserDataJupyterContainer = (instanceSystemToken: string, username: string, instance_id: string, jupyterPort: number) =>`
 #cloud-config
-packages:
-  - davfs2
 users:
   - name: ubuntu
-    groups: sudo
+    groups: sudo,root
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     shell: /bin/bash
 write_files:
+  - path: /etc/profile.d/instance_token.sh
+    content: |
+      #!/bin/bash
+      export DMP_TOKEN="${instanceSystemToken}"
+      export HTTP_PROXY=http://127.0.0.1:3128  
+      export HTTPS_PROXY=http://127.0.0.1:3128  
+      export NO_PROXY=127.0.0.1,localhost  
+    permissions: '0755'
+  - path: /etc/apt/apt.conf.d/95proxy
+    content: |
+      Acquire::http::Proxy "http://127.0.0.1:3128";
+      Acquire::https::Proxy "http://127.0.0.1:3128";
+      Acquire::http::Proxy "http://[::1]:3128";
+      Acquire::https::Proxy "http://[::1]:3128";
+    permissions: '0644'
   - path: /etc/bash.bashrc
     append: true
     content: |
-      # Set proxy environment variables
       export HTTP_PROXY=http://127.0.0.1:3128
       export HTTPS_PROXY=http://127.0.0.1:3128
       export NO_PROXY=127.0.0.1,localhost
+      export http_proxy=$HTTP_PROXY
+      export https_proxy=$HTTPS_PROXY
+      export no_proxy=$NO_PROXY
+      export DMP_TOKEN="${instanceSystemToken}"
     permissions: '0644'
   - path: /etc/systemd/system.conf.d/proxy.conf
     content: |
@@ -25,75 +41,12 @@ write_files:
   - path: /root/.ipython/profile_default/startup/00-proxy.py
     content: |
       import os
+      import sys
       os.environ['HTTP_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['NO_PROXY'] = '127.0.0.1,localhost'
-    permissions: '0644'
-  - path: /etc/davfs2/davfs2.conf
-    content: |
-      ask_auth        0
-      use_locks       0
-      precheck        1
-      read_timeout    60
-      retry           30
-      max_retry       300
-      dir_refresh     0
-      file_refresh    1
-      delay_upload    30
-      gui_optimize    0
-      use_compression 0
-      min_propset     0
-      drop_weak_etags 1
-      ignore_dav_header 1
-
-      [/home/\${DEFAULT_USER}/${username}_Drive}]
-      follow_redirect 1
-
-      # Add WebDAV authentication
-      add_header Authorization "Bearer ${instanceSystemToken}"
-    append: true
-    permissions: '0644'
-  - path: /etc/systemd/system/webdav-mount.service
-    content: |
-      [Unit]
-      Description=Mount WebDAV on startup
-      After=network.target
-      [Service]
-      Type=oneshot
-
-      ExecStartPre=/bin/bash -c '\
-          if [ -d ${webdavMountPath} ]; then \
-              echo "Clearing existing mount point"; \
-              fusermount -u ${webdavMountPath} 2>/dev/null; \
-              rm -rf ${webdavMountPath}; \
-          fi; \
-          mkdir -p ${webdavMountPath}'
-
-      ExecStartPre=/bin/bash -c '\
-          chown ubuntu:ubuntu ${webdavMountPath}; \
-          chmod 755 ${webdavMountPath}'
-
-      ExecStart=/bin/mount -t davfs ${webdavServer} ${webdavMountPath} \
-          -o rw,uid=ubuntu,gid=ubuntu,_netdev,auto
-      
-      ExecStartPost=/bin/bash -c '\
-          MOUNT_STATUS=$?; \
-          if [ $MOUNT_STATUS -ne 0 ]; then \
-              echo "WebDAV Mount Failed with status $MOUNT_STATUS"; \
-              journalctl -xe | grep -A 20 "WebDAV Mount"; \
-          else \
-              echo "WebDAV Mount Successful"; \
-          fi'
-
-      ExecStop=/bin/bash -c '\
-          fusermount -u ${webdavMountPath} 2>/dev/null; \
-          rmdir ${webdavMountPath} 2>/dev/null'
-
-      RemainAfterExit=yes
-      User=root
-      Group=root
-      [Install]
-      WantedBy=multi-user.target
+      os.environ['DMP_TOKEN'] = '${instanceSystemToken}'
+      sys.path.insert(0, '/root/dmpy')
     permissions: '0644'
   - path: /root/.jupyter/jupyter_notebook_config.py
     content: |
@@ -106,9 +59,11 @@ write_files:
       c.NotebookApp.base_url = "/jupyter/${instance_id}"
       c.NotebookApp.notebook_dir = "/home/ubuntu"
       c.Spawner.environment = {
+        'PYTHONPATH': '/root/dmpy:$PYTHONPATH',
         'HTTP_PROXY': 'http://127.0.0.1:3128',
         'HTTPS_PROXY': 'http://127.0.0.1:3128',
-        'NO_PROXY': '127.0.0.1,localhost'
+        'NO_PROXY': '127.0.0.1,localhost',
+        'DMP_TOKEN': '${instanceSystemToken}'
       }
     permissions: '0644'
   - path: /etc/systemd/system/jupyter.service
@@ -122,16 +77,34 @@ write_files:
       Environment="HTTP_PROXY=http://127.0.0.1:3128"
       Environment="HTTPS_PROXY=http://127.0.0.1:3128"
       Environment="NO_PROXY=127.0.0.1,localhost"
-      ExecStartPre=/bin/bash -c 'pkill -f jupyter || true'
-      ExecStartPre=/bin/sleep 2
-      ExecStart=/usr/bin/python3 /usr/local/bin/jupyter-notebook --config=/root/.jupyter/jupyter_notebook_config.py --allow-root
+      EnvironmentFile=-/etc/environment
+      ExecStart=/usr/bin/python3 /usr/local/bin/jupyter-notebook --config=/root/.jupyter/jupyter_notebook_config.py  --allow-root
       WorkingDirectory=/root
       Restart=always
-      EnvironmentFile=/etc/environment
+      RestartSec=60
+      StartLimitInterval=300
+      StartLimitBurst=5
       [Install]
       WantedBy=multi-user.target
     permissions: '0644'
 runcmd:
+  - |  
+    grep -qxF 'DMP_TOKEN="${instanceSystemToken}"' /etc/environment || \
+    echo 'DMP_TOKEN="${instanceSystemToken}"' >> /etc/environment 
+    grep -qxF 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' /etc/environment || \
+    echo 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' >> /etc/environment 
+    grep -qxF 'HTTP_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTP_PROXY=http://127.0.0.1:3128' >> /etc/environment
+    grep -qxF 'HTTPS_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTPS_PROXY=http://127.0.0.1:3128' >> /etc/environment   
+    grep -qxF 'NO_PROXY=127.0.0.1,localhost' /etc/environment || \
+    echo 'NO_PROXY=127.0.0.1,localhost' >> /etc/environment    
+  - |
+    export HTTP_PROXY=http://127.0.0.1:3128
+    export HTTPS_PROXY=http://127.0.0.1:3128
+    export NO_PROXY=127.0.0.1,localhost
+    apt-get update
+    apt-get install -y nginx
   - |
     DEFAULT_USER="\${USERNAME:-ubuntu}"
     if ! getent group nopasswdlogin > /dev/null; then
@@ -160,46 +133,63 @@ runcmd:
       "display_name": "Python 3",
       "language": "python",
       "env": {
+        "PYTHONPATH": "/root/dmpy:$PYTHONPATH", 
         "HTTP_PROXY": "http://127.0.0.1:3128",
         "HTTPS_PROXY": "http://127.0.0.1:3128",
-        "NO_PROXY": "127.0.0.1,localhost"
+        "NO_PROXY": "127.0.0.1,localhost",
+        "DMP_TOKEN": "${instanceSystemToken}"
       }
     }
     EOF
   - sleep 10
   - systemctl daemon-reload
   - systemctl restart systemd-journald
-  - systemctl enable webdav-mount.service
-  - systemctl start webdav-mount.service
-  - |
-    if [ -d "/home/\${DEFAULT_USER}" ]; then
-      if [ ! -e "/home/\${DEFAULT_USER}/${username}_Drive" ]; then
-        ln -sf ${webdavMountPath} "/home/\${DEFAULT_USER}/${username}_Drive"
-        chown \${DEFAULT_USER}:\${DEFAULT_USER} "/home/\${DEFAULT_USER}/${username}_Drive"
-      fi
-    fi
+  - systemctl enable jupyter.service
+  - systemctl start jupyter.service
 `;
 
-
-// to the cloud-init file  as the container's environment variables
-export  const cloudInitUserDataMatlabContainer =  (instanceSystemToken: string, username: string, instance_id: string, webdavServer: string, webdavMountPath: string) =>`
+// MATLAB Container configuration with WebDAV removed
+export const cloudInitUserDataMatlabContainer = (instanceSystemToken: string, username: string, instance_id: string) =>`
 #cloud-config
-packages:
-  - davfs2
 users:
   - name: ubuntu
-    groups: sudo
+    groups: sudo,root
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     shell: /bin/bash
 write_files:
+  - path: /etc/profile.d/instance_token.sh
+    content: |
+      #!/bin/bash
+      export DMP_TOKEN="${instanceSystemToken}"
+      export HTTP_PROXY=http://127.0.0.1:3128  
+      export HTTPS_PROXY=http://127.0.0.1:3128  
+      export NO_PROXY=127.0.0.1,localhost  
+    permissions: '0755'
+  - path: /etc/apt/apt.conf.d/95proxy
+    content: |
+      Acquire::http::Proxy "http://127.0.0.1:3128";
+      Acquire::https::Proxy "http://127.0.0.1:3128";
+      Acquire::http::Proxy "http://[::1]:3128";
+      Acquire::https::Proxy "http://[::1]:3128";  
+    permissions: '0644'
   - path: /etc/bash.bashrc
     append: true
     content: |
-      # Set proxy environment variables
       export HTTP_PROXY=http://127.0.0.1:3128
       export HTTPS_PROXY=http://127.0.0.1:3128
       export NO_PROXY=127.0.0.1,localhost
+      export http_proxy=$HTTP_PROXY
+      export https_proxy=$HTTPS_PROXY
+      export no_proxy=$NO_PROXY
     permissions: '0644'
+  - path: /usr/local/MATLAB/R2023b/bin/matlab_env.sh  
+    content: |  
+      #!/bin/bash  
+      export DMP_TOKEN="${instanceSystemToken}"  
+      export HTTP_PROXY=http://127.0.0.1:3128  
+      export HTTPS_PROXY=http://127.0.0.1:3128  
+      export NO_PROXY=127.0.0.1,localhost  
+    permissions: '0755'  
   - path: /etc/systemd/system.conf.d/proxy.conf
     content: |
       [Manager]
@@ -211,74 +201,7 @@ write_files:
       os.environ['HTTP_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:3128'
       os.environ['NO_PROXY'] = '127.0.0.1,localhost'
-    permissions: '0644'
-  - path: /etc/davfs2/davfs2.conf
-    content: |
-      ask_auth        0
-      use_locks       0
-      precheck        1
-      read_timeout    60
-      retry           30
-      max_retry       300
-      dir_refresh     0
-      file_refresh    1
-      delay_upload    30
-      gui_optimize    0
-      use_compression 0
-      min_propset     0
-      drop_weak_etags 1
-      ignore_dav_header 1
-
-      [/home/\${DEFAULT_USER}/${username}_Drive}]
-      follow_redirect 1
-
-      # Add WebDAV authentication
-      add_header Authorization "Bearer ${instanceSystemToken}"
-    append: true
-    permissions: '0644'
-  - path: /etc/systemd/system/webdav-mount.service
-    content: |
-      [Unit]
-      Description=Mount WebDAV on startup
-      After=network.target
-      [Service]
-      Type=oneshot
-
-      ExecStartPre=/bin/bash -c '\
-          if [ -d ${webdavMountPath} ]; then \
-              echo "Clearing existing mount point"; \
-              fusermount -u ${webdavMountPath} 2>/dev/null; \
-              rm -rf ${webdavMountPath}; \
-          fi; \
-          mkdir -p ${webdavMountPath}'
-
-      ExecStartPre=/bin/bash -c '\
-          chown ubuntu:ubuntu ${webdavMountPath}; \
-          chmod 755 ${webdavMountPath}'
-
-      ExecStart=/bin/mount -t davfs ${webdavServer} ${webdavMountPath} \
-          -o rw,uid=ubuntu,gid=ubuntu,_netdev,auto
-      
-      ExecStartPost=/bin/bash -c '\
-          MOUNT_STATUS=$?; \
-          if [ $MOUNT_STATUS -ne 0 ]; then \
-              echo "WebDAV Mount Failed with status $MOUNT_STATUS"; \
-              journalctl -xe | grep -A 20 "WebDAV Mount"; \
-          else \
-              echo "WebDAV Mount Successful"; \
-          fi'
-
-      ExecStop=/bin/bash -c '\
-          fusermount -u ${webdavMountPath} 2>/dev/null; \
-          rmdir ${webdavMountPath} 2>/dev/null'
-
-      RemainAfterExit=yes
-      User=root
-      Group=root
-      Restart=always
-      EnvironmentFile=/etc/environment
-      [Install]
-      WantedBy=multi-user.target
+      os.environ['DMP_TOKEN'] = '${instanceSystemToken}'
     permissions: '0644'
   - path: /etc/nginx/sites-available/vnc_proxy
     content: |
@@ -307,7 +230,71 @@ write_files:
             }
         }
     permissions: '0644'
+  - path: /root/dummy-mac.sh
+    content: |
+      #!/bin/bash
+      
+      # Read the machine-id (persistent across reboots)
+      MACHINE_ID=$(cat /etc/machine-id)
+      
+      # Generate a deterministic MAC address from the machine-id
+      # - Use a hash to derive 6 bytes (SHA-256 truncated to 48 bits)
+      # - Ensure it's a locally administered unicast MAC (second bit of first byte = 1)
+      MAC_ADDR=$(echo "\${MACHINE_ID}" | sha256sum | awk '{print $1}' | head -c 12 | sed 's/\\(..\\)\\(..\\)\\(..\\)\\(..\\)\\(..\\)\\(..\\)/\\1:\\2:\\3:\\4:\\5:\\6/')
+      
+      # Force the first byte to be locally administered (e.g., 0x02, 0x06, etc.)
+      FIRST_BYTE=$(echo "\${MAC_ADDR}" | cut -d':' -f1)
+      FIRST_BYTE_HEX=$(( 0x\${FIRST_BYTE} | 0x02 ))  # Set the second bit
+      FIRST_BYTE=$(printf "%02x" "\${FIRST_BYTE_HEX}")
+      
+      # Rebuild the MAC address
+      MAC_ADDR="\${FIRST_BYTE}:$(echo "\${MAC_ADDR}" | cut -d':' -f2-6)"
+      
+      # Create the dummy interface and set the MAC
+      ip link add eth0 type dummy
+      ip link set eth0 address "\${MAC_ADDR}" 
+      ip link set eth0 up
+    permissions: '0755'
+  - path: /etc/systemd/system/dummy-eth0.service
+    content: |
+      [Unit]
+      Description=Create dummy eth0 with persistent MAC
+      After=network.target
+      
+      [Service]
+      Type=oneshot
+      ExecStart=/root/dummy-mac.sh
+      RemainAfterExit=yes
+      
+      [Install]
+      WantedBy=multi-user.target
+    permissions: '0644'
 runcmd:
+  - |  
+    grep -qxF 'DMP_TOKEN="${instanceSystemToken}"' /etc/environment || \
+    echo 'DMP_TOKEN="${instanceSystemToken}"' >> /etc/environment 
+    grep -qxF 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' /etc/environment || \
+    echo 'PYTHONPATH="/root/dmpy:$PYTHONPATH"' >> /etc/environment 
+    grep -qxF 'HTTP_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTP_PROXY=http://127.0.0.1:3128' >> /etc/environment
+    grep -qxF 'HTTPS_PROXY=http://127.0.0.1:3128' /etc/environment || \
+    echo 'HTTPS_PROXY=http://127.0.0.1:3128' >> /etc/environment   
+    grep -qxF 'NO_PROXY=127.0.0.1,localhost' /etc/environment || \
+    echo 'NO_PROXY=127.0.0.1,localhost' >> /etc/environment  
+  - |
+    export HTTP_PROXY=http://127.0.0.1:3128
+    export HTTPS_PROXY=http://127.0.0.1:3128
+    export NO_PROXY=127.0.0.1,localhost
+    apt-get update
+    apt-get install -y nginx
+  - systemctl enable vncserver.service
+  - systemctl start vncserver.service
+  - systemctl enable novnc.service
+  - systemctl start novnc.service
+  - ln -sf /etc/nginx/sites-available/vnc_proxy /etc/nginx/sites-enabled/
+  - systemctl enable nginx
+  - systemctl start nginx
+  - systemctl restart nginx
   - |
     DEFAULT_USER="\${USERNAME:-ubuntu}"
     if ! getent group nopasswdlogin > /dev/null; then
@@ -344,99 +331,8 @@ runcmd:
     EOF
   - sleep 10
   - systemctl daemon-reload
-  - systemctl enable webdav-mount.service
-  - systemctl start webdav-mount.service
-  - |
-    if [ -d "/home/\${DEFAULT_USER}" ]; then
-      if [ ! -e "/home/\${DEFAULT_USER}/${username}_Drive" ]; then
-        ln -sf ${webdavMountPath} "/home/\${DEFAULT_USER}/${username}_Drive"
-        chown \${DEFAULT_USER}:\${DEFAULT_USER} "/home/\${DEFAULT_USER}/${username}_Drive"
-      fi
-    fi
-`;
-
-
-
-export const __unused_cloudInitUserDataVM =  (instanceSystemToken: string, username: string, webdavServer: string, webdavMountPath: string) =>`
-#cloud-config
-packages:
-    - lxd-agent
-    - davfs2
-users:
-    - name: ubuntu
-    groups: sudo
-    sudo: "ALL=(ALL) NOPASSWD:ALL"
-    shell: /bin/bash
-write_files:
-    - path: /etc/environment
-      content: |
-          PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
-          HTTP_PROXY=http://127.0.0.1:3128
-          HTTPS_PROXY=http://127.0.0.1:3128
-          NO_PROXY=127.0.0.1,localhost
-        permissions: '0644'
-    - path: /etc/davfs2/secrets
-        content: |
-          ${webdavServer} ubuntu ${instanceSystemToken}
-        permissions: '0600'
-    - path: /etc/systemd/system/webdav-mount.service
-        content: |
-          [Unit]
-          Description=Mount WebDAV on startup
-          After=network.target
-          [Service]
-          Type=oneshot
-          ExecStart=/bin/mount -t davfs ${webdavServer} ${webdavMountPath} -o rw,uid=ubuntu,gid=ubuntu
-          ExecStartPre=/bin/mkdir -p ${webdavMountPath}
-          RemainAfterExit=true
-          [Install]
-           WantedBy=multi-user.target
-        permissions: '0644'
-runcmd:
-    # Removing MATLAB licenses
-    - rm -rf /usr/local/MATLAB/R2022b/licenses/
-    - rm /home/ubuntu/.matlab/R2022b_licenses/license_matlab-ubuntu-vm_600177_R2022b.lic
-    - rm /usr/local/MATLAB/R2022b/licenses/license.dat
-    - rm /usr/local/MATLAB/R2022b/licenses/license*.lic
-    # Apply netplan configuration
-    - netplan apply
-    # New commands for user setup
-    - |
-        DEFAULT_USER="\${USERNAME:-ubuntu}"
-        if ! getent group nopasswdlogin > /dev/null; then
-        addgroup nopasswdlogin
-        fi
-        if ! id -u \${DEFAULT_USER} > /dev/null 2>&1; then
-        adduser \${DEFAULT_USER} nopasswdlogin || true
-        fi
-        passwd -d \${DEFAULT_USER} || true
-        echo "@reboot \${DEFAULT_USER} DISPLAY=:0 /home/\${DEFAULT_USER}/disable_autolock.sh" | crontab -u \${DEFAULT_USER} -
-        cat << 'EOF' > "/home/\${DEFAULT_USER}/disable_autolock.sh"
-        #!/bin/bash
-        if [ -z "\${DISPLAY}" ]; then
-        echo "No DISPLAY available. Skipping GUI settings."
-        else
-        dbus-launch gsettings set org.gnome.desktop.screensaver lock-enabled false
-        dbus-launch gsettings set org.gnome.desktop.session idle-delay 0
-        fi
-        EOF
-        chmod +x "/home/\${DEFAULT_USER}/disable_autolock.sh"
-        chown \${DEFAULT_USER}: "/home/\${DEFAULT_USER}/disable_autolock.sh"
-    - sleep 10
-    - systemctl daemon-reload
-    - systemctl enable webdav-mount.service
-    - systemctl start webdav-mount.service
-    - | 
-        if [ -d "/home/\${DEFAULT_USER}/Desktop" ]; then
-        ln -sf ${webdavMountPath} "/home/\${DEFAULT_USER}/Desktop/${username}_Drive"
-        chown \${DEFAULT_USER}:\${DEFAULT_USER} "/home/\${DEFAULT_USER}/Desktop/${username}_Drive"
-        fi
-        if [ -d "/home/\${DEFAULT_USER}" ]; then
-            if [ ! -e "/home/\${DEFAULT_USER}/${username}_Drive" ]; then
-                ln -sf ${webdavMountPath} "/home/\${DEFAULT_USER}/${username}_Drive"
-                chown \${DEFAULT_USER}:\${DEFAULT_USER} "/home/\${DEFAULT_USER}/${username}_Drive"
-            fi
-        fi
-    - . /etc/profile.d/dmpy.sh
-    - . /etc/profile.d/instance_token.sh
+  - netplan apply
+  - systemctl enable dummy-eth0.service
+  - systemctl start dummy-eth0.service
+  - rm -rf /usr/local/MATLAB/R2022b/licenses/*
 `;

@@ -1,4 +1,4 @@
-import { Logger } from '@itmat-broker/itmat-commons';
+import { Logger, LogThrottler } from '@itmat-broker/itmat-commons';
 import { LxdManager } from '@itmat-broker/itmat-cores'; // Adjust the import path as necessary
 import {CoreError, enumCoreErrors } from '@itmat-broker/itmat-types';
 
@@ -23,12 +23,20 @@ export const pollOperation = async (
             return;
         }
         const operationId = operationIdMatch[1];
+        const throttleKey = `lxd-poll-${operationId.substring(0, 8)}`;
 
         const interval = setInterval(() => {
             tryCount++;
             if (tryCount > maxTry) {
                 clearInterval(interval);
-                reject(new Error(`Operation polling timed out: ${operationUrl} -> ${operationId}`));
+                const errorMessage = `Operation polling timed out: ${operationUrl} -> ${operationId}`;
+                LogThrottler.throttledLog(
+                    `lxd-poll-timeout-${operationId.substring(0, 8)}`,
+                    errorMessage,
+                    'error',
+                    { initialLogInterval: 60000, subsequentLogInterval: 300000 }
+                );
+                reject(new Error(errorMessage));
                 return;
             }
             void (async () => {
@@ -44,18 +52,66 @@ export const pollOperation = async (
                             return;
                         } else {
                             clearInterval(interval);
-                            reject(new CoreError(enumCoreErrors.POLLING_ERROR, `Operation failed for ${opData.metadata.err}`));
+                            const errorMessage = `Operation failed for ${opData.metadata.err}`;
+                            // Don't throttle specific failure messages as they're important
+                            Logger.error(errorMessage);
+                            reject(new CoreError(enumCoreErrors.POLLING_ERROR, errorMessage));
                         }
                     } else if (operationStatus === 'Running') {
                         return;
                     } else {
                         clearInterval(interval);
-                        reject(new CoreError(enumCoreErrors.POLLING_ERROR, `Unknown operation status: ${operationStatus}`));
+                        const errorMessage = `Unknown operation status: ${operationStatus}`;
+                        LogThrottler.throttledLog(
+                            `lxd-unknown-status-${operationStatus}`,
+                            errorMessage,
+                            'error'
+                        );
+                        reject(new CoreError(enumCoreErrors.POLLING_ERROR, errorMessage));
                     }
                 } catch (error) {
-                    Logger.error(`Error polling operation: ${error}`);
-                    clearInterval(interval);
-                    reject(new CoreError(enumCoreErrors.POLLING_ERROR, `Fatal error polling operation: ${error instanceof Error ? error.message : String(error)}`));
+                    // Extract meaningful info from error
+                    const errorMessage = LogThrottler.getErrorMessage(error);
+
+                    // Categorize and throttle different types of errors
+                    if (errorMessage.includes('timeout') || errorMessage.includes('ECONNABORTED')) {
+                        // Timeout errors - these happen frequently in batches
+                        LogThrottler.throttledLog(
+                            `lxd-timeout-${operationId.substring(0, 8)}`,
+                            `Error fetching operation status: ${errorMessage}`,
+                            'error',
+                            {
+                                initialLogInterval: 30000,      // Only log every 30 seconds initially
+                                subsequentLogInterval: 300000,  // Then only every 5 minutes
+                                summarizeInterval: 900000       // Summary every 15 minutes
+                            }
+                        );
+                    } else if (errorMessage.includes('Cannot read properties of null')) {
+                        // Null reference errors - also frequent during certain operations
+                        LogThrottler.throttledLog(
+                            `lxd-null-ref-${operationId.substring(0, 8)}`,
+                            `Error polling operation: ${errorMessage}`,
+                            'error',
+                            { initialLogInterval: 60000, subsequentLogInterval: 300000 }
+                        );
+                    } else {
+                        // Other errors - log more frequently as they might be novel
+                        LogThrottler.throttledLog(
+                            `lxd-error-${throttleKey}`,
+                            `Error polling operation: ${errorMessage}`,
+                            'error',
+                            { initialLogInterval: 10000, subsequentLogInterval: 60000 }
+                        );
+                    }
+
+                    // Only reject and stop polling on sustained issues that persist for several attempts
+                    if (tryCount % 10 === 0) { // Every 10th try (with 4s interval = ~40s)
+                        clearInterval(interval);
+                        reject(new CoreError(
+                            enumCoreErrors.POLLING_ERROR,
+                            `Fatal error polling operation: ${errorMessage}`
+                        ));
+                    }
                 }
             })();
         }, 4000);

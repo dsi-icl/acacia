@@ -31,55 +31,101 @@ export class LxdManager {
 
     private async initializeLXDClient(): Promise<void> {
         try {
-            let lxdSslCert: string;
-            let lxdSslKey: string;
+            let lxdSslCert = '';
+            let lxdSslKey = '';
 
-            // Load the SSL certificate and key
-            if (this.config.lxdCertFile['cert'].includes('-----BEGIN')) {
-                lxdSslCert = this.config.lxdCertFile['cert'];
-            } else {
-                lxdSslCert = fs.readFileSync(this.config.lxdCertFile['cert'], 'utf8');
+            // Load the SSL certificate and key with error handling
+            try {
+                if (!this.config.lxdCertFile['cert']) {
+                    Logger.warn('LXD SSL certificate path/content is empty');
+                } else if (this.config.lxdCertFile['cert'].includes('-----BEGIN')) {
+                    lxdSslCert = this.config.lxdCertFile['cert'];
+                    Logger.log('Using provided LXD SSL certificate content');
+                } else {
+                    try {
+                        lxdSslCert = fs.readFileSync(this.config.lxdCertFile['cert'], 'utf8');
+                        Logger.log('Loaded LXD SSL certificate from file');
+                    } catch (fileError) {
+                        Logger.error(`Failed to read LXD SSL certificate file: ${fileError}`);
+                        // Continue with empty cert - this will fail later but not crash the app
+                    }
+                }
+
+                if (!this.config.lxdCertFile['key']) {
+                    Logger.warn('LXD SSL key path/content is empty');
+                } else if (this.config.lxdCertFile['key'].includes('-----BEGIN')) {
+                    lxdSslKey = this.config.lxdCertFile['key'];
+                    Logger.log('Using provided LXD SSL key content');
+                } else {
+                    try {
+                        lxdSslKey = fs.readFileSync(this.config.lxdCertFile['key'], 'utf8');
+                        Logger.log('Loaded LXD SSL key from file');
+                    } catch (fileError) {
+                        Logger.error(`Failed to read LXD SSL key file: ${fileError}`);
+                        // Continue with empty key - this will fail later but not crash the app
+                    }
+                }
+            } catch (certError) {
+                Logger.error(`Error processing LXD certificates: ${certError}`);
+                // Continue with empty cert/key
             }
 
-            if (this.config.lxdCertFile['key'].includes('-----BEGIN')) {
-                lxdSslKey = this.config.lxdCertFile['key'];
-            } else {
-                lxdSslKey = fs.readFileSync(this.config.lxdCertFile['key'], 'utf8');
+            // Don't proceed with HTTPS agent creation if certificates are empty
+            if (!lxdSslCert || !lxdSslKey) {
+                Logger.error('Cannot create HTTPS agent: LXD SSL certificate or key is missing');
+                return; // Exit early but don't throw - allows app to start in degraded mode
             }
 
             // Create HTTPS agent with proper error handling
-            this.lxdAgent = new https.Agent({
-                cert: lxdSslCert,
-                key: lxdSslKey,
-                rejectUnauthorized: this.config.lxdRejectUnauthorized,
-                timeout: 60000, // Increased timeout for HTTPS agent
-                keepAlive: true
-            });
+            try {
+                this.lxdAgent = new https.Agent({
+                    cert: lxdSslCert,
+                    key: lxdSslKey,
+                    rejectUnauthorized: this.config.lxdRejectUnauthorized,
+                    timeout: 60000, // Increased timeout for HTTPS agent
+                    keepAlive: true
+                });
 
-            // Initialize axios instance with retry logic
-            this.lxdInstance = axios.create({
-                baseURL: this.config.lxdEndpoint,
-                httpsAgent: this.lxdAgent,
-                timeout: 60000,
-                validateStatus: (status) => status < 500,
-                maxRedirects: 10
-            });
+                // Initialize axios instance with retry logic
+                this.lxdInstance = axios.create({
+                    baseURL: this.config.lxdEndpoint,
+                    httpsAgent: this.lxdAgent,
+                    timeout: 60000,
+                    validateStatus: (status) => status < 500,
+                    maxRedirects: 10
+                });
 
-            axiosRetry(this.lxdInstance, {
-                retries: 3,
-                retryDelay: (retryCount) => retryCount * 1000, // Exponential backoff
-                retryCondition: (error) =>
-                    error.code === 'ECONNABORTED' || (error.response?.status ?? 0) >= 500
-            });
+                axiosRetry(this.lxdInstance, {
+                    retries: 3,
+                    retryDelay: (retryCount) => retryCount * 1000, // Exponential backoff
+                    retryCondition: (error) =>
+                        error.code === 'ECONNABORTED' || (error.response?.status ?? 0) >= 500
+                });
 
-
-            // Test connection
-            await this.lxdInstance.get('/1.0');
-            Logger.log('LXD connection established successfully');
+                Logger.log('LXD client initialized successfully');
+            } catch (agentError) {
+                Logger.error(`Failed to create HTTPS agent: ${agentError}`);
+                // Don't throw - allow app to start without LXD capabilities
+            }
 
         } catch (error) {
             Logger.error(`Failed to initialize LXD client: ${error}`);
-            throw new Error('LXD initialization failed');
+            // Don't throw - allow app to start without LXD capabilities
+        }
+    }
+
+    // Add a separate method to test the connection
+    async testConnection(): Promise<boolean> {
+        try {
+            if (!this.isInitialized()) {
+                await this.initialize();
+            }
+            const __unusedResponse = await this.lxdInstance.get('/1.0');
+            Logger.log('LXD connection test successful');
+            return true;
+        } catch (error) {
+            Logger.warn(`LXD connection test failed: ${error}`);
+            return false;
         }
     }
 
@@ -256,7 +302,7 @@ export class LxdManager {
         await this.ensureInitialized();
 
         try {
-        // First check if we're in a cluster
+        // First check if it's in a cluster
             const serverInfo = await this.lxdInstance.get('/1.0');
             const isClustered = serverInfo.data.metadata?.environment?.server_clustered || false;
 
@@ -265,10 +311,23 @@ export class LxdManager {
                 // cluster mode, get the specific node info
                     const response = await this.lxdInstance.get(`/1.0/cluster/members/${encodeURIComponent(nodeName)}`);
 
-                    if (response.status === 200 && response.data.metadata?.url) {
-                    // Extract the host from URL (e.g., "https://ideafast-lxd-c1-0-1:8443" → "ideafast-lxd-c1-0-1")
-                        const url = new URL(response.data.metadata.url);
-                        return url.hostname;
+                    if (response.status === 200) {
+                        // Check for custom public IP field first
+                        const publicIpAddress = response.data.metadata?.config?.['user.public_address'];
+                        if (publicIpAddress) {
+                            const publicIp = publicIpAddress.replace(/^https?:\/\//, '');
+                            // regard it to like as single host ip or the url like 'https://146.169.10.90:8443'
+                            const publicHostIp = publicIp.includes(':') ? publicIp.split(':')[0] : publicIp;
+                            // Logger.log(`Using custom public IP ${publicHostIp} for node ${nodeName}`);
+                            return publicHostIp;
+                        }
+
+                        // Fall back to URL if no custom IP is set
+                        if (response.data.metadata?.url) {
+                            // Extract the host from URL (e.g., "https://ideafast-lxd-c1-0-1:8443" → "ideafast-lxd-c1-0-1")
+                            const url = new URL(response.data.metadata.url);
+                            return url.hostname;
+                        }
                     }
                 } catch (clusterError) {
                     Logger.error(`Error fetching cluster member "${nodeName}" info: ${clusterError}`);
@@ -458,7 +517,8 @@ export class LxdManager {
             const lxdResponse = await this.lxdInstance.post(`/1.0/instances?project=${encodeURIComponent(project)}`, payload, {
                 headers: { 'Content-Type': 'application/json' },
                 httpsAgent: this.lxdAgent,
-                timeout: 30000 // adjust as needed
+                timeout: 30000, // adjust as needed,
+                params: { force: true } // Add force parameter
             });
             return lxdResponse.data;
         } catch (error) {
@@ -488,9 +548,8 @@ export class LxdManager {
         try {
             const response = await this.lxdInstance.put(`/1.0/instances/${instanceName}/state?project=${project}`, {
                 action: action,
-                timeout: 300, // adjust as needed
-                force: false,
-                stateful: false
+                timeout: 300, // adjust as needed,
+                force: true // Add force parameter
             });
             return response.data;
         } catch (error) {
@@ -502,12 +561,55 @@ export class LxdManager {
     // restart , set the stateful to true
 
     async deleteInstance(instanceName: string, project: string) {
-        try {
-            const response = await this.lxdInstance.delete(`/1.0/instances/${instanceName}?project=${project}`);
+        try {            // Ensure correct encoding and reduce verbosity for routine operations
+            instanceName = encodeURIComponent(instanceName);
+            // Commented out to reduce log verbosity for routine operations
+            // Logger.warn(`Attempting to delete instance ${instanceName} in project ${project}`);
+
+            // First check if instance exists to provide clearer error messages
+            try {
+                await this.getInstanceState(instanceName, project);
+            } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : String(error);
+                if (errorMsg.includes('404') || errorMsg.includes('Instance not found')) {                    // Commented out to reduce log verbosity for routine operations
+                    // Logger.warn(`Instance ${instanceName} not found in project ${project} - may have been already deleted`);
+                    return {
+                        data: {
+                            message: `Instance ${instanceName} already deleted or not found`
+                        }
+                    };
+                }
+                // For other errors, continue with deletion attempt
+            }
+
+            const response = await this.lxdInstance.delete(`/1.0/instances/${instanceName}?project=${project}`, {
+                params: { force: true } // Add force parameter
+            });
+
+            // Logger.log(`Successfully initiated deletion for instance ${instanceName}`);
             return response.data;
         } catch (error) {
-            Logger.error(`Error deleting instance ${instanceName} on LXD: ${error}`);
-            throw error; // Propagate the error
+            // Enhanced error handling with more detailed information
+            if (isAxiosError(error)) {
+                const statusCode = error.response?.status;
+                const errorData = error.response?.data;
+
+                Logger.error(`Error deleting instance ${instanceName} on LXD (Status ${statusCode}): ${JSON.stringify(errorData)}`);
+
+                // Return a more structured error
+                return {
+                    error: true,
+                    status: statusCode,
+                    message: `Error deleting instance: ${error.message}`,
+                    details: errorData
+                };
+            }
+
+            Logger.error(`Unexpected error deleting instance ${instanceName} on LXD: ${error}`);
+            return {
+                error: true,
+                message: `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+            };
         }
     }
 }

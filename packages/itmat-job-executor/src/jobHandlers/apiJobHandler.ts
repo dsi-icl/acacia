@@ -5,6 +5,7 @@ import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
 import { IJob, IJobActionReturn } from '@itmat-broker/itmat-types';
 import {db} from '../database/database';
+import { Logger } from '@itmat-broker/itmat-commons';
 
 export class APIHandler extends JobHandler {
     private static _instance: APIHandler;
@@ -17,6 +18,20 @@ export class APIHandler extends JobHandler {
         this.jobCore = new JobCore(db);
         this.instanceCore = new InstanceCore(db, mailer, configManager, this.jobCore, new UserCore(db, mailer, configManager, objStore));
         this.lxdManager = new LxdManager(configManager);
+
+        // Test connection without blocking startup
+        this.lxdManager.testConnection()
+            .then(isConnected => {
+                if (isConnected) {
+                    Logger.log('LXD service is available');
+                } else {
+                    Logger.warn('LXD service is not available - will retry on first operation');
+                }
+            })
+            .catch(err => {
+                Logger.warn(`Error testing LXD connection: ${err}`);
+            });
+
     }
 
     public static override async getInstance(): Promise<JobHandler> {

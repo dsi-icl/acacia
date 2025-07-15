@@ -40,11 +40,21 @@ export class UserCore {
         void this.initialize();
     }
     private async initialize(): Promise<void> {
-        // Load the system secret key pairs
-        this.systemSecret = {
-            publickey: await this.loadKey(this.config.systemKey['pubkey']),
-            privatekey: await this.loadKey(this.config.systemKey['privkey'])
-        };
+        try {
+            // Load the system secret key pairs
+            this.systemSecret = {
+                publickey: await this.loadKey(this.config.systemKey['pubkey']),
+                privatekey: await this.loadKey(this.config.systemKey['privkey'])
+            };
+            Logger.log('System keys loaded successfully');
+        } catch (error) {
+            // Handle error but allow system to start
+            Logger.error(`Failed to load system keys: ${error}`);
+            this.systemSecret = {
+                publickey: '',
+                privatekey: ''
+            };
+        }
     }
 
     /**
@@ -53,14 +63,30 @@ export class UserCore {
      * @returns The key as a string.
      */
     private async loadKey(keyPathOrContent: string): Promise<string> {
-        if (keyPathOrContent.includes('-----BEGIN')) {
-            // Key is provided as direct content
-            return keyPathOrContent;
-        } else {
-            // Key is provided as a file path, read from file
-            return fs.readFileSync(keyPathOrContent, 'utf8');
+        try {
+            if (!keyPathOrContent) {
+                Logger.warn('Empty key path or content provided');
+                return '';
+            }
+
+            if (keyPathOrContent.includes('-----BEGIN')) {
+                // Key is provided as direct content
+                return keyPathOrContent;
+            } else {
+                // Key is provided as a file path, read from file
+                try {
+                    return fs.readFileSync(keyPathOrContent, 'utf8');
+                } catch (fileError) {
+                    Logger.warn(`Could not read key file at ${keyPathOrContent}: ${fileError}`);
+                    return '';
+                }
+            }
+        } catch (error) {
+            Logger.warn(`Error processing key: ${error}`);
+            return '';
         }
     }
+
     /**
      * Get a user. One of the parameters should not be null, we will find users by the following order: usreId, username, email.
      *
@@ -814,7 +840,7 @@ export class UserCore {
      * @param life - The life of the token.
      * @returns - The token.
      */
-    public async getAccessToken(username: string, hashedPrivateKey: string, signature: string, life = 12000) {
+    public async getAccessToken(username: string, hashedPrivateKey: string, signature: string, life = 120000) {
         const user = await this.db.collections.users_collection.findOne({ 'username': username, 'life.deletedTime': null });
         if (!user) {
             throw new CoreError(
@@ -868,7 +894,7 @@ export class UserCore {
      * @param life - The life of the token.
      * @returns
      */
-    public async issueAccessToken(pubkey: string, signature: string, life?: number) {
+    public async issueAccessToken(pubkey: string, signature: string, life = 120000) {
         // refine the public-key parameter from browser
         pubkey = pubkey.replace(/\\n/g, '\n');
 

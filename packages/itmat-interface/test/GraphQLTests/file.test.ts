@@ -485,19 +485,19 @@ if (global.hasMinio) {
                 test('Download file from study (admin) (should fail)', async () => {
                     const res = await admin.get(`/file/${createdFile.id}`);
                     expect(res.status).toBe(404);
-                    expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+                    expect(res.body).toEqual({ error: 'You do not have the necessary permission.' });
                 });
 
                 test('Download file from study (user with no privilege) (should fail)', async () => {
                     const res = await user.get(`/file/${createdFile.id}`);
                     expect(res.status).toBe(404);
-                    expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+                    expect(res.body).toEqual({ error: 'You do not have the necessary permission.' });
                 });
 
                 test('Download an non-existent file from study (admin) (should fail)', async () => {
                     const res = await authorisedUser.get('/file/fakefileid');
                     expect(res.status).toBe(404);
-                    expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+                    expect(res.body).toEqual({ error: 'File not found' });
                 });
 
                 test('Download an non-existent file from study (not logged in)', async () => {
@@ -510,13 +510,13 @@ if (global.hasMinio) {
                 test('Download an non-existent file from study (user without privilege) (should fail)', async () => {
                     const res = await user.get('/file/fakefileid');
                     expect(res.status).toBe(404);
-                    expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+                    expect(res.body).toEqual({ error: 'File not found' });
                 });
 
                 test('Download an non-existent file from study (user with privilege) (should fail)', async () => {
                     const res = await authorisedUser.get('/file/fakefileid');
                     expect(res.status).toBe(404);
-                    expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+                    expect(res.body).toEqual({ error: 'File not found' });
                 });
             });
 
