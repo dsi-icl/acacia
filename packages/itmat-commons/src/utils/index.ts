@@ -5,6 +5,7 @@ export type { IServerBaseConfig } from './serverBase';
 export { ServerBase } from './serverBase';
 export type { IObjectStoreConfig } from './objStore';
 export { ObjectStore } from './objStore';
-export { Logger } from './logger';
+export * from './logger';
+export * from './logThrottler';
 export { JobPoller } from './poller';
 export { Mailer } from './emailer';

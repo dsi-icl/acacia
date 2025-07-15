@@ -141,7 +141,10 @@ export class InstanceRouter {
             ).mutation(async ({ input, ctx }) => {
                 const user = ctx.req.user;
                 const instance = await this.instanceCore.getInstanceById(input.instanceId);
-                if (user.type !== enumUserTypes.ADMIN || user.id !== instance.userId) {
+
+
+                if (user.type !==  enumUserTypes.ADMIN && user.id !== instance.userId) {
+
                     throw new CoreError(
                         enumCoreErrors.NO_PERMISSION_ERROR,
                         'Insufficient permissions.'
@@ -149,6 +152,22 @@ export class InstanceRouter {
                 }
 
                 return await this.instanceCore.deleteInstance(user.id, input.instanceId);
+            }),
+
+            /**
+             * Extend the lifespan of an instance
+             */
+            extendInstanceLifespan: this.baseProcedure.input(
+                z.object({
+                    instanceId: z.string(),
+                    additionalTime: z.number()
+                })
+            ).mutation(async ({ input, ctx }) => {
+                if (!ctx.req.user || !ctx.req.user.id) {
+                    throw new CoreError(enumCoreErrors.NOT_LOGGED_IN, 'User must be authenticated.');
+                }
+
+                return await this.instanceCore.extendInstanceLifespan(ctx.req.user.id, input.instanceId, input.additionalTime);
             }),
             getQuotaAndFlavors: this.protectedProcedure.query(async ({ ctx }) => {
                 if (!ctx.req.user || !ctx.req.user.id) {

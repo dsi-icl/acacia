@@ -27,7 +27,7 @@ module.exports = [
         changeOrigin: true
     },
     {
-        context: ['/pun', '/node', '/rnode', '/public', '/rtc', '/jupyter', '/matlab'],
+        context: ['/rtc', '/jupyter', '/matlab'],
         target: API_SERVER,
         secure: false,
         changeOrigin: true,

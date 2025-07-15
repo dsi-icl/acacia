@@ -55,6 +55,10 @@
     "useWebdav": true,
     "webdavPort": 1900,
     "lxdEndpoint": "https://localhost:8443",
+    "lxdPortRange": [
+        30000,
+        40000
+    ],
     "lxdSquidProxy": "http://traget_ip:3128",
     "lxdStoragePool": "newpool",
     "lxdProject": "ideafast-staging",
@@ -68,5 +72,10 @@
         "key": "/path/mylxd.key"
     },
     "lxdRejectUnauthorized": false,
-    "jupyterPort": 8888
+    "jupyterPort": 8888,
+    "dmp": {
+        "host": "localhost",
+        "port": 3080
+    }
+    
 }

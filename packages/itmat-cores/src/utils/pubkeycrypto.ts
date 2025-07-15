@@ -142,7 +142,7 @@ export function eckeygen(curve = 'secp256k1') {
     return keyPair;
 }
 
-export function tokengen(payload: string | Buffer | object, secret: string, passphrase = 'idea-fast', algorithm: Algorithm = 'RS256', life?: number) {
+export function tokengen(payload: string | Buffer | object, secret: string, passphrase = 'idea-fast', algorithm: Algorithm = 'RS256', life = 120000) {
     const options: jwt.SignOptions = {
         algorithm: algorithm
     };
