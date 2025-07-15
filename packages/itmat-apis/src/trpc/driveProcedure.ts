@@ -3,6 +3,7 @@ import { FileUploadSchema, enumFileTypes } from '@itmat-broker/itmat-types';
 import { DriveCore } from '@itmat-broker/itmat-cores';
 import { z } from 'zod';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
+import { guestProtectionMiddleware } from '../../../itmat-interface/src/utils/guestProtection';
 
 
 
@@ -17,10 +18,12 @@ export class DriveRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
     driveCore: DriveCore;
+    protectedProcedure: TRPCBaseProcedure;
     constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, driveCore: DriveCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.driveCore = driveCore;
+        this.protectedProcedure = baseProcedure.use(guestProtectionMiddleware);
     }
 
     _router() {
@@ -34,7 +37,7 @@ export class DriveRouter {
              *
              * @return IDriveNode
              */
-            createDriveFolder: this.baseProcedure.input(z.object({
+            createDriveFolder: this.protectedProcedure.input(z.object({
                 folderName: z.string(),
                 parentId: z.optional(z.union([z.string(), z.null()])),
                 description: z.optional(z.string())
@@ -48,7 +51,7 @@ export class DriveRouter {
              *
              * @return IDriveNode
              */
-            createDriveFile: this.baseProcedure.input(z.object({
+            createDriveFile: this.protectedProcedure.input(z.object({
                 parentId: z.optional(z.union([z.string(), z.null()])),
                 description: z.optional(z.string()),
                 files: z.object({
@@ -58,7 +61,7 @@ export class DriveRouter {
                 return await this.driveCore.createDriveFile(opts.ctx.user, opts.input.parentId ?? null, opts.input.description,
                     enumFileTypes[(opts.input.files.file[0].filename.split('.').pop() || '').toUpperCase() as keyof typeof enumFileTypes], opts.input.files.file[0]);
             }),
-            createRecursiveDrives: this.baseProcedure.input(z.object({
+            createRecursiveDrives: this.protectedProcedure.input(z.object({
                 parentId: z.string(),
                 files: z.object({
                     files: z.array(FileUploadSchema)
@@ -75,7 +78,7 @@ export class DriveRouter {
              *
              * @return Record<string, IDriveNode[] - An object where key is the user Id and value is the list of drive nodes.
              */
-            getDrives: this.baseProcedure.input(z.object({
+            getDrives: this.protectedProcedure.input(z.object({
                 rootId: z.optional(z.string())
             })).query(async (opts) => {
                 return this.driveCore.getDrives(opts.ctx.user, opts.input.rootId);
@@ -95,7 +98,7 @@ export class DriveRouter {
              *
              * @return driveIds - The list of drive ids influenced.
              */
-            editDrive: this.baseProcedure.input(z.object({
+            editDrive: this.protectedProcedure.input(z.object({
                 driveId: z.string(),
                 managerId: z.optional(z.string()),
                 name: z.optional(z.string()),
@@ -125,7 +128,7 @@ export class DriveRouter {
              *
              * @return driveIds - The list of drive ids influenced.
              */
-            shareDriveToUserViaEmail: this.baseProcedure.input(z.object({
+            shareDriveToUserViaEmail: this.protectedProcedure.input(z.object({
                 userEmails: z.array(z.string()),
                 driveId: z.string(),
                 permissions: z.object({
@@ -143,7 +146,7 @@ export class DriveRouter {
              *
              * @return IDriveNode
              */
-            deleteDrive: this.baseProcedure.input(z.object({
+            deleteDrive: this.protectedProcedure.input(z.object({
                 driveId: z.string()
             })).mutation(async (opts) => {
                 return this.driveCore.deleteDrive(opts.ctx.user, opts.input.driveId);
@@ -156,7 +159,7 @@ export class DriveRouter {
              *
              * @return IDriveNode
              */
-            copyDrive: this.baseProcedure.input(z.object({
+            copyDrive: this.protectedProcedure.input(z.object({
                 driveId: z.string(),
                 targetParentId: z.string()
             })).mutation(async (opts) => {

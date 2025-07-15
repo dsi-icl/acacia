@@ -2,15 +2,18 @@ import { z } from 'zod';
 import { PermissionCore } from '@itmat-broker/itmat-cores';
 import { enumStudyRoles } from '@itmat-broker/itmat-types';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
+import { guestProtectionMiddleware } from '../../../itmat-interface/src/utils/guestProtection';
 
 export class RoleRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
     permissionCore: PermissionCore;
+    protectedProcedure: TRPCBaseProcedure;
     constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, permissionCore: PermissionCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.permissionCore = permissionCore;
+        this.protectedProcedure = baseProcedure.use(guestProtectionMiddleware);
     }
 
     _router() {
@@ -52,7 +55,7 @@ export class RoleRouter {
              *
              * @returns IRole
              */
-            createStudyRole: this.baseProcedure.input(z.object({
+            createStudyRole: this.protectedProcedure.input(z.object({
                 studyId: z.string(),
                 name: z.string(),
                 description: z.optional(z.string().optional()),
@@ -87,7 +90,7 @@ export class RoleRouter {
              *
              * @returns IRole
              */
-            editStudyRole: this.baseProcedure.input(z.object({
+            editStudyRole: this.protectedProcedure.input(z.object({
                 roleId: z.string(),
                 name: z.optional(z.string()),
                 description: z.optional(z.string().optional()),
@@ -110,6 +113,20 @@ export class RoleRouter {
                     opts.input.users
                 );
             }),
+
+            /**
+             * Add a user to a study role.
+             *
+             * @param roleId - The id of the role.
+             *
+             * @returns IRole
+             */
+            addGuestUser: this.baseProcedure.input(z.object({
+                username: z.string()
+
+            })).mutation(async (opts) => {
+                return await this.permissionCore.addGuestUser(opts.input.username);
+            }),
             /**
              * Delete a study role.
              *
@@ -117,7 +134,7 @@ export class RoleRouter {
              *
              * @returns IRole
              */
-            deleteStudyRole: this.baseProcedure.input(z.object({
+            deleteStudyRole: this.protectedProcedure.input(z.object({
                 roleId: z.string()
             })).mutation(async (opts) => {
                 return await this.permissionCore.deleteStudyRole(opts.ctx.user, opts.input.roleId);

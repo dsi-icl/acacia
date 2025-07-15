@@ -109,7 +109,8 @@ export class StudyCore {
                 deletedTime: null,
                 deletedUser: null
             },
-            metadata: {}
+            metadata: {},
+            isPublic: false
         };
         // create a default study config
         await this.db.collections.configs_collection.insertOne({
@@ -238,6 +239,53 @@ export class StudyCore {
         });
         return response;
 
+    }
+    /**
+     * Edit the visibility of a study.
+     *
+     * @param requester - The requester.
+     * @param studyId - The id of the study.
+     * @param isPublic - The visibility status of the study.
+     *
+     * @return IStudy - The updated study object.
+     */
+    public async editStudyVisibility(requester: IUserWithoutToken | undefined, studyId: string, isPublic: boolean) {
+        if (!requester) {
+            throw new CoreError(
+                enumCoreErrors.NOT_LOGGED_IN,
+                enumCoreErrors.NOT_LOGGED_IN
+            );
+        }
+
+        // Check permissions - only admin or study manager can change visibility
+        const roleStudyRoles: enumStudyRoles[] = (await this.permissionCore.getRolesOfUser(requester, requester.id, studyId)).map(role => role.studyRole);
+        if (requester.type !== enumUserTypes.ADMIN && !roleStudyRoles.includes(enumStudyRoles.STUDY_MANAGER)) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'Only admin or study manager can change study visibility.'
+            );
+        }
+
+        const study = await this.db.collections.studies_collection.findOne({ 'id': studyId, 'life.deletedTime': null });
+        if (!study) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'Study does not exist.'
+            );
+        }
+
+        // Update the study visibility
+        const setObj: UpdateFilter<IStudy> = {
+            isPublic: isPublic
+        };
+
+        const response = await this.db.collections.studies_collection.findOneAndUpdate(
+            { id: studyId },
+            { $set: setObj },
+            { returnDocument: 'after' }
+        );
+
+        return response;
     }
     /**
      * Delete a study.

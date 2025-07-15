@@ -11,6 +11,7 @@ import { DomainPage } from '../domain';
 import { OrganisationPage } from '../organisation';
 import { InstancePage } from '../instance';
 import { LXDPage } from '../lxd';
+import { ProtectedRoute } from '../reusable/protectedRoute/protectedRoute';
 
 export const MainPanel: FunctionComponent = () => {
     return (
@@ -18,16 +19,23 @@ export const MainPanel: FunctionComponent = () => {
             <Routes>
                 <Route path='/datasets/:studyId/*' element={<DatasetDetailPage />} />
                 <Route path='/datasets' element={<DatasetListPage />} />
-                <Route path='/users' element={<UserPage />} />
-                <Route path='/users/:userId' element={<UserPage />} />
-                <Route path='/logs' element={<LogPage />} />
-                <Route path='/domains' element={<DomainPage />} />
-                <Route path='/organisations' element={<OrganisationPage />} />
+                <Route element={
+                    <ProtectedRoute
+                        restrictedUserTypes={['GUEST']}
+                        redirectPath="/datasets" // Redirect to datasets instead of access denied
+                    />
+                }>
+                    <Route path='/users' element={<UserPage />} />
+                    <Route path='/users/:userId' element={<UserPage />} />
+                    <Route path='/logs' element={<LogPage />} />
+                    <Route path='/domains' element={<DomainPage />} />
+                    <Route path='/organisations' element={<OrganisationPage />} />
+                    <Route path='/drive' element={<DrivePage />} />
+                    <Route path='/pun/sys/dashboard' />
+                    <Route path='/instances' element={<InstancePage />} />
+                    <Route path='/lxd' element={<LXDPage />} />
+                </Route>
                 <Route path='/profile' element={<ProfilePage />} />
-                <Route path='/drive' element={<DrivePage />} />
-                <Route path='/pun/sys/dashboard' />
-                <Route path='/instances' element={<InstancePage />} />
-                <Route path='/lxd' element={<LXDPage />} />
                 <Route path='*' element={<Navigate to='/datasets' />} />
             </Routes>
         </div>

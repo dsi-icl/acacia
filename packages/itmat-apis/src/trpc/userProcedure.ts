@@ -159,7 +159,7 @@ export class UserRouter {
                     opts.input.firstname,
                     opts.input.lastname,
                     opts.input.organisation,
-                    enumUserTypes.STANDARD,
+                    enumUserTypes.GUEST,
                     false,
                     opts.input.password,
                     opts.input.files?.profile?.[0]

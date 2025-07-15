@@ -2,7 +2,7 @@ import { FileUploadSchema, IAST, enumASTNodeTypes, enumConditionOps, enumDataTra
 import { z } from 'zod';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 import { DataCore } from '@itmat-broker/itmat-cores';
-
+import { guestProtectionMiddleware } from '../../../itmat-interface/src/utils/guestProtection';
 
 const ZAST: z.ZodType<IAST> = z.lazy(() => z.object({
     type: z.nativeEnum(enumASTNodeTypes),
@@ -58,10 +58,12 @@ export class DataRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
     dataCore: DataCore;
+    protectedProcedure: TRPCBaseProcedure;
     constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, dataCore: DataCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.dataCore = dataCore;
+        this.protectedProcedure = baseProcedure.use(guestProtectionMiddleware);
     }
 
     _router() {
@@ -98,7 +100,7 @@ export class DataRouter {
              *
              * @return IField
              */
-            createStudyField: this.baseProcedure.input(CreateFieldInputSchema).mutation(async (opts) => {
+            createStudyField: this.protectedProcedure.input(CreateFieldInputSchema).mutation(async (opts) => {
                 return await this.dataCore.createField(opts.ctx.user, {
                     studyId: opts.input.studyId,
                     fieldName: opts.input.fieldName,
@@ -129,7 +131,7 @@ export class DataRouter {
              *
              * @return IField
              */
-            editStudyField: this.baseProcedure.input(EditFieldInputSchema).mutation(async (opts) => {
+            editStudyField: this.protectedProcedure.input(EditFieldInputSchema).mutation(async (opts) => {
                 return await this.dataCore.editField(opts.ctx.user, {
                     studyId: opts.input.studyId,
                     fieldName: opts.input.fieldName,
@@ -151,7 +153,7 @@ export class DataRouter {
              *
              * @return IGenericResponse
              */
-            deleteStudyField: this.baseProcedure.input(z.object({
+            deleteStudyField: this.protectedProcedure.input(z.object({
                 studyId: z.string(),
                 fieldId: z.string()
             })).mutation(async (opts) => {
@@ -166,7 +168,7 @@ export class DataRouter {
              *
              * @return IGenericResponse - The list of objects of IGenericResponse
              */
-            uploadStudyData: this.baseProcedure.input(z.object({
+            uploadStudyData: this.protectedProcedure.input(z.object({
                 studyId: z.string(),
                 data: z.array(ZDataClipInput)
             })).mutation(async (opts) => {
@@ -242,7 +244,7 @@ export class DataRouter {
              *
              * @return IGenreicResponse - The object of IGenericResponse.
              */
-            deleteStudyData: this.baseProcedure.input(z.object({
+            deleteStudyData: this.protectedProcedure.input(z.object({
                 studyId: z.string(),
                 fieldId: z.string(),
                 properties: z.optional(z.any())
@@ -264,7 +266,7 @@ export class DataRouter {
              *
              * @return IData
              */
-            uploadStudyFileData: this.baseProcedure.input(z.object({
+            uploadStudyFileData: this.protectedProcedure.input(z.object({
                 studyId: z.string(),
                 files: z.object({
                     file: z.array(FileUploadSchema)
@@ -341,7 +343,7 @@ export class DataRouter {
              *
              * @return IFile - The object of IFile.
              */
-            deleteFile: this.baseProcedure.input(z.object({
+            deleteFile: this.protectedProcedure.input(z.object({
                 fileId: z.string()
             })).mutation(async (opts) => {
                 return await this.dataCore.deleteFile(opts.ctx.req.user, opts.input.fileId);

@@ -6,7 +6,7 @@ import { RoleControlSection } from '../../../reusable/roleControlSection/roleCon
 import { Navigate, useParams } from 'react-router-dom';
 import { Button, message } from 'antd';
 import { trpc } from './../../../../utils/trpc';
-
+import { StudyVisibility } from '../../../reusable/studyVisibility/studyVisibility';
 export const AdminTabContent: FunctionComponent = () => {
     const { studyId } = useParams();
     const [deleteButtonShown, setDeleteButtonShown] = useState(false);
@@ -36,6 +36,9 @@ export const AdminTabContent: FunctionComponent = () => {
         <div className={`${css.tab_page_wrapper_grid} fade_in`}>
             <div className={`${css.tab_page_wrapper} ${css.cover_page}`}>
                 <RoleControlSection studyId={getStudy.data[0].id} />
+                <br />
+                <br />
+                <StudyVisibility studyId={getStudy.data[0].id} />
                 <br />
                 <br />
                 <Subsection title='Dataset Deletion'>

@@ -1,17 +1,18 @@
 import { z } from 'zod';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 import { InstanceCore } from '@itmat-broker/itmat-cores';
-import { enumAppType, enumInstanceStatus, LXDInstanceTypeEnum, CoreError, enumCoreErrors, enumOpeType, enumUserTypes} from '@itmat-broker/itmat-types';
-
+import { enumAppType, enumInstanceStatus, LXDInstanceTypeEnum, CoreError, enumCoreErrors, enumOpeType, enumUserTypes } from '@itmat-broker/itmat-types';
+import { guestProtectionMiddleware } from '../../../itmat-interface/src/utils/guestProtection';
 export class InstanceRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
     instanceCore: InstanceCore;
-
+    protectedProcedure: TRPCBaseProcedure;
     constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, instanceCore: InstanceCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.instanceCore = instanceCore;
+        this.protectedProcedure = baseProcedure.use(guestProtectionMiddleware);
     }
 
     _router() {
@@ -19,7 +20,7 @@ export class InstanceRouter {
             /**
              * Create an instance
              */
-            createInstance: this.baseProcedure.input(
+            createInstance: this.protectedProcedure.input(
                 z.object({
                     name: z.string(),
                     type: z.nativeEnum(LXDInstanceTypeEnum),
@@ -58,7 +59,7 @@ export class InstanceRouter {
             /**
              * Start or stop an instance
              */
-            startStopInstance: this.baseProcedure.input(
+            startStopInstance: this.protectedProcedure.input(
                 z.object({
                     instanceId: z.string(),
                     action: z.enum([enumOpeType.START, enumOpeType.STOP])
@@ -75,7 +76,7 @@ export class InstanceRouter {
             /**
              * Restart an instance with a new lifespan
              */
-            restartInstance: this.baseProcedure.input(
+            restartInstance: this.protectedProcedure.input(
                 z.object({
                     instanceId: z.string(),
                     lifeSpan: z.number()
@@ -92,7 +93,7 @@ export class InstanceRouter {
             /**
              * Get all instances for an user
              */
-            getInstances: this.baseProcedure.query(async ({ ctx }) => {
+            getInstances: this.protectedProcedure.query(async ({ ctx }) => {
                 const user = ctx.req.user;
                 if (!user) {
                     throw new CoreError(
@@ -106,7 +107,7 @@ export class InstanceRouter {
             /**
              * Edit an instance
              */
-            editInstance: this.baseProcedure.input(
+            editInstance: this.protectedProcedure.input(
                 z.object({
                     instanceId: z.string().optional(),
                     instanceName: z.string().optional(),
@@ -133,14 +134,14 @@ export class InstanceRouter {
             /**
              * Delete an instance
              */
-            deleteInstance: this.baseProcedure.input(
+            deleteInstance: this.protectedProcedure.input(
                 z.object({
                     instanceId: z.string()
                 })
             ).mutation(async ({ input, ctx }) => {
                 const user = ctx.req.user;
                 const instance = await this.instanceCore.getInstanceById(input.instanceId);
-                if (user.type !==  enumUserTypes.ADMIN || user.id !== instance.userId) {
+                if (user.type !== enumUserTypes.ADMIN || user.id !== instance.userId) {
                     throw new CoreError(
                         enumCoreErrors.NO_PERMISSION_ERROR,
                         'Insufficient permissions.'
@@ -149,7 +150,7 @@ export class InstanceRouter {
 
                 return await this.instanceCore.deleteInstance(user.id, input.instanceId);
             }),
-            getQuotaAndFlavors: this.baseProcedure.query(async ({ ctx }) => {
+            getQuotaAndFlavors: this.protectedProcedure.query(async ({ ctx }) => {
                 if (!ctx.req.user || !ctx.req.user.id) {
                     throw new CoreError(enumCoreErrors.NOT_LOGGED_IN, 'User must be authenticated.');
                 }
