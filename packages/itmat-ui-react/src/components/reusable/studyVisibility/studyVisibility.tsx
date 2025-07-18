@@ -103,7 +103,7 @@ export const StudyVisibility: FunctionComponent<{ studyId: string }> = ({ studyI
             setLoading(false);
 
             // Invalidate and refetch the studies query to update the UI with fresh data
-            getStudies.refetch();
+            void getStudies.refetch();
         },
         onError: (error) => {
             // Revert the UI state if the mutation fails

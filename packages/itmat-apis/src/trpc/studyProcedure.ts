@@ -2,18 +2,15 @@ import { IUser, FileUploadSchema } from '@itmat-broker/itmat-types';
 import { z } from 'zod';
 import { StudyCore } from '@itmat-broker/itmat-cores';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
-import { guestProtectionMiddleware } from '../../../itmat-interface/src/utils/guestProtection';
 
 export class StudyRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
     studyCore: StudyCore;
-    protectedProcedure: TRPCBaseProcedure;
     constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, studyCore: StudyCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.studyCore = studyCore;
-        this.protectedProcedure = baseProcedure.use(guestProtectionMiddleware);
     }
 
     _router() {
@@ -40,7 +37,7 @@ export class StudyRouter {
              *
              * @return IStudy
              */
-            createStudy: this.protectedProcedure.input(z.object({
+            createStudy: this.baseProcedure.input(z.object({
                 name: z.string(),
                 description: z.optional(z.string()),
                 files: z.optional(z.object({
@@ -59,7 +56,7 @@ export class StudyRouter {
              *
              * @return Partial<IStudy>
              */
-            editStudy: this.protectedProcedure.input(z.object({
+            editStudy: this.baseProcedure.input(z.object({
                 studyId: z.string(),
                 name: z.optional(z.string()),
                 description: z.optional(z.string()),
@@ -77,7 +74,7 @@ export class StudyRouter {
              *
              * @return Partial<IStudy>
              */
-            editStudyVisibility: this.protectedProcedure.input(z.object({
+            editStudyVisibility: this.baseProcedure.input(z.object({
                 studyId: z.string(),
                 isPublic: z.boolean()
             })).mutation(async (opts) => {
@@ -90,7 +87,7 @@ export class StudyRouter {
              *
              * @return IGenericResponse - The obejct of IGenericResponse.
              */
-            deleteStudy: this.protectedProcedure.input(z.object({
+            deleteStudy: this.baseProcedure.input(z.object({
                 studyId: z.string()
             })).mutation(async (opts) => {
                 return await this.studyCore.deleteStudy(opts.ctx.req.user, opts.input.studyId);
@@ -104,7 +101,7 @@ export class StudyRouter {
              *
              * @return IGenericResponse - The object of IGenericResponse.
              */
-            createDataVersion: this.protectedProcedure.input(z.object({
+            createDataVersion: this.baseProcedure.input(z.object({
                 studyId: z.string(),
                 dataVersion: z.string(),
                 tag: z.string()
@@ -119,7 +116,7 @@ export class StudyRouter {
              *
              * @return IGenreicResponse
              */
-            setDataversionAsCurrent: this.protectedProcedure.input(z.object({
+            setDataversionAsCurrent: this.baseProcedure.input(z.object({
                 studyId: z.string(),
                 dataVersionId: z.string()
             })).mutation(async (opts) => {

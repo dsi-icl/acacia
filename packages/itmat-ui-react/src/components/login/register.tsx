@@ -11,7 +11,7 @@ export const RegisterNewUser: FunctionComponent = () => {
     const [completedCreation, setCompletedCreation] = useState(false);
     const createUser = trpc.user.createUser.useMutation({
         onSuccess: () => {
-            addUserToPublicStudies(createUser.variables?.username);
+            void addUserToPublicStudies(createUser.variables?.username);
             setCompletedCreation(true);
         },
         onError: () => {

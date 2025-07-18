@@ -1,12 +1,12 @@
-import { ConfigRouter, DataRouter, DomainRouter, DriveRouter, FileResolvers, GraphQLResolvers, JobResolvers, LogResolvers, LogRouter, OrganisationResolvers, OrganisationRouter, PermissionResolvers, PubkeyResolvers, RoleRouter, StandardizationResolvers, StudyResolvers, StudyRouter, TRPCAggRouter, UserResolvers, UserRouter, tRPCBaseProcedureMilldeware, WebAuthnRouter, InstanceRouter, LXDRouter} from '@itmat-broker/itmat-apis';
+import { ConfigRouter, DataRouter, DomainRouter, DriveRouter, FileResolvers, GraphQLResolvers, JobResolvers, LogResolvers, LogRouter, OrganisationResolvers, OrganisationRouter, PermissionResolvers, PubkeyResolvers, RoleRouter, StandardizationResolvers, StudyResolvers, StudyRouter, TRPCAggRouter, UserResolvers, UserRouter, tRPCBaseProcedureMilldeware, WebAuthnRouter, InstanceRouter, LXDRouter } from '@itmat-broker/itmat-apis';
 import { db } from '../database/database';
-import { ConfigCore, DataCore, DataTransformationCore, DomainCore, DriveCore, FileCore, LogCore, OrganisationCore, PermissionCore, StandarizationCore, StudyCore, UserCore, UtilsCore, WebauthnCore , JobCore, InstanceCore, LxdManager} from '@itmat-broker/itmat-cores';
+import { ConfigCore, DataCore, DataTransformationCore, DomainCore, DriveCore, FileCore, LogCore, OrganisationCore, PermissionCore, StandarizationCore, StudyCore, UserCore, UtilsCore, WebauthnCore, JobCore, InstanceCore, LxdManager } from '@itmat-broker/itmat-cores';
 import { objStore } from '../objStore/objStore';
 import { mailer } from '../emailer/emailer';
 import configManager from '../utils/configManager';
 import { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { inferAsyncReturnType, initTRPC } from '@trpc/server';
-
+import { guestProtectionMiddleware } from '../utils/guestProtection';
 export class APICalls {
     permissionCore: PermissionCore;
     fileCore: FileCore;
@@ -70,7 +70,10 @@ export class APICalls {
 
         type Context = inferAsyncReturnType<typeof __unusedCreatetRPCContext>;
         const t = initTRPC.context<Context>().create();
-        const baseProcedure = t.procedure.use(async (opts) => {
+        const protectedProcedure = t.procedure.use(async (opts) => {
+            return await guestProtectionMiddleware(opts);
+        });
+        const baseProcedure = protectedProcedure.use(async (opts) => {
             return await tRPCBaseProcedureMilldeware(db, opts);
         });
         const router = t.router;

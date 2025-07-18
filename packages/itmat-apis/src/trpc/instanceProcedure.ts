@@ -2,17 +2,14 @@ import { z } from 'zod';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 import { InstanceCore } from '@itmat-broker/itmat-cores';
 import { enumAppType, enumInstanceStatus, LXDInstanceTypeEnum, CoreError, enumCoreErrors, enumOpeType, enumUserTypes } from '@itmat-broker/itmat-types';
-import { guestProtectionMiddleware } from '../../../itmat-interface/src/utils/guestProtection';
 export class InstanceRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
     instanceCore: InstanceCore;
-    protectedProcedure: TRPCBaseProcedure;
     constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, instanceCore: InstanceCore) {
         this.baseProcedure = baseProcedure;
         this.router = router;
         this.instanceCore = instanceCore;
-        this.protectedProcedure = baseProcedure.use(guestProtectionMiddleware);
     }
 
     _router() {
@@ -20,7 +17,7 @@ export class InstanceRouter {
             /**
              * Create an instance
              */
-            createInstance: this.protectedProcedure.input(
+            createInstance: this.baseProcedure.input(
                 z.object({
                     name: z.string(),
                     type: z.nativeEnum(LXDInstanceTypeEnum),
@@ -59,7 +56,7 @@ export class InstanceRouter {
             /**
              * Start or stop an instance
              */
-            startStopInstance: this.protectedProcedure.input(
+            startStopInstance: this.baseProcedure.input(
                 z.object({
                     instanceId: z.string(),
                     action: z.enum([enumOpeType.START, enumOpeType.STOP])
@@ -76,7 +73,7 @@ export class InstanceRouter {
             /**
              * Restart an instance with a new lifespan
              */
-            restartInstance: this.protectedProcedure.input(
+            restartInstance: this.baseProcedure.input(
                 z.object({
                     instanceId: z.string(),
                     lifeSpan: z.number()
@@ -93,7 +90,7 @@ export class InstanceRouter {
             /**
              * Get all instances for an user
              */
-            getInstances: this.protectedProcedure.query(async ({ ctx }) => {
+            getInstances: this.baseProcedure.query(async ({ ctx }) => {
                 const user = ctx.req.user;
                 if (!user) {
                     throw new CoreError(
@@ -107,7 +104,7 @@ export class InstanceRouter {
             /**
              * Edit an instance
              */
-            editInstance: this.protectedProcedure.input(
+            editInstance: this.baseProcedure.input(
                 z.object({
                     instanceId: z.string().optional(),
                     instanceName: z.string().optional(),
@@ -134,7 +131,7 @@ export class InstanceRouter {
             /**
              * Delete an instance
              */
-            deleteInstance: this.protectedProcedure.input(
+            deleteInstance: this.baseProcedure.input(
                 z.object({
                     instanceId: z.string()
                 })
@@ -143,7 +140,7 @@ export class InstanceRouter {
                 const instance = await this.instanceCore.getInstanceById(input.instanceId);
 
 
-                if (user.type !==  enumUserTypes.ADMIN && user.id !== instance.userId) {
+                if (user.type !== enumUserTypes.ADMIN && user.id !== instance.userId) {
 
                     throw new CoreError(
                         enumCoreErrors.NO_PERMISSION_ERROR,
@@ -169,7 +166,7 @@ export class InstanceRouter {
 
                 return await this.instanceCore.extendInstanceLifespan(ctx.req.user.id, input.instanceId, input.additionalTime);
             }),
-            getQuotaAndFlavors: this.protectedProcedure.query(async ({ ctx }) => {
+            getQuotaAndFlavors: this.baseProcedure.query(async ({ ctx }) => {
                 if (!ctx.req.user || !ctx.req.user.id) {
                     throw new CoreError(enumCoreErrors.NOT_LOGGED_IN, 'User must be authenticated.');
                 }
