@@ -13,6 +13,7 @@ export interface IStudy extends IBase {
     dataVersions: IStudyDataVersion[];
     description?: string;
     profile?: string;
+    isPublic: boolean;
 }
 
 export interface IStudyDataVersion extends IBase {

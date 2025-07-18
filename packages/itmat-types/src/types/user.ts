@@ -4,7 +4,7 @@ export enum enumUserTypes {
     ADMIN = 'ADMIN',
     STANDARD = 'STANDARD',
     SYSTEM = 'SYSTEM',
-    OBSERVER = 'OBSERVER'
+    GUEST = 'GUEST'
 }
 
 export enum enumReservedUsers {

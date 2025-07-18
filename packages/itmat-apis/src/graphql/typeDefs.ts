@@ -9,6 +9,7 @@ enum USERTYPE {
     ADMIN
     STANDARD
     SYSTEM
+    GUEST
 }
 
 enum FIELD_ITEM_TYPE {

@@ -1,13 +1,11 @@
 import { z } from 'zod';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
-import {LxdManager} from '@itmat-broker/itmat-cores';
-import { CoreError, enumCoreErrors , LXDInstanceTypeEnum} from '@itmat-broker/itmat-types';
-
+import { LxdManager } from '@itmat-broker/itmat-cores';
+import { CoreError, enumCoreErrors, LXDInstanceTypeEnum } from '@itmat-broker/itmat-types';
 export class LXDRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
     lxdManager: LxdManager;
-
 
     constructor(baseProcedure: TRPCBaseProcedure, router: TRPCRouter, lxdManager: LxdManager) {
         this.baseProcedure = baseProcedure;
@@ -17,14 +15,14 @@ export class LXDRouter {
 
     _router() {
         return this.router({
-            getResources: this.baseProcedure.query(async ({ctx }) => {
+            getResources: this.baseProcedure.query(async ({ ctx }) => {
                 if (!ctx.req?.user) {
                     throw new CoreError(enumCoreErrors.AUTHENTICATION_ERROR, 'User must be authenticated.');
                 }
                 return await this.lxdManager.getResources();
             }),
 
-            getInstances: this.baseProcedure.query(async ({ctx }) => {
+            getInstances: this.baseProcedure.query(async ({ ctx }) => {
                 if (!ctx.req?.user) {
                     throw new CoreError(enumCoreErrors.AUTHENTICATION_ERROR, 'User must be authenticated.');
                 }

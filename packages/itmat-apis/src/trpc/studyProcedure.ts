@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { StudyCore } from '@itmat-broker/itmat-cores';
 import { TRPCBaseProcedure, TRPCRouter } from './trpc';
 
-
 export class StudyRouter {
     baseProcedure: TRPCBaseProcedure;
     router: TRPCRouter;
@@ -66,6 +65,20 @@ export class StudyRouter {
                 }))
             })).mutation(async (opts) => {
                 return await this.studyCore.editStudy(opts.ctx.req.user, opts.input.studyId, opts.input.name, opts.input.description, opts.input.files?.profile?.[0]);
+            }),
+            /**
+             * Edit the visibility of a study.
+             *
+             * @param studyId - The id of the study.
+             * @param isPublic - The visibility status of the study.
+             *
+             * @return Partial<IStudy>
+             */
+            editStudyVisibility: this.baseProcedure.input(z.object({
+                studyId: z.string(),
+                isPublic: z.boolean()
+            })).mutation(async (opts) => {
+                return await this.studyCore.editStudyVisibility(opts.ctx.req.user, opts.input.studyId, opts.input.isPublic);
             }),
             /**
              * Delete a study.

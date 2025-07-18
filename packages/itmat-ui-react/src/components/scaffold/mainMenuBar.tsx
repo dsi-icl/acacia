@@ -64,16 +64,23 @@ export const MainMenuBar: FunctionComponent = () => {
                 </div>
             </NavLink >
         </div >
-        <div>
-            <NavLink to='/drive' title='Drives' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
-                <div className={css.button}><CloudOutlined /> My Drive</div>
-            </NavLink>
-        </div>
-        <div>
-            <NavLink to='/instances' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
-                <div className={css.button}><DesktopOutlined /> Analytical Environment</div>
-            </NavLink>
-        </div>
+        {
+            (whoAmI.data.type !== enumUserTypes.GUEST) ?
+                <div>
+                    <div>
+                        <NavLink to='/drive' title='Drives' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
+                            <div className={css.button}><CloudOutlined /> My Drive</div>
+                        </NavLink>
+                    </div>
+                    <div>
+                        <NavLink to='/instances' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
+                            <div className={css.button}><DesktopOutlined /> Analytical Environment</div>
+                        </NavLink>
+                    </div>
+                </div>
+                : null
+        }
+
         {
             (whoAmI.data.type === enumUserTypes.ADMIN) ?
                 <div>

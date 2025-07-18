@@ -110,6 +110,20 @@ export class RoleRouter {
                     opts.input.users
                 );
             }),
+
+            /**
+             * Add a user to a study role.
+             *
+             * @param roleId - The id of the role.
+             *
+             * @returns IRole
+             */
+            addGuestUser: this.baseProcedure.input(z.object({
+                username: z.string()
+
+            })).mutation(async (opts) => {
+                return await this.permissionCore.addGuestUser(opts.input.username);
+            }),
             /**
              * Delete a study role.
              *

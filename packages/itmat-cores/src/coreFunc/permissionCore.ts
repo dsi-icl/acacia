@@ -227,6 +227,77 @@ export class PermissionCore {
         });
         return res;
     }
+    /**
+     * Add a guest user to all public studies with read permissions.
+     *
+     * @param username - The username of the guest user to add.
+     *
+     * @returns IGenericResponse
+     */
+    public async addGuestUser(username: string) {
+
+        if (!username) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_MALFORMED_INPUT,
+                'Username is required to add a guest user.'
+            );
+        }
+
+        const user = await this.db.collections.users_collection.findOne(
+            { username: username },
+            { projection: { _id: 0, password: 0, otpSecret: 0 } }
+        ) as IUserWithoutToken | null;
+
+        if (!user) {
+            throw new CoreError(
+                enumCoreErrors.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY,
+                'User not found'
+            );
+        }
+        if (user.type !== enumUserTypes.GUEST) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'User is not a guest user.'
+            );
+        }
+        const publicStudies = await this.db.collections.studies_collection.find({
+            'isPublic': true,
+            'life.deletedTime': null
+        }).toArray();
+        if (publicStudies.length === 0) {
+            return makeGenericResponse(user.id, true, undefined, 'No public studies found.');
+        }
+        // Get all roles with Guest permission in public studies
+        // and add the user to those roles
+        const studyIds = publicStudies.map(study => study.id);
+        const guestRoles = await this.db.collections.roles_collection.find({
+            'studyId': { $in: studyIds },
+            'name': 'Guest',
+            'dataPermissions': {
+                $elemMatch: { permission: { $bitsAllSet: 4 } }
+            },
+            'life.deletedTime': null
+        }).toArray();
+
+        if (guestRoles.length === 0) {
+            throw new CoreError(
+                enumCoreErrors.NO_PERMISSION_ERROR,
+                'No guest roles found for public studies.'
+            );
+        }
+        // Update each guest role to include the user
+        const updatePromises = guestRoles.map(async role =>
+            this.db.collections.roles_collection.updateOne(
+                { id: role.id, users: { $ne: user.id } },
+                { $push: { users: user.id } }
+            )
+        );
+
+        await Promise.all(updatePromises);
+
+        return makeGenericResponse(user.id, true, undefined, `User added to ${updatePromises.length} public study roles`);
+    }
+
 
     /**
      * Delete a role.

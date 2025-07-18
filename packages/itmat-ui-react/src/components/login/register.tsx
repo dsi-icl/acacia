@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { IOrganisation } from '@itmat-broker/itmat-types';
-import { Input, Form, Button, Alert, Checkbox, Select, Image } from 'antd';
+import { Input, Form, Button, Alert, Checkbox, Select, Image, message } from 'antd';
 import css from './login.module.css';
 import { trpc } from '../../utils/trpc';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -11,7 +11,16 @@ export const RegisterNewUser: FunctionComponent = () => {
     const [completedCreation, setCompletedCreation] = useState(false);
     const createUser = trpc.user.createUser.useMutation({
         onSuccess: () => {
+            void addUserToPublicStudies(createUser.variables?.username);
             setCompletedCreation(true);
+        },
+        onError: () => {
+            return;
+        }
+    });
+    const addGuestUser = trpc.role.addGuestUser.useMutation({
+        onSuccess: () => {
+            void message.success('Role created successfully');
         },
         onError: () => {
             return;
@@ -60,6 +69,12 @@ export const RegisterNewUser: FunctionComponent = () => {
             </div>
         );
     }
+
+    const addUserToPublicStudies = async (username?: string) => {
+        if (username) {
+            addGuestUser.mutate({ username });
+        }
+    };
 
     return (
         <div className={css.login_wrapper}>
