@@ -118,7 +118,7 @@
         "@trpc/react-query": "10.45.2",
         "@trpc/server": "10.45.2",
         "JSONStream": "1.3.5",
-        "antd": "5.24.2",
+        "antd": "5.27.0",
         "antd-img-crop": "4.24.0",
         "apollo-upload-client": "18.0.1",
         "axios": "1.8.1",
