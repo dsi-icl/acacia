@@ -1,7 +1,7 @@
 .page_container {
     grid-template-columns: 100%;
     grid-template-rows: 60px calc(100% - 60px);
-    grid-template-areas: 
+    grid-template-areas:
         "ariane"
         "content";
     display: grid;
@@ -45,9 +45,9 @@
 }
 
 .tabs a:hover {
-    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-primary-color);
-    -moz-box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
-    box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
+    -webkit-box-shadow: inset 0px -2px 0px 0px var(--color-primary-color);
+    -moz-box-shadow: inset 0px -3px 0px 0px var(--color-primary-color);
+    box-shadow: inset 0px -3px 0px 0px var(--color-primary-color);
     color: var(--color-button-active);
 }
 

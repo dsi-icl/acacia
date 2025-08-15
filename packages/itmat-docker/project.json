@@ -3,6 +3,12 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-docker/src",
     "projectType": "application",
+    "tags": [],
+    "implicitDependencies": [
+        "itmat-interface",
+        "itmat-job-executor",
+        "itmat-ui-react"
+    ],
     "targets": {
         "build": {
             "dependsOn": [
@@ -18,11 +24,5 @@
                 "cwd": "packages/itmat-docker"
             }
         }
-    },
-    "tags": [],
-    "implicitDependencies": [
-        "itmat-interface",
-        "itmat-job-executor",
-        "itmat-ui-react"
-    ]
+    }
 }

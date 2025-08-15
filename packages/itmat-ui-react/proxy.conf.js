@@ -1,42 +1,38 @@
 const API_SERVER = 'http://localhost:3333';
 
-module.exports = {
-    '/graphql': {
+module.exports = [
+    {
+        context: ['/graphql'],
         target: API_SERVER,
         secure: false,
         changeOrigin: true
     },
-    '/file': {
+    {
+        context: ['/trpc'],
         target: API_SERVER,
         secure: false,
         changeOrigin: true
     },
-    '/pun': {
+    {
+        context: ['/webdav'],
         target: API_SERVER,
         secure: false,
         changeOrigin: true,
-        autoRewrite: true,
-        ws: true
+        autoRewrite: true
     },
-    '/node': {
+    {
+        context: ['/file'],
         target: API_SERVER,
         secure: false,
-        changeOrigin: true,
-        autoRewrite: true,
-        ws: true
+        changeOrigin: true
     },
-    '/rnode': {
+    {
+        context: ['/rtc', '/jupyter', '/matlab'],
         target: API_SERVER,
         secure: false,
         changeOrigin: true,
         autoRewrite: true,
-        ws: true
-    },
-    '/public': {
-        target: API_SERVER,
-        secure: false,
-        changeOrigin: true,
-        autoRewrite: true,
-        ws: true
+        ws: true,
+        xforward: true
     }
-};
+];

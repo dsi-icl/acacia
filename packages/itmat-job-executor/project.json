@@ -3,6 +3,7 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-job-executor/src",
     "projectType": "application",
+    "tags": [],
     "targets": {
         "build": {
             "executor": "@nx/webpack:webpack",
@@ -16,7 +17,7 @@
                 "main": "packages/itmat-job-executor/src/index.ts",
                 "tsConfig": "packages/itmat-job-executor/tsconfig.app.json",
                 "assets": [],
-                "webpackConfig": "packages/itmat-job-executor/webpack.config.js"
+                "webpackConfig": "packages/itmat-job-executor/webpack.config.cjs"
             },
             "configurations": {
                 "production": {
@@ -59,6 +60,5 @@
                 "jestConfig": "packages/itmat-job-executor/jest.config.ts"
             }
         }
-    },
-    "tags": []
+    }
 }

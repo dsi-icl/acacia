@@ -1,62 +1,160 @@
 .page_container {
-    grid-template-columns: 100% 0%;
-    grid-template-rows: 100%;
-    display: grid;
     height: 100%;
-    grid-template-areas: "userList"
+    position: relative;
+    overflow-y: scroll;
+    display: grid;
+    justify-content: space-between;
+    grid-template-areas:
+        "LEFT RIGHT"
+        "FILE FILE"
+        "SHARED SHARED"
+        "GROUP GROUP"
+        "KEY KEY";
+    grid-template-columns: 40% 60%;
+    grid-template-rows: 600px 1fr;
+    padding: 2rem;
 }
 
-.user_list_section {
-  grid-area: userList;
+.profile_left {
+    grid-area: LEFT;
+    padding: 20px;
+    background-color: white;
 }
 
-.user_detail {
-  grid-area: userDetail;
-  background: var(--color-additional-panel-background);
+.profile_summary_wrapper {
+    text-align: center;
+    border: 3px solid white;
 }
 
-.user_list > table:first-of-type thead:first-of-type tr:first-of-type {
-  background: var(--color-background);
+.profile_summary_profile {
+    text-align: center;
 }
 
-.create_new_user button {
-  display: inline-block;
-  width: 40%;
+.profile_summary_statistics {
+    text-align: center;
 }
 
-.button_clicked button {
-  background-color: red;
+.profile_summary_statistics_value {
+    font-weight: bold;
+    font-size: 32px;
 }
 
-.submit_cancel_button_wrapper {
-  display: flex;
-  width: 100%;
+.profile_summary_statistics_tag {
+    font-size: 16px;
+    font-family: monospace;
 }
 
-.submit_cancel_button_wrapper a {
-  width: 50%;
-  margin-right: 0.5rem;
+.profile_summary_description {
+    font-size: 16px;
+    font-family: "Brush Script MT";
 }
 
-.submit_cancel_button_wrapper button {
-  width: 100%;
-  margin: 0px;
+.profile_right {
+    grid-area: RIGHT;
+    padding: 20px;
+    background-color: white;
 }
 
-.really_delete_button {
-  background-color: red;
-  cursor: pointer;
-  margin-right: 1rem;
+.profile_edit_submit {
+    float: right;
 }
 
-.request_sent_button {
-  cursor: unset;
-  background: var(--color-status-finish);
-  color: var(--color-font-color);
+.profile_edit_normal_title {
+    font-size: 15px;
 }
 
-.request_sent_button:hover {
-  cursor: unset;
-  background: var(--color-status-finish);
-  color: var(--color-font-color);
+.profile_edit_special_title {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.file_wrapper {
+    grid-area: FILE;
+    padding: 20px;
+    background-color: white;
+}
+
+.custom-text-hover {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-text-hover:hover {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.shared_container {
+    display: flex;
+    /* Enable flexbox */
+    flex-direction: row;
+    /* Align children in a row */
+    width: 100%;
+    /* Full width of the container */
+    grid-area: SHARED;
+}
+
+.shared_container > div:first-child {
+    width: 20%;
+    /* Width of the first div */
+}
+
+.shared_container > div:last-child {
+    width: 80%;
+    /* Width of the second div */
+}
+
+.ellipsis-style {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    /* Adjust this width based on your requirement */
+    display: block;
+}
+
+.group_wrapper {
+    grid-area: GROUP;
+    padding: 20px;
+    background-color: white;
+}
+
+.overview-header {
+    display: flex;
+    align-items: center;
+    /* This will vertically center align the icon and the title */
+    /* If there is still a misalignment, you may adjust by adding 'align-self' to the children */
+    font-size: 20px;
+    font-weight: 500;
+    overflow: auto;
+}
+
+.overview-icon {
+    background-color: #000;
+    /* Or any color you prefer */
+    width: 4px;
+    /* Thickness of the line */
+    height: 24px;
+    /* Height of the line, adjust as needed */
+    margin-right: 16px;
+    /* Space between the line and the text */
+    /* Adjust 'margin-top' if the line is not aligned with the text */
+}
+
+.overview-title {
+    /* Style for your title */
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.overview-content {
+    /* Style for your content */
+    text-indent: 30px;
+    /* Adjust the indent as needed */
+}
+
+.key_wrapper {
+    grid-area: KEY;
+    padding: 20px;
+    background-color: white;
 }

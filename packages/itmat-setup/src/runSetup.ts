@@ -6,7 +6,7 @@ let config;
 try {
     const content = fs.readFileSync('./config.json', 'utf-8');
     config = JSON.parse(content);
-} catch (e) {
+} catch (__unused__exception) {
     console.error(chalk.red('Cannot parse configuration file. Using default configuration.'));
     config = {
         database: {

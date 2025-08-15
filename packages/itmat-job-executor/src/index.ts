@@ -51,7 +51,8 @@ function serverSpinning() {
             console.info(`Shuting down executor server ${process.pid} ...`);
             interfaceRouter?.on('close', () => {
                 serverStart();
-            }) || serverStart();
+            });
+            serverStart();
         });
     } else {
         serverStart();
@@ -60,6 +61,7 @@ function serverSpinning() {
 
 serverSpinning();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);

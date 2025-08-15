@@ -1,11 +1,14 @@
-export interface IPubkey {
-    id: string;
+import { IBase } from './base';
+
+export interface IPubkey extends IBase {
     pubkey: string;
+    hashedPrivateKey?: string;
     jwtPubkey: string;
     jwtSeckey: string;
     refreshCounter: number;
     associatedUserId: string | null;
-    deleted: number | null;
+    challenge: string | null;
+    lastUsedTime: number | null;
 }
 
 export type AccessToken = {

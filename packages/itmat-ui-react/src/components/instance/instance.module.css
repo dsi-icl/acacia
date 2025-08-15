@@ -1,0 +1,25 @@
+.page_container {
+    /* padding: 2rem; */
+    padding: 20px; /* Adjust as needed */
+    overflow: auto; /* Ensures that scrolling is possible */
+    height: calc(100vh - 100px);
+}
+
+.createButton {
+    margin-bottom: 1rem;
+}
+
+.table {
+    margin-top: 1rem;
+}
+
+/* Style for cards, adjust as needed */
+.cardContainer {
+    max-height: 300px; /* Example height */
+    overflow: auto; /* Allows scrolling within the card */
+    margin-bottom: 20px; /* Adds space between cards */
+}
+
+.marginBottom {
+    margin-bottom: 20px; /* Adjust the value as needed */
+}

@@ -8,7 +8,7 @@ const { exclude: _, ...swcJestConfig } = JSON.parse(
 );
 export default {
     displayName: 'itmat-types',
-    preset: '../../jest.preset.js',
+    preset: '../../jest.preset.cjs',
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
     },

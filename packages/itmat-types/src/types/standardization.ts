@@ -1,5 +1,6 @@
-export interface IStandardization {
-    id: string,
+import { IBase } from './base';
+
+export interface IStandardization extends IBase {
     studyId: string,
     type: string,
     field: string[],
@@ -9,9 +10,6 @@ export interface IStandardization {
     // records with same path will be joined together
     joinByKeys?: string[],
     dataVersion: string | null,
-    uploadedAt: number,
-    metadata?: JSON,
-    deleted: number | null,
 }
 
 export enum StandardizationRuleSource {
@@ -22,11 +20,27 @@ export enum StandardizationRuleSource {
     inc = 'inc'
 }
 
+export enum StandardizationFilterOptions {
+    convert = 'convert',
+    delete = 'delete'
+}
+
+export interface StandardizationFilterOptionParameters {
+    source: 'value' | 'data';
+    parameter: string;
+}
+
+interface StandardizationRuleFilter {
+    [key: string]: Array<StandardizationFilterOptions | StandardizationFilterOptionParameters>
+}
+
+
+
 export interface IStandardizationRule {
     id: string,
     entry: string,
     source: StandardizationRuleSource,
     parameter: string[],
     // further processings for a value: delete, convert, etc.
-    filters?: any
+    filters?: StandardizationRuleFilter
 }

@@ -1,30 +1,28 @@
 import { FunctionComponent } from 'react';
-import { Query } from '@apollo/client/react/components';
 import { useNavigate } from 'react-router-dom';
 import { IStudy } from '@itmat-broker/itmat-types';
-import { WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Button, Table } from 'antd';
 import { ContainerOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
+import { trpc } from '../../utils/trpc';
 
 export const DatasetList: FunctionComponent = () => {
-    return (
-        <Query<any, any>
-            query={WHO_AM_I}>
-            {({ loading, error, data }) => {
-                if (loading) { return <LoadSpinner />; }
-                if (error) { return <p>Error {error.name}: {error.message}</p>; }
-                if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
-                    const datasets = data.whoAmI.access.studies;
-                    if (datasets.length > 0) {
-                        return <PickDatasetSection datasets={datasets} />;
-                    }
-                }
-                return <p>There is no dataset or you have not been granted access to any. Please contact your data custodian.</p>;
-            }
-            }
-        </Query>
-    );
+    const getStudies = trpc.study.getStudies.useQuery({});
+
+    if (getStudies.isLoading) {
+        return <LoadSpinner />;
+    }
+    if (getStudies.isError) {
+        return <>
+            An error occured.
+        </>;
+    }
+
+    if (getStudies.data.length > 0) {
+        return <PickDatasetSection datasets={getStudies.data} />;
+    } else {
+        return <p>There is no dataset or you have not been granted access to any. Please contact your data custodian.</p>;
+    }
 };
 
 const PickDatasetSection: FunctionComponent<{ datasets: IStudy[] }> = ({ datasets }) => {
@@ -60,7 +58,7 @@ const PickDatasetSection: FunctionComponent<{ datasets: IStudy[] }> = ({ dataset
             rowKey={(rec) => rec.id}
             pagination={false}
             columns={columns}
-            dataSource={datasets}
+            dataSource={datasets.sort((a, b) => a.name.localeCompare(b.name))}
             size='small'
         />
         <br /><br />

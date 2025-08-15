@@ -4,70 +4,63 @@
     overflow: auto;
 }
 
-.finishedStatus_td {
-    background: var(--color-status-finish);
-    color: black;
+.page_container {
+    grid-template-columns: 100% 0%;
+    grid-template-rows: 100%;
+    display: grid;
+    height: 100%;
 }
 
-.errorStatus_td {
-    background: var(--color-status-error);
-}
-
-.processingStatus_td {
-    background: var(--color-status-processing);
-    color: black;
-}
-
-.queuedStatus_td {
-    background: var(--color-status-queued);
-}
-
-.cancelledStatus_td {
-    background: var(--color-status-cancelled);
-}
-
-.job_table td:nth-child(3) {
-    text-align: center;
-}
-
-.cancelButton {
-    font-weight: bold;
-    cursor: pointer;
-    color: #5a5a5a;
-}
-
-.cancelButton:hover {
-    color: white;
-}
-
-.error_wrapper {
-    position: relative;
-}
-
-.errorStatus_td > svg {
-    height: 1rem;
-    width: 1rem;
-    cursor: context-menu
-}
-
-.error_wrapper > div {
-    display: none;
-    width: 35rem;
-    max-height: 20rem;
-    top: -1rem;
+.overview-header {
+    display: flex;
+    align-items: center;
+    /* This will vertically center align the icon and the title */
+    /* If there is still a misalignment, you may adjust by adding 'align-self' to the children */
+    font-size: 20px;
+    font-weight: 500;
     overflow: auto;
-    padding: 1rem 0 0 1.7rem;
-    background: var(--color-popup);
-    box-shadow: 6px 6px 3px rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--color-popup-border);
-    left: 5rem;
+}
+
+.overview-icon {
+    background-color: #000;
+    /* Or any color you prefer */
+    width: 4px;
+    /* Thickness of the line */
+    height: 24px;
+    /* Height of the line, adjust as needed */
+    margin-right: 16px;
+    /* Space between the line and the text */
+    /* Adjust 'margin-top' if the line is not aligned with the text */
+}
+
+.overview-title {
+    /* Style for your title */
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.overview-content {
+    /* Style for your content */
+    text-indent: 30px;
+    /* Adjust the indent as needed */
+}
+
+.pie-chart-container {
+    height: 400px;
+    /* or any other appropriate height */
+    width: 100%;
+    position: relative;
+    /* Ensure the canvas doesn't overflow its container */
+}
+
+.pie-chart-title {
     position: absolute;
-}
-
-.errorStatus_td > svg:hover + .error_wrapper > div {
-    display: unset;
-}
-
-.error_wrapper > div:hover {
-    display: unset;
+    top: 50%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    pointer-events: none;
+    /* Ensure the title doesn't interfere with mouse events */
 }

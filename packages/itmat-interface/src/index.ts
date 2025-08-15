@@ -5,13 +5,13 @@ import http from 'http';
 import ITMATInterfaceRunner from './interfaceRunner';
 import config from './utils/configManager';
 import { db } from './database/database';
-import { IUser, userTypes } from '@itmat-broker/itmat-types';
+import { IUser, enumUserTypes } from '@itmat-broker/itmat-types';
 import { mailer } from './emailer/emailer';
 
 let interfaceRunner = new ITMATInterfaceRunner(config);
 let interfaceSockets: Socket[] = [];
 let interfaceServer: http.Server;
-let interfaceRouter: Express;
+let interfaceRouter: Express | undefined;
 
 function serverStart() {
     console.info(`Starting api server ${process.pid} ...`);
@@ -29,7 +29,7 @@ function serverStart() {
                 socket.setKeepAlive(true);
                 socket.setNoDelay(true);
                 socket.setTimeout(0);
-                (socket as any).timeout = 0;
+                (socket as unknown as Record<string, unknown>)['timeout'] = 0;
                 interfaceSockets.push(socket);
             })
             .on('error', (error) => {
@@ -42,9 +42,9 @@ function serverStart() {
         // notice users of expiration
         await emailNotification();
 
-        const interfaceRouterProxy = itmatRouter.getProxy();
-        if (interfaceRouterProxy?.upgrade)
-            interfaceServer.on('upgrade', interfaceRouterProxy?.upgrade);
+        // const interfaceRouterProxy = itmatRouter.getProxy();
+        // if (interfaceRouterProxy?.upgrade)
+        //     interfaceServer.on('upgrade', interfaceRouterProxy?.upgrade);
 
     }).catch((error) => {
         console.error('An error occurred while starting the ITMAT core.', error);
@@ -69,7 +69,8 @@ function serverSpinning() {
             console.info(`Shuting down api server ${process.pid} ...`);
             interfaceRouter?.on('close', () => {
                 serverStart();
-            }) || serverStart();
+            });
+            serverStart();
         });
     } else {
         serverStart();
@@ -78,6 +79,7 @@ function serverSpinning() {
 
 serverSpinning();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
@@ -89,19 +91,15 @@ if (module.hot) {
 async function emailNotification() {
     const now = Date.now().valueOf();
     const threshold = now + 7 * 24 * 60 * 60 * 1000;
-    // update info if not set before
-    await db.collections!.users_collection.updateMany({ deleted: null, emailNotificationsStatus: null }, {
-        $set: { emailNotificationsStatus: { expiringNotification: false } }
-    });
-    const users = await db.collections!.users_collection.find<IUser>({
+    const users = await db.collections.users_collection.find<IUser>({
         'expiredAt': {
             $lte: threshold,
             $gt: now
         },
-        'type': { $ne: userTypes.ADMIN },
+        'type': { $ne: enumUserTypes.ADMIN },
         'emailNotificationsActivated': true,
         'emailNotificationsStatus.expiringNotification': false,
-        'deleted': null
+        'life.deletedTime': null
     }).toArray();
     for (const user of users) {
         await mailer.sendMail({
@@ -123,9 +121,9 @@ async function emailNotification() {
                 </p>
             `
         });
-        await db.collections!.users_collection.findOneAndUpdate({ id: user.id }, {
+        await db.collections.users_collection.findOneAndUpdate({ id: user.id }, {
             $set: { emailNotificationsStatus: { expiringNotification: true } }
         });
     }
-    setInterval(emailNotification, 24 * 60 * 60 * 1000);
+    setInterval(() => { emailNotification().catch(() => { return; }); }, 24 * 60 * 60 * 1000);
 }

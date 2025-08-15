@@ -1,7 +1,6 @@
 import { FunctionComponent } from 'react';
-import { UserDetailsSection } from './userDetails';
 import { UserListSection } from './userList';
-import css from './userList.module.css';
+import css from './users.module.css';
 
 export const UserPage: FunctionComponent = () => {
     return (
@@ -13,9 +12,6 @@ export const UserPage: FunctionComponent = () => {
                 <div className='page_content'>
                     <UserListSection />
                 </div>
-            </div>
-            <div className='page_section additional_panel'>
-                <UserDetailsSection />
             </div>
         </div>
     );

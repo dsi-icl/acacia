@@ -1,5 +1,4 @@
 {
-    "eslint.autoFixOnSave": true,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
     },
@@ -19,5 +18,11 @@
         "**/.factorypath": true
     },
     "css.format.enable": true,
-    "typescript.tsdk": "node_modules\\typescript\\lib"
+    "workbench.colorCustomizations": {
+        "titleBar.activeBackground": "#af2b70",
+        "titleBar.activeForeground": "#f1cee1",
+        "titleBar.inactiveBackground": "#d53488",
+        "titleBar.inactiveForeground": "#e6d5dd"
+    },
+    "typescript.tsdk": "node_modules/typescript/lib"
 }

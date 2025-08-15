@@ -1,7 +1,7 @@
 /* eslint-disable */
 export default {
     displayName: 'itmat-job-executor',
-    preset: '../../jest.preset.js',
+    preset: '../../jest.preset.cjs',
     testEnvironment: 'node',
     transform: {
         '^.+\\.[tj]s$': '@swc/jest'

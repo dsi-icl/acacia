@@ -1,17 +1,19 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare namespace _default {
     export namespace subtle {
-        function encrypt(algorithm: any, keyHandle: any, buffer: any, ...args: any[]): Promise<any>;
-        function decrypt(algorithm: any, keyHandle: any, buffer: any, ...args: any[]): Promise<any>;
-        function sign(algorithm: any, keyHandle: any, buffer: any, ...args: any[]): Promise<any>;
-        function verify(algorithm: any, keyHandle: any, signature: any, buffer: any, ...args: any[]): Promise<any>;
-        function digest(algorithm: any, buffer: any, ...args: any[]): Promise<any>;
-        function generateKey(algorithm: any, extractable: any, keyUsage: any, ...args: any[]): Promise<any>;
-        function deriveKey(algorithm: any, baseKey: any, derivedKeyType: any, extractable: any, keyUsage: any): Promise<any>;
-        function deriveBits(algorithm: any, baseKey: any, length: any, ...args: any[]): Promise<any>;
-        function importKey(format: any, keyData: any, algorithm: any, extractable: any, keyUsage: any, ...args: any[]): Promise<any>;
-        function exportKey(format: any, keyHandle: any): Promise<any>;
-        function wrapKey(format: any, key: any, wrappingKey: any, wrappingKeyAlgorithm: any): Promise<any>;
-        function unwrapKey(format: any, wrappedKey: any, unwrappingKey: any, unwrapAlgorithm: any, unwrappedKeyAlgorithm: any, extractable: any, keyUsages: any): Promise<any>;
+        function encrypt(algorithm: any, keyHandle: any, buffer: any, ...args: any[]): Promise<unknown>;
+        function decrypt(algorithm: any, keyHandle: any, buffer: any, ...args: any[]): Promise<unknown>;
+        function sign(algorithm: any, keyHandle: any, buffer: any, ...args: any[]): Promise<unknown>;
+        function verify(algorithm: any, keyHandle: any, signature: any, buffer: any, ...args: any[]): Promise<unknown>;
+        function digest(algorithm: any, buffer: any, ...args: any[]): Promise<unknown>;
+        function generateKey(algorithm: any, extractable: any, keyUsage: any, ...args: any[]): Promise<unknown>;
+        function deriveKey(algorithm: any, baseKey: any, derivedKeyType: any, extractable: any, keyUsage: any): Promise<unknown>;
+        function deriveBits(algorithm: any, baseKey: any, length: any, ...args: any[]): Promise<unknown>;
+        function importKey(format: any, keyData: any, algorithm: any, extractable: any, keyUsage: any, ...args: any[]): Promise<unknown>;
+        function exportKey(format: any, keyHandle: any): Promise<unknown>;
+        function wrapKey(format: any, key: any, wrappingKey: any, wrappingKeyAlgorithm: any): Promise<unknown>;
+        function unwrapKey(format: any, wrappedKey: any, unwrappingKey: any, unwrapAlgorithm: any, unwrappedKeyAlgorithm: any, extractable: any, keyUsages: any): Promise<unknown>;
     }
     export function getRandomValues(array: any): any;
     export function initPrng(entropyData: any): void;

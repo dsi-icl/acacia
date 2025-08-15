@@ -4,10 +4,45 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
     target-branch: "develop"
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
+    groups:
+      nx:
+        patterns:
+          - "nx"
+          - "@nx/*"
+          - "@jscutlery/semver"
+      lint:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+      dev:
+        patterns:
+          - "commitlint"
+          - "@commitlint/*"
+          - "@swc/*"
+          - "@svgr/webpack"
+          - "esbuild*"
+          - "postcss"
+          - "prettier"
+          - "webpack"
+          - "verdaccio"
+          - "typscript"
+      test:
+        patterns:
+          - "jsdom"
+          - "sinon-chrome"
+          - "jest*"
+          - "babel-jest"
+      babel:
+        patterns:
+          - "babel*"
+          - "@babel/*"
+      types:
+        patterns:
+          - "@types/*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

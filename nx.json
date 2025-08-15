@@ -7,9 +7,6 @@
         }
     },
     "extends": "nx/presets/npm.json",
-    "affected": {
-        "defaultBase": "master"
-    },
     "generators": {
         "@nx/react": {
             "application": {
@@ -27,14 +24,6 @@
         }
     },
     "targetDefaults": {
-        "lint": {
-            "inputs": [
-                "default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintrc.js"
-            ],
-            "cache": true
-        },
         "e2e": {
             "inputs": [
                 "default",
@@ -48,7 +37,7 @@
             "inputs": [
                 "default",
                 "^default",
-                "{workspaceRoot}/jest.preset.js"
+                "{workspaceRoot}/jest.preset.cjs"
             ],
             "cache": true,
             "options": {
@@ -60,9 +49,20 @@
                     "codeCoverage": true
                 }
             }
+        },
+        "@nx/eslint:lint": {
+            "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintrc.js"
+            ],
+            "cache": true
         }
     },
     "defaultProject": "itmat-ui-react",
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
-    "nxCloudAccessToken": "ZDQ1NzgyNGEtZTAzMC00MWE2LWIxZTAtOTRmYzhjMzdjYWYyfHJlYWQtd3JpdGU="
+    "defaultBase": "master",
+    "useInferencePlugins": false,
+    "nxCloudAccessToken": "YzA0MTA2MTEtNWRkNC00Y2QzLWFhYTItZDE0YjkxMDVlOGMwfHJlYWQtd3JpdGU=",
+    "useLegacyCache": true
 }

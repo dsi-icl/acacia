@@ -8,8 +8,6 @@
             "users_collection": "USER_COLLECTION",
             "organisations_collection": "ORGANISATION_COLLECTION",
             "studies_collection": "STUDY_COLLECTION",
-            "projects_collection": "PROJECT_COLLECTION",
-            "queries_collection": "QUERY_COLLECTION",
             "log_collection": "LOG_COLLECTION",
             "data_collection": "DATA_COLLECTION",
             "roles_collection": "ROLE_COLLECTION",
@@ -17,7 +15,17 @@
             "files_collection": "FILES_COLLECTION",
             "sessions_collection": "SESSIONS_COLLECTION",
             "pubkeys_collection": "PUBKEY_COLLECTION",
-            "standardizations_collection": "STANDARDIZATION_COLLECTION"
+            "standardizations_collection": "STANDARDIZATION_COLLECTION",
+            "configs_collection": "CONFIG_COLLECTION",
+            "ontologies_collection": "ONTOLOGY_COLLECTION",
+            "docs_collection": "DOC_COLLECTION",
+            "cache_collection": "CACHE_COLLECTION",
+            "drives_collection": "DRIVE_COLLECTION",
+            "colddata_collection": "COLDDATA_COLLECTION",
+            "domains_collection": "DOMAIN_COLLECTION",
+            "webauthn_collection": "WEBAUTHN_COLLECTION",
+            "instance_collection": "INSTANCE_COLLECTION"
+            
         }
     },
     "server": {
@@ -37,8 +45,33 @@
     "sessionsSecret": "Change_Me",
     "aesSecret": "change_this",
     "nodemailer": {
-        "auth": {}
+        "auth": {
+            "user": "change_this",
+            "pass": "change_this"
+        }
     },
     "adminEmail": "admin@example.com",
-    "aeEndpoint": "http://localhost:9090"
+    "useWebdav": true,
+    "webdavPort": 1900,
+    "aeEndpoint": "http://localhost:9090",
+    "lxdEndpoint": "https://localhost:8443",
+    "lxdPortRange": [
+        30000,
+        40000
+    ],
+    "lxdSquidProxy": "traget_ip:3128",
+    "systemKey":{
+        "pubkey": "/path/system_key.pub",
+        "privkey": "/path/system_key.pem"
+    },
+    "lxdCertFile": {
+        "cert": "/path/mylxd.crt",
+        "key": "/path/mylxd.key"
+    },
+    "lxdRejectUnauthorized": false,
+    "jupyterPort": 8888,
+    "dmp": {
+        "host": "localhost",
+        "port": 3080
+    }
 }

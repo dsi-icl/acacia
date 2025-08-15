@@ -1,5 +1,7 @@
 import jStat from 'jstat';
-import { IFieldEntry, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
+import { IField, IOntologyTree, IOntologyRoute, enumStudyBlockColumnValueType } from '@itmat-broker/itmat-types';
+import { RcFile, UploadFile } from 'antd/es/upload';
+import dayjs from 'dayjs';
 
 export function get_t_test(t_array1: number[], t_array2: number[], digits: number) {
     if (t_array1.length <= 1 || t_array2.length <= 1) {
@@ -26,12 +28,12 @@ export function get_z_test(t_array1: number[], t_array2: number[], digits: numbe
     return [parseFloat(z_score.toFixed(digits)), parseFloat(z_pval.toFixed(digits))];
 }
 
-export function filterFields(fields: IFieldEntry[], ontologyTree: IOntologyTree) {
+export function filterFields(fields: IField[], ontologyTree: IOntologyTree) {
     if (fields.length === 0 || ontologyTree.routes === undefined || ontologyTree.routes?.length === undefined) {
         return [];
     }
 
-    const validFields: IFieldEntry[] = [];
+    const validFields: IField[] = [];
     const validRouteFields: string[] = ontologyTree.routes.map(el => el.field[0].replace('$', ''));
     fields.forEach(el => {
         if (validRouteFields.includes(el.fieldId.toString())) {
@@ -84,10 +86,10 @@ const rank = {
         }
         return array;
     },
-    rank: function (x, y) {
+    rank: function (x: Array<never>, y: Array<never>) {
         let nx = x.length;
         let ny = y.length;
-        const combined: any[] = [];
+        const combined: Array<{ set: 'x' | 'y', val: (typeof x)[number] }> = [];
         while (nx--) {
             combined.push({
                 set: 'x',
@@ -222,17 +224,17 @@ export function mannwhitneyu(x, y, alt, corr) {
     return { U: u.small, p: p };
 }
 
-export function generateCascader(root: any, array: any, includeEnd: boolean) {
+export function generateCascader(root, array, includeEnd: boolean) {
     if (!root) {
         return;
     }
-    let arrPointer: any = array;
+    let arrPointer = array;
     const path = [...root.path];
     if (includeEnd) {
         path.push(root.name);
     }
     for (const node of path) {
-        const obj = arrPointer.filter((el: { value: any; }) => el.value === node)[0];
+        const obj = arrPointer.filter((el: { value; }) => el.value === node)[0];
         if (!obj) {
             arrPointer.push({
                 value: node,
@@ -240,16 +242,16 @@ export function generateCascader(root: any, array: any, includeEnd: boolean) {
                 children: []
             });
         }
-        arrPointer = arrPointer.filter((el: { value: any; }) => el.value === node)[0].children;
+        arrPointer = arrPointer.filter((el: { value; }) => el.value === node)[0].children;
     }
 }
 
-export function findDmField(ontologyTree: IOntologyTree, fields: IFieldEntry[], key: string) {
+export function findDmField(ontologyTree: IOntologyTree, fields: IField[], key: string) {
     const node: IOntologyRoute | undefined = ontologyTree?.routes?.filter(el => el.name === key)[0];
     if (!node) {
         return null;
     }
-    const field: IFieldEntry = fields.filter(el => JSON.stringify(['$' + el.fieldId]) === JSON.stringify(node.field))[0];
+    const field: IField = fields.filter(el => JSON.stringify(['$' + el.fieldId]) === JSON.stringify(node.field))[0];
     if (!field) {
         return null;
     }
@@ -257,4 +259,125 @@ export function findDmField(ontologyTree: IOntologyTree, fields: IFieldEntry[], 
         ...field,
         visitRange: node.visitRange
     } : null;
+}
+
+export function formatBytes(bytes: number | undefined, decimals = 2): string {
+    if (!bytes) {
+        return '';
+    }
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+export function stringCompareFunc(a, b) {
+    // Convert both strings to lowercase for case-insensitive comparison
+    const lowerA = a.toLowerCase();
+    const lowerB = b.toLowerCase();
+
+    // Compare the strings
+    if (lowerA < lowerB) {
+        return -1; // a comes before b
+    }
+    if (lowerA > lowerB) {
+        return 1; // a comes after b
+    }
+    return 0; // a and b are equal
+}
+
+export const getBase64 = async (file: RcFile): Promise<string> =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
+
+export const convertFileListToApiFormat = async (fileList: UploadFile[], fieldName: string) => {
+    if (fileList.length === 0) {
+        return [];
+    }
+    const files = fileList.map(file => {
+        const fileObj = file as unknown as File;
+        if (!fileObj || !(fileObj instanceof File)) {
+            console.error('File is not an instance of File:', fileObj);
+            throw new Error('File object is not valid');
+        }
+
+        return {
+            fieldname: fieldName,
+            originalname: file.name,
+            mimetype: file.type,
+            encoding: '7bit', // or any actual encoding type
+            stream: fileObj
+        };
+    });
+
+    return files;
+};
+
+export function tableColumnRender(data, bcolumn) {
+    if (bcolumn.type === enumStudyBlockColumnValueType.STRING) {
+        return data.properties[bcolumn.property] ?? 'NA';
+    } else if (bcolumn.type === enumStudyBlockColumnValueType.TIME) {
+        const input = data.properties[bcolumn.property];
+        // Handle various date formats and normalize to yyyy-mm-dd
+        let value = 'NA';
+
+        if (input) {
+            // Check for 8-digit numbers or strings representing YYYYMMDD
+            if (/^\d{8}$/.test(String(input))) {
+                // Force the input to be treated as a YYYYMMDD string
+                const year = String(input).substring(0, 4);
+                const month = String(input).substring(4, 6);
+                const day = String(input).substring(6, 8);
+
+                // Manually create a date string in YYYY-MM-DD format
+                const formattedDate = `${year}-${month}-${day}`;
+
+                // Validate the date is correct
+                const dateObj = dayjs(formattedDate);
+                if (dateObj.isValid()) {
+                    return formattedDate;
+                }
+            }
+
+            // Try parsing with dayjs
+            const dateObj = dayjs(input);
+
+            // If it's a valid date
+            if (dateObj.isValid() && dayjs(input).year() > 1970) {
+                value = dateObj.format('YYYY-MM-DD');
+            } else {
+                // Try alternative formats if standard parsing fails
+                const formats = ['DDMMYYYY', 'DD-MM-YYYY', 'DD/MM/YYYY'];
+                for (const format of formats) {
+                    const altDate = dayjs(input, format);
+                    if (altDate.isValid()) {
+                        value = altDate.format('YYYY-MM-DD');
+                        break;
+                    }
+                }
+            }
+        }
+
+        return value;
+    }
+    return data.properties[bcolumn.property] ?? 'NA';
+}
+
+export function convertMillisecondsToPeriod(ms) {
+    const seconds = ms / 1000;
+    const days = Math.floor(seconds / (24 * 3600));
+    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    return { days, hours, minutes, seconds: secs };
 }

@@ -1,0 +1,42 @@
+{
+    "name": "itmat-apis",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/itmat-apis/src",
+    "projectType": "library",
+    "tags": [],
+    "targets": {
+        "build": {
+            "executor": "@nx/esbuild:esbuild",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "options": {
+                "outputPath": "dist/packages/itmat-apis",
+                "main": "packages/itmat-apis/src/index.ts",
+                "tsConfig": "packages/itmat-apis/tsconfig.lib.json",
+                "assets": [
+                    "packages/itmat-apis/*.md"
+                ],
+                "thirdParty": true,
+                "external": [
+                    "bcrypt"
+                ]
+            }
+        },
+        "lint": {
+            "executor": "@nx/eslint:lint",
+            "outputs": [
+                "{options.outputFile}"
+            ]
+        },
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": [
+                "{workspaceRoot}/coverage/packages/itmat-apis"
+            ],
+            "options": {
+                "jestConfig": "packages/itmat-apis/jest.config.ts"
+            }
+        }
+    }
+}

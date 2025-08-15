@@ -1,5 +1,5 @@
-import { CustomError, IServerBaseConfig, ServerBase } from '@itmat-broker/itmat-commons';
-import { IConfiguration } from '../utils/configManager';
+import { CustomError, IServerBaseConfig, Logger, ServerBase } from '@itmat-broker/itmat-commons';
+import { IConfiguration } from '@itmat-broker/itmat-cores';
 
 export interface IServerConfig extends IServerBaseConfig {
     bcrypt: {
@@ -8,12 +8,12 @@ export interface IServerConfig extends IServerBaseConfig {
 }
 
 export class Runner extends ServerBase<IServerConfig> {
-    constructor(protected config: IConfiguration) {
+    constructor(protected override config: IConfiguration) {
         super(config);
     }
     protected async additionalChecksAndActions(): Promise<void> {
         if (isNaN(parseInt(`${this.config.bcrypt.saltround}`, 10))) {
-            console.log(new CustomError('Salt round must be a number'));
+            Logger.log(new CustomError('Salt round must be a number'));
             process.exit(1);
         }
     }

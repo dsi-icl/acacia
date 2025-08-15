@@ -3,6 +3,7 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-models/src",
     "projectType": "library",
+    "tags": [],
     "targets": {
         "build": {
             "executor": "@nx/esbuild:esbuild",
@@ -16,7 +17,6 @@
                 "assets": [
                     "packages/itmat-models/*.md"
                 ],
-                "generatePackageJson": true,
                 "thirdParty": true
             }
         },
@@ -35,6 +35,5 @@
                 "jestConfig": "packages/itmat-models/jest.config.ts"
             }
         }
-    },
-    "tags": []
+    }
 }

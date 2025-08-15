@@ -8,7 +8,7 @@ const { exclude: _, ...swcJestConfig } = JSON.parse(
 );
 export default {
     displayName: 'itmat-commons',
-    preset: '../../jest.preset.js',
+    preset: '../../jest.preset.cjs',
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
     },
@@ -19,5 +19,6 @@ export default {
         "node_modules",
         "\\.pnp\\.[^\\\/]+$",
         "test[\\/]fixtures[\\/]_minio"
-    ]
+    ],
+    moduleNameMapper:{"^uuid$": "uuid"} 
 };

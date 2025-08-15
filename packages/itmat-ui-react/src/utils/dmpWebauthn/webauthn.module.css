@@ -1,0 +1,151 @@
+.login_wrapper {
+    height: 100%;
+    position: relative;
+    overflow: auto;
+}
+
+.login_box {
+    position: absolute;
+    top: calc(25% - 100px);
+    left: 50%;
+    width: 38rem;
+    text-align: center;
+    transform: translate(-50%);
+    padding-bottom: 4rem;
+}
+
+.login_box [class*="ant-select"] {
+    text-align: left;
+}
+
+.login_box img {
+    transform: translateX(10%);
+}
+
+.error_message {
+    width: 100%;
+    min-height: 20%;
+}
+
+.flexible_text_container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+}
+
+.summary {
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+/* Styles for the webauthn popup background */
+.popup_background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999; /* ensure it's above other content */
+}
+
+/* Styles for the registration dialog */
+.registration_dialog {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    z-index: 1000; /* ensure it's above the background */
+    width: 120%; /* adjust width as needed */
+    max-width: 400px; /* set a maximum width */
+    margin: 10% auto;
+    padding-bottom: 80px; /* Add space for floating buttons */
+    max-height: calc(100vh - 120px); /* Ensure dialog doesn't exceed viewport */
+    overflow-y: auto; /* Allow scrolling if content is too tall */
+}
+
+/* Responsive adjustments for the dialog */
+@media (max-width: 768px) {
+    .registration_dialog {
+        width: 90%;
+        margin: 5% auto;
+        padding-bottom: 100px; /* More space on mobile for floating buttons */
+        max-height: calc(100vh - 140px);
+    }
+}
+
+@media (max-width: 480px) {
+    .registration_dialog {
+        width: 95%;
+        padding: 15px;
+        padding-bottom: 120px; /* Even more space on small screens */
+        max-height: calc(100vh - 160px);
+    }
+}
+
+.primaryButton {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: space-between;
+    gap: 100px;
+    z-index: 1001;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 15px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(5px);
+    min-width: 320px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .primaryButton {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        gap: 60px;
+        padding: 12px 20px;
+        min-width: auto;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .primaryButton {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        justify-content: center;
+    }
+
+    .primaryButton button {
+        width: 100%;
+    }
+}
+
+.userIconWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
